@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				ritual: {
+					paper: '#FDFBF7',
+					green: '#A1C181',
+					peach: '#FFD6A5',
+					forest: '#94B49F',
+					moss: '#DBE4C6',
 				}
 			},
 			borderRadius: {
@@ -84,11 +92,38 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'tree-grow': {
+					'0%': { transform: 'scale(0.95)', opacity: '0.8' },
+					'50%': { transform: 'scale(1.03)', opacity: '1' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				},
+				'sway': {
+					'0%': { transform: 'rotate(0deg)' },
+					'25%': { transform: 'rotate(1deg)' },
+					'75%': { transform: 'rotate(-1deg)' },
+					'100%': { transform: 'rotate(0deg)' }
+				},
+				'fall': {
+					'0%': { transform: 'translateY(0)', opacity: '1' },
+					'100%': { transform: 'translateY(20px)', opacity: '0' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'tree-grow': 'tree-grow 1s ease-out forwards',
+				'fade-in': 'fade-in 0.5s ease-out forwards',
+				'sway': 'sway 3s ease-in-out infinite',
+				'fall': 'fall 3s ease-in-out infinite'
+			},
+			fontFamily: {
+				'serif': ['DM Serif Display', 'serif'],
+				'sans': ['Inter', 'sans-serif'],
 			}
 		}
 	},
