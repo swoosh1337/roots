@@ -11,19 +11,30 @@ const generateId = () => {
   return Math.random().toString(36).substring(2, 9);
 };
 
+// Define the Ritual type to include all possible status values
+type RitualStatus = 'active' | 'paused' | 'chained';
+
+// Define the Ritual interface
+interface Ritual {
+  id: string;
+  name: string;
+  streak: number;
+  status: RitualStatus;
+}
+
 // Sample initial ritual
-const initialRituals = [
+const initialRituals: Ritual[] = [
   {
     id: 'ritual-1',
     name: 'Morning Meditation',
     streak: 7,
-    status: 'active' as const,
+    status: 'active',
   }
 ];
 
 const Index = () => {
-  const [rituals, setRituals] = useState(initialRituals);
-  const [currentRitual, setCurrentRitual] = useState(initialRituals[0]);
+  const [rituals, setRituals] = useState<Ritual[]>(initialRituals);
+  const [currentRitual, setCurrentRitual] = useState<Ritual>(initialRituals[0]);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isAddRitualOpen, setIsAddRitualOpen] = useState(false);
   const [isChainModalOpen, setIsChainModalOpen] = useState(false);
@@ -58,7 +69,7 @@ const Index = () => {
   };
 
   // Handle selecting a ritual from the library
-  const handleSelectRitual = (ritual: typeof currentRitual) => {
+  const handleSelectRitual = (ritual: Ritual) => {
     setCurrentRitual(ritual);
     setIsLibraryOpen(false);
     
@@ -70,11 +81,11 @@ const Index = () => {
 
   // Handle adding a new ritual
   const handleAddRitual = (name: string) => {
-    const newRitual = {
+    const newRitual: Ritual = {
       id: generateId(),
       name,
       streak: 0,
-      status: 'active' as const,
+      status: 'active',
     };
     
     setRituals([...rituals, newRitual]);
