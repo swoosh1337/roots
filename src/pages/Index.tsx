@@ -5,41 +5,30 @@ import RitualLibrary from '@/components/RitualLibrary';
 import AddRitualModal from '@/components/AddRitualModal';
 import ChainRitualsModal from '@/components/ChainRitualsModal';
 import { useToast } from '@/components/ui/use-toast';
-
-// Unique ID generator
-const generateId = () => {
-  return Math.random().toString(36).substring(2, 9);
-};
-
-// Define the Ritual type to include all possible status values
-type RitualStatus = 'active' | 'paused' | 'chained';
-
-// Define the Ritual interface
-interface Ritual {
-  id: string;
-  name: string;
-  streak: number;
-  status: RitualStatus;
-}
-
-// Sample initial ritual
-const initialRituals: Ritual[] = [
-  {
-    id: 'ritual-1',
-    name: 'Morning Meditation',
-    streak: 7,
-    status: 'active',
-  }
-];
+import { useRituals, Ritual } from '@/hooks/useRituals';
 
 const Index = () => {
-  const [rituals, setRituals] = useState<Ritual[]>(initialRituals);
-  const [currentRitual, setCurrentRitual] = useState<Ritual>(initialRituals[0]);
+  const { 
+    rituals, 
+    loading, 
+    createRitual, 
+    completeRitual, 
+    chainRituals 
+  } = useRituals();
+  
+  const [currentRitual, setCurrentRitual] = useState<Ritual | null>(null);
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
   const [isAddRitualOpen, setIsAddRitualOpen] = useState(false);
   const [isChainModalOpen, setIsChainModalOpen] = useState(false);
   
   const { toast } = useToast();
+
+  // Set the current ritual when rituals are loaded
+  useEffect(() => {
+    if (rituals.length > 0 && !currentRitual) {
+      setCurrentRitual(rituals[0]);
+    }
+  }, [rituals, currentRitual]);
 
   // Toggle library sidebar
   const toggleLibrary = () => {
@@ -48,24 +37,15 @@ const Index = () => {
 
   // Handle ritual completion
   const handleRitualCompletion = (ritualId: string) => {
-    setRituals(rituals.map(ritual => 
-      ritual.id === ritualId 
-        ? { ...ritual, streak: ritual.streak + 1 } 
-        : ritual
-    ));
+    completeRitual(ritualId);
     
     // Update current ritual too if it's the completed one
-    if (currentRitual.id === ritualId) {
+    if (currentRitual && currentRitual.id === ritualId) {
       setCurrentRitual({
         ...currentRitual,
-        streak: currentRitual.streak + 1
+        streak_count: currentRitual.streak_count + 1
       });
     }
-    
-    toast({
-      title: "Ritual Completed!",
-      description: "Your tree is growing stronger each day.",
-    });
   };
 
   // Handle selecting a ritual from the library
@@ -80,49 +60,48 @@ const Index = () => {
   };
 
   // Handle adding a new ritual
-  const handleAddRitual = (name: string) => {
-    const newRitual: Ritual = {
-      id: generateId(),
-      name,
-      streak: 0,
-      status: 'active',
-    };
-    
-    setRituals([...rituals, newRitual]);
-    setIsAddRitualOpen(false);
-    
-    toast({
-      title: "New Ritual Created",
-      description: `"${name}" has been added to your library.`,
-    });
+  const handleAddRitual = async (name: string) => {
+    try {
+      await createRitual(name);
+      setIsAddRitualOpen(false);
+      
+      toast({
+        title: "New Ritual Created",
+        description: `"${name}" has been added to your library.`,
+      });
+    } catch (err) {
+      console.error("Error adding ritual:", err);
+    }
   };
 
   // Handle chaining rituals
   const handleChainRituals = (chainedRitualIds: string[]) => {
-    // Update the status of rituals in the chain
-    const updatedRituals = rituals.map(ritual => 
-      chainedRitualIds.includes(ritual.id)
-        ? { ...ritual, status: 'chained' as const }
-        : ritual
-    );
-    
-    setRituals(updatedRituals);
+    chainRituals(chainedRitualIds);
     setIsChainModalOpen(false);
-    
-    toast({
-      title: "Rituals Chained",
-      description: "Your selected rituals are now linked together.",
-    });
   };
+
+  // Show loading state
+  if (loading && rituals.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Loading your rituals...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
       {/* Main Focus Mode */}
-      <FocusMode
-        onOpenLibrary={toggleLibrary}
-        currentRitual={currentRitual}
-        onCompletedRitual={handleRitualCompletion}
-      />
+      {currentRitual && (
+        <FocusMode
+          onOpenLibrary={toggleLibrary}
+          currentRitual={currentRitual}
+          onCompletedRitual={handleRitualCompletion}
+        />
+      )}
       
       {/* Ritual Library Sidebar */}
       <RitualLibrary
