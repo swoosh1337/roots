@@ -4,15 +4,11 @@ import { motion } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import TreeVisual from './TreeVisual';
 import { Button } from '@/components/ui/button';
+import { Ritual } from '@/hooks/useRituals';
 
 interface FocusModeProps {
   onOpenLibrary: () => void;
-  currentRitual: {
-    id: string;
-    name: string;
-    streak: number;
-    status: 'active' | 'paused' | 'chained';
-  };
+  currentRitual: Ritual;
   onCompletedRitual: (id: string) => void;
 }
 
@@ -71,7 +67,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         {/* Tree visualization */}
         <div className="tree-container mb-8">
-          <TreeVisual streak={currentRitual.streak} isAnimating={isAnimating} />
+          <TreeVisual streak={currentRitual.streak_count} isAnimating={isAnimating} />
         </div>
 
         {/* Ritual name */}
@@ -104,7 +100,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
 
         {/* Streak counter */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-ritual-forest/70">Day {currentRitual.streak}</p>
+          <p className="text-sm text-ritual-forest/70">Day {currentRitual.streak_count}</p>
         </div>
       </div>
     </div>

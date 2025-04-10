@@ -1,13 +1,8 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Edit, Link, CheckCircle, Pause } from 'lucide-react';
-
-interface Ritual {
-  id: string;
-  name: string;
-  streak: number;
-  status: 'active' | 'paused' | 'chained';
-}
+import { Ritual } from '@/hooks/useRituals';
 
 interface RitualLibraryProps {
   rituals: Ritual[];
@@ -84,7 +79,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
               </div>
               
               <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-gray-500">Day {ritual.streak}</span>
+                <span className="text-sm text-gray-500">Day {ritual.streak_count}</span>
                 <span className={`status-badge status-${ritual.status} flex items-center gap-1`}>
                   {getStatusIcon(ritual.status)}
                   <span className="capitalize">{ritual.status}</span>

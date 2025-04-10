@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 // Define the Ritual type 
 export interface Ritual {
@@ -17,15 +18,19 @@ export const useRituals = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch rituals from Supabase
   const fetchRituals = async () => {
+    if (!user) return;
+    
     try {
       setLoading(true);
       
       const { data, error } = await supabase
         .from('habits')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -55,6 +60,15 @@ export const useRituals = () => {
 
   // Create a new ritual
   const createRitual = async (name: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to create rituals.",
+        variant: "destructive"
+      });
+      throw new Error("Authentication required");
+    }
+    
     try {
       const { data, error } = await supabase
         .from('habits')
@@ -62,7 +76,8 @@ export const useRituals = () => {
           name,
           streak_count: 0,
           is_active: true,
-          is_chained: false
+          is_chained: false,
+          user_id: user.id  // Add user_id to fix the type error
         })
         .select()
         .single();
@@ -92,6 +107,8 @@ export const useRituals = () => {
 
   // Update a ritual
   const updateRitual = async (id: string, updates: Partial<Ritual>) => {
+    if (!user) return;
+    
     try {
       // Convert our Ritual status to the database format
       const dbUpdates: Record<string, any> = {};
@@ -107,7 +124,8 @@ export const useRituals = () => {
       const { error } = await supabase
         .from('habits')
         .update(dbUpdates)
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
@@ -130,6 +148,8 @@ export const useRituals = () => {
 
   // Complete a ritual (increment streak and update last_completed)
   const completeRitual = async (id: string) => {
+    if (!user) return;
+    
     try {
       // Find current ritual to get streak count
       const ritual = rituals.find(r => r.id === id);
@@ -143,7 +163,8 @@ export const useRituals = () => {
           streak_count: ritual.streak_count + 1,
           last_completed: today
         })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
@@ -176,12 +197,15 @@ export const useRituals = () => {
 
   // Chain rituals
   const chainRituals = async (ritualIds: string[]) => {
+    if (!user) return;
+    
     try {
       // Update all specified rituals to be chained
       const { error } = await supabase
         .from('habits')
         .update({ is_chained: true })
-        .in('id', ritualIds);
+        .in('id', ritualIds)
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
@@ -208,10 +232,12 @@ export const useRituals = () => {
     }
   };
 
-  // Load rituals on initial mount
+  // Load rituals on initial mount or when user changes
   useEffect(() => {
-    fetchRituals();
-  }, []);
+    if (user) {
+      fetchRituals();
+    }
+  }, [user]);
 
   return {
     rituals,
