@@ -86,7 +86,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
               </div>
               
               <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-gray-500">Day {ritual.streak_count}</span>
+                <span className="text-sm text-gray-500">Day {ritual.streak}</span>
                 <span className={`status-badge status-${ritual.status} flex items-center gap-1`}>
                   {getStatusIcon(ritual.status)}
                   <span className="capitalize">{ritual.status}</span>
