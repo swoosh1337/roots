@@ -58,9 +58,13 @@ const Index = () => {
   };
 
   // Handler for when user selects a different ritual
-  const handleSelectRitual = (ritual: Ritual) => {
-    setCurrentRitual(ritual);
-    setDisplayMode('focus');
+  const handleSelectRitual = (ritual: UIRitual) => {
+    // Find the corresponding backend Ritual from the UIRitual
+    const selectedRitual = rituals.find(r => r.id === ritual.id);
+    if (selectedRitual) {
+      setCurrentRitual(selectedRitual);
+      setDisplayMode('focus');
+    }
   };
 
   // Handler for adding a new ritual

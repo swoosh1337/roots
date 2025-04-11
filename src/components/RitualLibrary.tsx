@@ -2,13 +2,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Edit, Link, CheckCircle, Pause } from 'lucide-react';
-import { Ritual } from '@/hooks/useRituals';
+
+// Update to use UIRitual interface instead of importing Ritual from useRituals
+interface UIRitual {
+  id: string;
+  name: string;
+  streak: number;
+  status: 'active' | 'paused' | 'chained';
+}
 
 interface RitualLibraryProps {
-  rituals: Ritual[];
+  rituals: UIRitual[];
   isOpen: boolean;
   onClose: () => void;
-  onSelectRitual: (ritual: Ritual) => void;
+  onSelectRitual: (ritual: UIRitual) => void;
   onAddRitual: () => void;
   onChainRituals: () => void;
 }
