@@ -89,12 +89,12 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-ritual-paper">
+    <div className="flex items-center justify-center min-h-screen bg-[#FDFBF7]">
       {/* Background pattern */}
       <div className="absolute inset-0 z-0 opacity-5">
         <div className="absolute top-10 left-1/4 w-6 h-6 bg-ritual-green rounded-full" />
         <div className="absolute top-1/4 right-1/3 w-4 h-4 bg-ritual-peach rounded-full" />
-        <div className="absolute bottom-1/3 left-1/3 w-5 h-5 bg-ritual-forest rounded-full" />
+        <div className="absolute bottom-1/3 left-1/3 w-5 h-5 bg-[#2E3D27] rounded-full" />
         <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-ritual-moss rounded-full" />
       </div>
       
@@ -103,12 +103,12 @@ const Auth = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md p-8 mx-4 rounded-2xl shadow-lg bg-ritual-moss/80 backdrop-blur-sm"
+        className="relative z-10 w-full max-w-md p-8 mx-4 rounded-2xl shadow-lg bg-[#DBE4C6] backdrop-blur-sm"
       >
         {/* App branding */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-4xl font-bold text-ritual-forest mb-2">Roots</h1>
-          <p className="text-ritual-forest/80 text-sm">
+          <h1 className="font-serif text-4xl font-bold text-[#2E3D27] mb-2">Roots</h1>
+          <p className="text-[#2E3D27]/80 text-sm">
             Grow your rituals. One streak at a time.
           </p>
         </div>
@@ -132,12 +132,12 @@ const Auth = () => {
         </div>
         
         {/* Tabs */}
-        <div className="flex rounded-full bg-ritual-paper/60 p-1 mb-6">
+        <div className="flex rounded-full bg-[#FDFBF7]/60 p-1 mb-6">
           <button
             className={`flex-1 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
               activeTab === 'login'
-                ? 'bg-ritual-peach/80 text-ritual-forest'
-                : 'text-ritual-forest/60 hover:text-ritual-forest'
+                ? 'bg-[#FFD6A5] text-[#2E3D27]'
+                : 'text-[#2E3D27]/60 hover:text-[#2E3D27]'
             }`}
             onClick={() => setActiveTab('login')}
           >
@@ -146,8 +146,8 @@ const Auth = () => {
           <button
             className={`flex-1 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
               activeTab === 'register'
-                ? 'bg-ritual-peach/80 text-ritual-forest'
-                : 'text-ritual-forest/60 hover:text-ritual-forest'
+                ? 'bg-[#FFD6A5] text-[#2E3D27]'
+                : 'text-[#2E3D27]/60 hover:text-[#2E3D27]'
             }`}
             onClick={() => setActiveTab('register')}
           >
@@ -158,7 +158,7 @@ const Auth = () => {
         {activeTab === 'login' ? (
           <form onSubmit={handleSignIn} className="space-y-5">
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-ritual-forest">
+              <label htmlFor="email" className="block text-sm font-medium text-[#2E3D27]">
                 Email
               </label>
               <Input
@@ -168,12 +168,12 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="name@example.com"
-                className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-ritual-forest/30"
+                className="w-full bg-[#FDFBF7] border-[#2E3D27]/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-[#2E3D27]/30"
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-ritual-forest">
+              <label htmlFor="password" className="block text-sm font-medium text-[#2E3D27]">
                 Password
               </label>
               <div className="relative">
@@ -184,12 +184,12 @@ const Auth = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 pr-10 placeholder:text-ritual-forest/30"
+                  className="w-full bg-[#FDFBF7] border-[#2E3D27]/20 focus:border-ritual-green focus:ring-ritual-green/20 pr-10 placeholder:text-[#2E3D27]/30"
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-ritual-forest/50 hover:text-ritual-forest"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#2E3D27]/50 hover:text-[#2E3D27]"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -203,13 +203,13 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-6 mt-6 bg-ritual-forest hover:bg-ritual-forest/90 text-white rounded-full font-medium shadow-md"
+                className="w-full py-6 mt-6 bg-[#A1C181] hover:bg-[#A1C181]/90 text-white rounded-full font-medium shadow-md"
               >
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </motion.div>
             
-            <p className="text-center text-sm text-ritual-forest/70 mt-4">
+            <p className="text-center text-sm text-[#2E3D27]/70 mt-4">
               Don't have an account?{" "}
               <button
                 type="button"
@@ -223,8 +223,8 @@ const Auth = () => {
         ) : (
           <form onSubmit={handleSignUp} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-ritual-forest">
-                Name <span className="text-ritual-forest/50">(optional)</span>
+              <label htmlFor="name" className="block text-sm font-medium text-[#2E3D27]">
+                Name <span className="text-[#2E3D27]/50">(optional)</span>
               </label>
               <Input
                 id="name"
@@ -232,12 +232,12 @@ const Auth = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-ritual-forest/30"
+                className="w-full bg-[#FDFBF7] border-[#2E3D27]/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-[#2E3D27]/30"
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-ritual-forest">
+              <label htmlFor="email" className="block text-sm font-medium text-[#2E3D27]">
                 Email
               </label>
               <Input
@@ -247,12 +247,12 @@ const Auth = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="name@example.com"
-                className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-ritual-forest/30"
+                className="w-full bg-[#FDFBF7] border-[#2E3D27]/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-[#2E3D27]/30"
               />
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-ritual-forest">
+              <label htmlFor="password" className="block text-sm font-medium text-[#2E3D27]">
                 Password
               </label>
               <div className="relative">
@@ -263,17 +263,17 @@ const Auth = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 pr-10 placeholder:text-ritual-forest/30"
+                  className="w-full bg-[#FDFBF7] border-[#2E3D27]/20 focus:border-ritual-green focus:ring-ritual-green/20 pr-10 placeholder:text-[#2E3D27]/30"
                 />
                 <button
                   type="button"
                   onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-ritual-forest/50 hover:text-ritual-forest"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#2E3D27]/50 hover:text-[#2E3D27]"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <p className="text-xs text-ritual-forest/60 mt-1">
+              <p className="text-xs text-[#2E3D27]/60 mt-1">
                 Password must be at least 6 characters
               </p>
             </div>
@@ -285,13 +285,13 @@ const Auth = () => {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-6 mt-6 bg-ritual-forest hover:bg-ritual-forest/90 text-white rounded-full font-medium shadow-md"
+                className="w-full py-6 mt-6 bg-[#A1C181] hover:bg-[#A1C181]/90 text-white rounded-full font-medium shadow-md"
               >
                 {loading ? "Creating Account..." : "Create Account"}
               </Button>
             </motion.div>
             
-            <p className="text-center text-sm text-ritual-forest/70 mt-4">
+            <p className="text-center text-sm text-[#2E3D27]/70 mt-4">
               Already have an account?{" "}
               <button
                 type="button"
