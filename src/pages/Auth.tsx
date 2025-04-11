@@ -1,20 +1,31 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Sprout } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,18 +34,24 @@ const Auth = () => {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name: name || email.split('@')[0],
+          },
+        },
       });
 
       if (error) throw error;
       
       toast({
-        title: "Account created successfully!",
-        description: "Please check your email for the confirmation link.",
+        title: "Welcome to Roots!",
+        description: "Your account has been created. Please check your email for verification.",
+        className: "bg-ritual-green/20 border-ritual-green text-ritual-forest",
       });
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error creating account",
+        title: "Couldn't create your account",
         description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
@@ -58,8 +75,8 @@ const Auth = () => {
     } catch (error) {
       console.error(error);
       toast({
-        title: "Error signing in",
-        description: error instanceof Error ? error.message : "Invalid email or password",
+        title: "Couldn't sign you in",
+        description: error instanceof Error ? error.message : "Please check your email and password",
         variant: "destructive",
       });
     } finally {
@@ -67,102 +84,226 @@ const Auth = () => {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-tr from-green-50 to-blue-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Roots</CardTitle>
-          <CardDescription className="text-center">
-            Grow your daily habits, one ritual at a time
-          </CardDescription>
-        </CardHeader>
+    <div className="flex items-center justify-center min-h-screen bg-ritual-paper">
+      {/* Background pattern */}
+      <div className="absolute inset-0 z-0 opacity-5">
+        <div className="absolute top-10 left-1/4 w-6 h-6 bg-ritual-green rounded-full" />
+        <div className="absolute top-1/4 right-1/3 w-4 h-4 bg-ritual-peach rounded-full" />
+        <div className="absolute bottom-1/3 left-1/3 w-5 h-5 bg-ritual-forest rounded-full" />
+        <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-ritual-moss rounded-full" />
+      </div>
+      
+      {/* Card container */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative z-10 w-full max-w-md p-8 mx-4 rounded-2xl shadow-lg bg-ritual-moss/80 backdrop-blur-sm"
+      >
+        {/* App branding */}
+        <div className="text-center mb-8">
+          <h1 className="font-serif text-4xl font-bold text-ritual-forest mb-2">Roots</h1>
+          <p className="text-ritual-forest/80 text-sm">
+            Grow your rituals. One streak at a time.
+          </p>
+        </div>
         
-        <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="login">
-            <form onSubmit={handleSignIn}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="name@example.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </CardContent>
-              
-              <CardFooter>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  disabled={loading}
+        {/* The sprout icon */}
+        <div className="absolute -top-6 right-8">
+          <motion.div
+            animate={{ 
+              y: [0, -5, 0], 
+              scale: [1, 1.05, 1],
+              rotate: [0, 2, 0, -2, 0]
+            }}
+            transition={{ 
+              duration: 4, 
+              ease: "easeInOut", 
+              repeat: Infinity,
+            }}
+          >
+            <Sprout className="h-12 w-12 text-ritual-green" />
+          </motion.div>
+        </div>
+        
+        {/* Tabs */}
+        <div className="flex rounded-full bg-ritual-paper/60 p-1 mb-6">
+          <button
+            className={`flex-1 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+              activeTab === 'login'
+                ? 'bg-ritual-peach/80 text-ritual-forest'
+                : 'text-ritual-forest/60 hover:text-ritual-forest'
+            }`}
+            onClick={() => setActiveTab('login')}
+          >
+            Login
+          </button>
+          <button
+            className={`flex-1 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+              activeTab === 'register'
+                ? 'bg-ritual-peach/80 text-ritual-forest'
+                : 'text-ritual-forest/60 hover:text-ritual-forest'
+            }`}
+            onClick={() => setActiveTab('register')}
+          >
+            Register
+          </button>
+        </div>
+        
+        {activeTab === 'login' ? (
+          <form onSubmit={handleSignIn} className="space-y-5">
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-medium text-ritual-forest">
+                Email
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="name@example.com"
+                className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-ritual-forest/30"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-ritual-forest">
+                Password
+              </label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 pr-10 placeholder:text-ritual-forest/30"
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-ritual-forest/50 hover:text-ritual-forest"
                 >
-                  {loading ? "Signing in..." : "Sign In"}
-                </Button>
-              </CardFooter>
-            </form>
-          </TabsContent>
-          
-          <TabsContent value="register">
-            <form onSubmit={handleSignUp}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="name@example.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Password must be at least 6 characters
-                  </p>
-                </div>
-              </CardContent>
-              
-              <CardFooter>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  disabled={loading}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full py-6 mt-6 bg-ritual-forest hover:bg-ritual-forest/90 text-white rounded-full font-medium shadow-md"
+              >
+                {loading ? "Signing in..." : "Sign In"}
+              </Button>
+            </motion.div>
+            
+            <p className="text-center text-sm text-ritual-forest/70 mt-4">
+              Don't have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setActiveTab('register')}
+                className="text-ritual-green font-medium hover:underline"
+              >
+                Sign up
+              </button>
+            </p>
+          </form>
+        ) : (
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-ritual-forest">
+                Name <span className="text-ritual-forest/50">(optional)</span>
+              </label>
+              <Input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-ritual-forest/30"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-medium text-ritual-forest">
+                Email
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="name@example.com"
+                className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 placeholder:text-ritual-forest/30"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-ritual-forest">
+                Password
+              </label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full bg-ritual-paper border-ritual-forest/20 focus:border-ritual-green focus:ring-ritual-green/20 pr-10 placeholder:text-ritual-forest/30"
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-ritual-forest/50 hover:text-ritual-forest"
                 >
-                  {loading ? "Creating Account..." : "Create Account"}
-                </Button>
-              </CardFooter>
-            </form>
-          </TabsContent>
-        </Tabs>
-      </Card>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <p className="text-xs text-ritual-forest/60 mt-1">
+                Password must be at least 6 characters
+              </p>
+            </div>
+            
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full py-6 mt-6 bg-ritual-forest hover:bg-ritual-forest/90 text-white rounded-full font-medium shadow-md"
+              >
+                {loading ? "Creating Account..." : "Create Account"}
+              </Button>
+            </motion.div>
+            
+            <p className="text-center text-sm text-ritual-forest/70 mt-4">
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setActiveTab('login')}
+                className="text-ritual-green font-medium hover:underline"
+              >
+                Sign in
+              </button>
+            </p>
+          </form>
+        )}
+      </motion.div>
     </div>
   );
 };

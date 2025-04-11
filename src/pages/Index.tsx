@@ -1,133 +1,113 @@
 
 import React, { useState, useEffect } from 'react';
-import FocusMode from '@/components/FocusMode';
 import RitualLibrary from '@/components/RitualLibrary';
+import FocusMode from '@/components/FocusMode';
 import AddRitualModal from '@/components/AddRitualModal';
 import ChainRitualsModal from '@/components/ChainRitualsModal';
-import { useToast } from '@/components/ui/use-toast';
 import { useRituals, Ritual } from '@/hooks/useRituals';
 
-const Index = () => {
-  const { 
-    rituals, 
-    loading, 
-    createRitual, 
-    completeRitual, 
-    chainRituals 
-  } = useRituals();
-  
-  const [currentRitual, setCurrentRitual] = useState<Ritual | null>(null);
-  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
-  const [isAddRitualOpen, setIsAddRitualOpen] = useState(false);
-  const [isChainModalOpen, setIsChainModalOpen] = useState(false);
-  
-  const { toast } = useToast();
+type DisplayMode = 'focus' | 'library';
 
-  // Set the current ritual when rituals are loaded
+const Index = () => {
+  const { rituals, loading, createRitual, completeRitual, chainRituals } = useRituals();
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('focus');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showChainModal, setShowChainModal] = useState(false);
+  const [currentRitual, setCurrentRitual] = useState<Ritual | null>(null);
+
+  // Find first active ritual for focus mode
   useEffect(() => {
     if (rituals.length > 0 && !currentRitual) {
-      setCurrentRitual(rituals[0]);
+      const activeRitual = rituals.find(r => r.is_active);
+      if (activeRitual) {
+        setCurrentRitual(activeRitual);
+      }
     }
   }, [rituals, currentRitual]);
 
-  // Toggle library sidebar
-  const toggleLibrary = () => {
-    setIsLibraryOpen(!isLibraryOpen);
+  // Handle modal openings
+  const handleOpenAddModal = () => {
+    setShowAddModal(true);
   };
 
-  // Handle ritual completion
-  const handleRitualCompletion = (ritualId: string) => {
+  const handleOpenChainModal = () => {
+    setShowChainModal(true);
+  };
+
+  // Map Supabase ritual to UI ritual format
+  const mapRitualForUI = (ritual: Ritual) => {
+    return {
+      id: ritual.id,
+      name: ritual.name,
+      streak: ritual.streak_count,
+      status: ritual.is_chained ? 'chained' : (ritual.is_active ? 'active' : 'paused')
+    };
+  };
+
+  // Handler for when user completes a ritual
+  const handleCompletedRitual = (ritualId: string) => {
     completeRitual(ritualId);
-    
-    // Update current ritual too if it's the completed one
-    if (currentRitual && currentRitual.id === ritualId) {
-      setCurrentRitual({
-        ...currentRitual,
-        streak_count: currentRitual.streak_count + 1
-      });
-    }
   };
 
-  // Handle selecting a ritual from the library
+  // Handler for when user selects a different ritual
   const handleSelectRitual = (ritual: Ritual) => {
     setCurrentRitual(ritual);
-    setIsLibraryOpen(false);
-    
-    toast({
-      title: "Ritual Changed",
-      description: `Now focusing on: ${ritual.name}`,
-    });
+    setDisplayMode('focus');
   };
 
-  // Handle adding a new ritual
-  const handleAddRitual = async (name: string) => {
-    try {
-      await createRitual(name);
-      setIsAddRitualOpen(false);
-      
-      toast({
-        title: "New Ritual Created",
-        description: `"${name}" has been added to your library.`,
-      });
-    } catch (err) {
-      console.error("Error adding ritual:", err);
-    }
+  // Handler for adding a new ritual
+  const handleAddRitual = (name: string) => {
+    createRitual(name);
+    setShowAddModal(false);
   };
 
-  // Handle chaining rituals
-  const handleChainRituals = (chainedRitualIds: string[]) => {
-    chainRituals(chainedRitualIds);
-    setIsChainModalOpen(false);
+  // Handler for chaining rituals
+  const handleChainRituals = (ritual1Id: string, ritual2Id: string) => {
+    chainRituals(ritual1Id, ritual2Id);
+    setShowChainModal(false);
   };
 
-  // Show loading state
-  if (loading && rituals.length === 0) {
+  // Check if we have data to display
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg text-muted-foreground">Loading your rituals...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-ritual-forest">Loading your rituals...</div>
       </div>
     );
   }
 
+  // Render the appropriate mode
   return (
-    <>
-      {/* Main Focus Mode */}
-      {currentRitual && (
+    <div className="min-h-screen bg-ritual-paper">
+      {displayMode === 'focus' && currentRitual ? (
         <FocusMode
-          onOpenLibrary={toggleLibrary}
+          onOpenLibrary={() => setDisplayMode('library')}
           currentRitual={currentRitual}
-          onCompletedRitual={handleRitualCompletion}
+          onCompletedRitual={handleCompletedRitual}
+        />
+      ) : (
+        <RitualLibrary
+          rituals={rituals.map(ritual => mapRitualForUI(ritual))}
+          onSelectRitual={handleSelectRitual}
+          onAddRitual={handleOpenAddModal}
+          onChainRituals={handleOpenChainModal}
         />
       )}
-      
-      {/* Ritual Library Sidebar */}
-      <RitualLibrary
-        rituals={rituals}
-        isOpen={isLibraryOpen}
-        onClose={() => setIsLibraryOpen(false)}
-        onSelectRitual={handleSelectRitual}
-        onAddRitual={() => setIsAddRitualOpen(true)}
-        onChainRituals={() => setIsChainModalOpen(true)}
-      />
-      
-      {/* Add Ritual Modal */}
+
+      {/* Modals */}
       <AddRitualModal
-        isOpen={isAddRitualOpen}
-        onClose={() => setIsAddRitualOpen(false)}
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
         onAddRitual={handleAddRitual}
       />
       
-      {/* Chain Rituals Modal */}
       <ChainRitualsModal
-        isOpen={isChainModalOpen}
-        onClose={() => setIsChainModalOpen(false)}
-        rituals={rituals}
+        isOpen={showChainModal}
+        onClose={() => setShowChainModal(false)}
+        rituals={rituals.map(ritual => mapRitualForUI(ritual))}
         onChainRituals={handleChainRituals}
       />
-    </>
+    </div>
   );
 };
 
