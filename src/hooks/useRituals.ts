@@ -77,7 +77,7 @@ export const useRituals = () => {
           streak_count: 0,
           is_active: true,
           is_chained: false,
-          user_id: user.id  // Add user_id to fix the type error
+          user_id: user.id
         })
         .select()
         .single();
@@ -195,7 +195,7 @@ export const useRituals = () => {
     }
   };
 
-  // Chain rituals
+  // Chain rituals - updated to accept string array
   const chainRituals = async (ritualIds: string[]) => {
     if (!user) return;
     

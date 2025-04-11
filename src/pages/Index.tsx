@@ -1,12 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import RitualLibrary from '@/components/RitualLibrary';
+import { useRituals, Ritual } from '@/hooks/useRituals';
 import FocusMode from '@/components/FocusMode';
 import AddRitualModal from '@/components/AddRitualModal';
 import ChainRitualsModal from '@/components/ChainRitualsModal';
-import { useRituals, Ritual } from '@/hooks/useRituals';
+import RitualLibrary from '@/components/RitualLibrary';
 
 type DisplayMode = 'focus' | 'library';
+
+// Define a UI Ritual type that matches what our components expect
+interface UIRitual {
+  id: string;
+  name: string;
+  streak: number;
+  status: 'active' | 'paused' | 'chained';
+}
 
 const Index = () => {
   const { rituals, loading, createRitual, completeRitual, chainRituals } = useRituals();
@@ -18,7 +26,7 @@ const Index = () => {
   // Find first active ritual for focus mode
   useEffect(() => {
     if (rituals.length > 0 && !currentRitual) {
-      const activeRitual = rituals.find(r => r.is_active);
+      const activeRitual = rituals.find(r => r.status === 'active');
       if (activeRitual) {
         setCurrentRitual(activeRitual);
       }
@@ -35,12 +43,12 @@ const Index = () => {
   };
 
   // Map Supabase ritual to UI ritual format
-  const mapRitualForUI = (ritual: Ritual) => {
+  const mapRitualForUI = (ritual: Ritual): UIRitual => {
     return {
       id: ritual.id,
       name: ritual.name,
       streak: ritual.streak_count,
-      status: ritual.is_chained ? 'chained' : (ritual.is_active ? 'active' : 'paused')
+      status: ritual.status
     };
   };
 
@@ -62,8 +70,8 @@ const Index = () => {
   };
 
   // Handler for chaining rituals
-  const handleChainRituals = (ritual1Id: string, ritual2Id: string) => {
-    chainRituals(ritual1Id, ritual2Id);
+  const handleChainRituals = (ritualIds: string[]) => {
+    chainRituals(ritualIds);
     setShowChainModal(false);
   };
 
@@ -88,6 +96,8 @@ const Index = () => {
       ) : (
         <RitualLibrary
           rituals={rituals.map(ritual => mapRitualForUI(ritual))}
+          isOpen={true}
+          onClose={() => {}}
           onSelectRitual={handleSelectRitual}
           onAddRitual={handleOpenAddModal}
           onChainRituals={handleOpenChainModal}
