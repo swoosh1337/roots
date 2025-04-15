@@ -1,9 +1,11 @@
+
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { X, Leaf, Camera, Loader2 } from 'lucide-react';
-import { useAuth, UserProfile } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
+import { UserProfile } from '@/types/auth'; // Import from types/auth instead of hooks/useAuth
 import ProfileStats from './ProfileStats';
 import StreakCalendar from './StreakCalendar';
 import { useToast } from '@/components/ui/use-toast';
