@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Sprout } from 'lucide-react';
+import { Eye, EyeOff, Sprout, Google } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
@@ -14,6 +14,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const { toast } = useToast();
@@ -81,6 +82,39 @@ const Auth = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      setGoogleLoading(true);
+      console.log("Attempting Google Sign-In...");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      
+      if (error) {
+        console.error("Error signing in with Google:", error);
+        toast({
+          title: "Google Sign-in Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        console.log("Redirecting to Google for authentication...");
+      }
+    } catch (error) {
+      console.error("Unexpected error during Google sign-in:", error);
+      toast({
+        title: "Google Sign-in Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -208,6 +242,32 @@ const Auth = () => {
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </motion.div>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#2E3D27]/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-[#DBE4C6] text-[#2E3D27]/60">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                type="button"
+                onClick={signInWithGoogle}
+                disabled={googleLoading}
+                className="w-full flex items-center justify-center py-6 bg-[#FDFBF7] hover:bg-[#FDFBF7]/90 text-[#2E3D27] border border-[#2E3D27]/20 rounded-full font-medium shadow-sm"
+              >
+                <Google size={20} className="mr-2" />
+                {googleLoading ? "Connecting..." : "Sign in with Google"}
+              </Button>
+            </motion.div>
             
             <p className="text-center text-sm text-[#2E3D27]/70 mt-4">
               Don't have an account?{" "}
@@ -288,6 +348,32 @@ const Auth = () => {
                 className="w-full py-6 mt-6 bg-[#A1C181] hover:bg-[#A1C181]/90 text-white rounded-full font-medium shadow-md"
               >
                 {loading ? "Creating Account..." : "Create Account"}
+              </Button>
+            </motion.div>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#2E3D27]/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-[#DBE4C6] text-[#2E3D27]/60">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                type="button"
+                onClick={signInWithGoogle}
+                disabled={googleLoading}
+                className="w-full flex items-center justify-center py-6 bg-[#FDFBF7] hover:bg-[#FDFBF7]/90 text-[#2E3D27] border border-[#2E3D27]/20 rounded-full font-medium shadow-sm"
+              >
+                <Google size={20} className="mr-2" />
+                {googleLoading ? "Connecting..." : "Sign up with Google"}
               </Button>
             </motion.div>
             
