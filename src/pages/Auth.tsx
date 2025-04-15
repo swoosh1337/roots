@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Sprout, Google } from 'lucide-react';
+import { Eye, EyeOff, Sprout } from 'lucide-react';
+import { Icon } from 'lucide-react';  // Alternative import method
 import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
@@ -264,7 +264,7 @@ const Auth = () => {
                 disabled={googleLoading}
                 className="w-full flex items-center justify-center py-6 bg-[#FDFBF7] hover:bg-[#FDFBF7]/90 text-[#2E3D27] border border-[#2E3D27]/20 rounded-full font-medium shadow-sm"
               >
-                <Google size={20} className="mr-2" />
+                <Icon name="google" size={20} className="mr-2" />
                 {googleLoading ? "Connecting..." : "Sign in with Google"}
               </Button>
             </motion.div>
@@ -372,7 +372,7 @@ const Auth = () => {
                 disabled={googleLoading}
                 className="w-full flex items-center justify-center py-6 bg-[#FDFBF7] hover:bg-[#FDFBF7]/90 text-[#2E3D27] border border-[#2E3D27]/20 rounded-full font-medium shadow-sm"
               >
-                <Google size={20} className="mr-2" />
+                <Icon name="google" size={20} className="mr-2" />
                 {googleLoading ? "Connecting..." : "Sign up with Google"}
               </Button>
             </motion.div>
