@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import ProfileStats from './ProfileStats';
 import StreakCalendar from './StreakCalendar';
 import { useToast } from '@/components/ui/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 interface ProfilePanelProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ interface ProfilePanelProps {
 }
 
 const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
 
   const handleAddFriend = () => {
@@ -89,8 +89,8 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
           </h2>
         </div>
 
-        {/* Content section */}
-        <div className="flex flex-col p-6 gap-6 overflow-y-auto">
+        {/* Content section - Make it flex column with grow */}
+        <div className="flex flex-col flex-grow p-6 gap-6 overflow-y-auto">
           {/* Stats Grid */}
           <ProfileStats stats={stats} />
 
@@ -114,6 +114,23 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
               onClick={handleViewGarden}
             >
               View Garden
+            </Button>
+          </div>
+
+          {/* Spacer to push logout to bottom */}
+          <div className="flex-grow"></div>
+
+          {/* Divider */}
+          <Separator className="my-4 bg-ritual-moss/30" />
+
+          {/* Logout Button */}
+          <div className="pb-4">
+            <Button
+              variant="ghost" 
+              className="w-full text-center text-[#A14444] hover:text-[#B65C5C] hover:bg-transparent"
+              onClick={signOut} 
+            >
+              Log Out
             </Button>
           </div>
         </div>
