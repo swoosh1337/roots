@@ -5,6 +5,8 @@ import FocusMode from '@/components/FocusMode';
 import AddRitualModal from '@/components/AddRitualModal';
 import ChainRitualsModal from '@/components/ChainRitualsModal';
 import RitualLibrary from '@/components/RitualLibrary';
+import ProfileButton from '@/components/profile/ProfileButton';
+import ProfilePanel from '@/components/profile/ProfilePanel';
 
 type DisplayMode = 'focus' | 'library';
 
@@ -22,6 +24,15 @@ const Index = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showChainModal, setShowChainModal] = useState(false);
   const [currentRitual, setCurrentRitual] = useState<Ritual | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  // Profile stats derived from ritual data
+  const profileStats = {
+    totalStreaks: rituals.reduce((total, ritual) => total + ritual.streak_count, 0),
+    longestStreak: rituals.reduce((max, ritual) => Math.max(max, ritual.streak_count), 0),
+    ritualsCreated: rituals.length,
+    chains: rituals.filter(ritual => ritual.status === 'chained').length
+  };
 
   // Find first active ritual for focus mode
   useEffect(() => {
@@ -40,6 +51,10 @@ const Index = () => {
 
   const handleOpenChainModal = () => {
     setShowChainModal(true);
+  };
+
+  const toggleProfilePanel = () => {
+    setProfileOpen(!profileOpen);
   };
 
   // Map Supabase ritual to UI ritual format
@@ -90,7 +105,12 @@ const Index = () => {
 
   // Render the appropriate mode
   return (
-    <div className="min-h-screen bg-ritual-paper">
+    <div className="min-h-screen bg-ritual-paper relative">
+      {/* Profile Button */}
+      <div className="absolute top-6 right-6 z-10">
+        <ProfileButton onClick={toggleProfilePanel} />
+      </div>
+
       {displayMode === 'focus' && currentRitual ? (
         <FocusMode
           onOpenLibrary={() => setDisplayMode('library')}
@@ -120,6 +140,13 @@ const Index = () => {
         onClose={() => setShowChainModal(false)}
         rituals={rituals.map(ritual => mapRitualForUI(ritual))}
         onChainRituals={handleChainRituals}
+      />
+
+      {/* Profile Panel */}
+      <ProfilePanel 
+        isOpen={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        stats={profileStats}
       />
     </div>
   );
