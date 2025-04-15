@@ -31,4 +31,8 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
   // Force clear the vite cache on startup
   cacheDir: '.vite',
   clearScreen: false,
+  css: {
+    // Improve CSS processing
+    devSourcemap: true,
+  },
 }));
