@@ -40,24 +40,25 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
   };
 
   return (
-    <motion.div 
-      className={`fixed inset-0 z-50 ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
-    >
-      {/* Overlay */}
-      <motion.div
-        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isOpen ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        onClick={onClose}
-      />
-      
+    <>
+      {/* Backdrop */}
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+          onClick={onClose}
+        />
+      )}
+
       {/* Sidebar panel */}
       <motion.div
-        className="absolute top-0 left-0 h-full w-full sm:w-96 bg-white shadow-xl flex flex-col"
         initial={{ x: "-100%" }}
         animate={{ x: isOpen ? 0 : "-100%" }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
+        transition={{ duration: 0.4, type: 'spring', damping: 30 }}
+        className="fixed top-0 left-0 h-full w-4/5 max-w-[400px] bg-ritual-paper shadow-xl rounded-r-3xl z-50 flex flex-col"
       >
         {/* Header */}
         <div className="p-6 border-b border-ritual-moss/30 flex justify-between items-center">
@@ -118,7 +119,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
           </button>
         </div>
       </motion.div>
-    </motion.div>
+    </>
   );
 };
 
