@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -104,7 +105,7 @@ export const useRituals = () => {
     }
     
     try {
-      const { data, error } await supabase
+      const { data, error } = await supabase
         .from('habits')
         .insert({
           name,
