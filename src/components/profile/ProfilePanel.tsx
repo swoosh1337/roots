@@ -62,18 +62,19 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
         {/* Close Button */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full"
+          className="absolute top-4 right-4 text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full z-10"
+          aria-label="Close profile panel"
         >
           <X size={24} />
         </button>
 
-        {/* Leaf decoration */}
-        <div className="absolute top-3 left-3 text-ritual-green opacity-30">
-          <Leaf size={24} />
-        </div>
-
-        {/* Profile Content */}
-        <div className="flex flex-col items-center justify-start p-8 pt-12 gap-6 overflow-y-auto">
+        {/* Top section with green background */}
+        <div className="bg-[#E7F1E5] rounded-tl-3xl p-8 pt-12 flex flex-col items-center relative">
+          {/* Leaf decoration */}
+          <div className="absolute top-3 left-3 text-ritual-green opacity-30">
+            <Leaf size={24} />
+          </div>
+          
           {/* Avatar */}
           <Avatar className="h-20 w-20 border-2 border-ritual-moss">
             <AvatarImage src="/placeholder.svg" alt="User Avatar" />
@@ -83,10 +84,13 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
           </Avatar>
 
           {/* User Name */}
-          <h2 className="font-serif text-2xl font-bold text-[#2E4C2F]">
+          <h2 className="font-serif text-2xl font-bold text-[#2E4C2F] mt-4">
             {user?.email?.split('@')[0] || 'Rishi'}
           </h2>
+        </div>
 
+        {/* Content section */}
+        <div className="flex flex-col p-6 gap-6 overflow-y-auto">
           {/* Stats Grid */}
           <ProfileStats stats={stats} />
 
