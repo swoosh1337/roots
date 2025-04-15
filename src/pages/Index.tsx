@@ -94,6 +94,13 @@ const Index = () => {
     setShowChainModal(false);
   };
 
+  // Handler for closing the ritual library
+  const handleCloseLibrary = () => {
+    if (currentRitual) {
+      setDisplayMode('focus');
+    }
+  };
+
   // Check if we have data to display
   if (loading) {
     return (
@@ -121,7 +128,7 @@ const Index = () => {
         <RitualLibrary
           rituals={rituals.map(ritual => mapRitualForUI(ritual))}
           isOpen={true}
-          onClose={() => {}}
+          onClose={handleCloseLibrary}
           onSelectRitual={handleSelectRitual}
           onAddRitual={handleOpenAddModal}
           onChainRituals={handleOpenChainModal}
