@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -33,27 +34,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchUserProfile = async (userId: string, authUser: User | null) => {
     console.log(`[fetchUserProfile] Attempting to fetch profile for user ID: ${userId}`);
     try {
-      // Restore .single()
-      console.log(`[fetchUserProfile] Checking session right before DB query...`);
-      const currentAuthCheck = await supabase.auth.getSession(); // Check session again
-      console.log(`[fetchUserProfile] Session check result:`, currentAuthCheck.data.session, `Error:`, currentAuthCheck.error);
-      
-      if (!currentAuthCheck.data.session) {
-        console.error(`[fetchUserProfile] No active session found immediately before DB query for ${userId}! Aborting fetch.`);
-        setProfile(null);
-        return null;
-      }
-
-      console.log(`[fetchUserProfile] Running query WITH .single()...`);
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
-        .single(); // RESTORED
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors
 
-      console.log(`[fetchUserProfile] Query (.single()) result for ${userId}: Data:`, data, `Error:`, error);
+      console.log(`[fetchUserProfile] Query result for ${userId}: Data:`, data, `Error:`, error);
 
-      if (error && error.code !== 'PGRST116') { 
+      if (error) { 
         console.error(`[fetchUserProfile] Error fetching profile for ${userId}:`, error);
         toast({ title: 'Error Fetching Profile', description: error.message, variant: 'destructive' });
         setProfile(null); 
@@ -78,119 +67,129 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("[Auth Effect] Starting effect...");
     setLoading(true);
 
-    async function initializeAuth() {
-      console.log("[Auth Effect] Initializing Auth...");
-      console.log("[Auth Effect] Getting session...");
-      console.log("[Auth Effect] Supabase client object:", supabase);
-      
-      // Check initial session without delay
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log("[Auth Effect] Got session:", session, "Error:", sessionError);
-      if (ignore) return;
-
-      if (sessionError) {
-        console.error("[Auth Effect] Error getting initial session:", sessionError);
-        if (!ignore) setLoading(false);
-        return;
-      }
-
-      const authUser = session?.user ?? null;
-      console.log("[Auth Effect] Setting initial session/user state:", session, authUser);
-      setSession(session);
-      setUser(authUser);
-
-      if (authUser) {
-        console.log(`[Auth Effect] Initial User ${authUser.id} found, fetching profile...`);
-        try {
-          await fetchUserProfile(authUser.id, authUser);
-          console.log(`[Auth Effect] Initial profile fetch complete for user ${authUser.id}`);
-        } catch (profileError) {
-          console.error("[Auth Effect] Error fetching initial profile:", profileError);
-        }
-      } else {
-         console.log("[Auth Effect] No initial user found.");
-      }
-      
-      if (!ignore) {
-        console.log("[Auth Effect] Setting loading to false after initializeAuth.");
-        setLoading(false);
-      }
-    }
-
-    initializeAuth();
-
-    console.log("[Auth Effect] Setting up onAuthStateChange listener...");
+    // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        console.log(`[Auth Effect] onAuthStateChange triggered. Event: ${_event}, Session:`, session);
+      async (event, currentSession) => {
+        console.log(`[Auth Effect] onAuthStateChange triggered. Event: ${event}, Session:`, currentSession?.user?.id);
         if (ignore) return;
         
-        const currentUser = session?.user ?? null;
-        const currentUserId = currentUser?.id;
-        const previousUserId = user?.id; 
+        const currentUser = currentSession?.user ?? null;
+        console.log(`[Auth Effect] State Change: Event: ${event}, User: ${currentUser?.id}`);
         
-        console.log(`[Auth Effect] State Change: Prev User: ${previousUserId}, Curr User: ${currentUserId}`);
-        setSession(session);
+        // Always update session and user state immediately
+        setSession(currentSession);
         setUser(currentUser);
 
-        if (currentUserId !== previousUserId && currentUser && _event !== 'INITIAL_SESSION') {
-          console.log(`[Auth Effect] User changed or relevant event (${_event}). Fetching/checking profile for ${currentUserId}`);
-          if (!ignore) setLoading(true); 
-          try {
-            console.log(`[Auth Effect] Fetching profile for ${currentUserId} in listener...`);
-            const userProfile = await fetchUserProfile(currentUser.id, currentUser);
-            console.log(`[Auth Effect] Profile fetched in listener for ${currentUserId}:`, userProfile); // Added log here
+        // Handle session changes with non-blocking profile fetch
+        if (currentUser) {
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            console.log(`[Auth Effect] User ${currentUser.id} signed in or token refreshed, checking profile...`);
+            // Use a setTimeout to avoid blocking the auth state change
+            setTimeout(async () => {
+              if (ignore) return;
+              
+              try {
+                const userProfile = await fetchUserProfile(currentUser.id, currentUser);
+                
+                // Check if we need to create a new profile
+                if (!userProfile && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+                  console.log(`[Auth Effect] No profile found for ${currentUser.id}, attempting creation...`);
+                  const { error: insertError } = await supabase.from('users').insert({
+                    id: currentUser.id,
+                    email: currentUser.email ?? '',
+                    full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || '',
+                  });
 
-            if ((_event === 'SIGNED_IN' || _event === 'TOKEN_REFRESHED') && !userProfile) {
-              console.log(`[Auth Effect] No profile found for ${currentUserId}, attempting creation...`, _event);
-              const { error: insertError } = await supabase.from('users').insert({
-                id: currentUser.id,
-                email: currentUser.email!,
-                full_name: currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0],
-              });
-
-              if (insertError) {
-                if (insertError.code === '23505') {
-                  console.warn(`[Auth Effect] Profile creation conflict (23505): Profile for ${currentUser.id} likely already exists.`);
-                  await fetchUserProfile(currentUser.id, currentUser); 
-                } else {
-                  console.error('[Auth Effect] Error creating user profile:', insertError);
-                  toast({ title: 'Profile Creation Error', description: insertError.message, variant: 'destructive' });
+                  if (insertError) {
+                    console.error('[Auth Effect] Error creating user profile:', insertError);
+                    if (insertError.code !== '23505') { // Not a duplicate key error
+                      toast({ title: 'Profile Creation Error', description: insertError.message, variant: 'destructive' });
+                    } else {
+                      // Profile likely already exists, try to fetch again
+                      await fetchUserProfile(currentUser.id, currentUser);
+                    }
+                  } else {
+                    console.log(`[Auth Effect] Created profile for ${currentUser.id}, re-fetching...`);
+                    await fetchUserProfile(currentUser.id, currentUser);
+                  }
                 }
-              } else {
-                console.log(`[Auth Effect] Created profile for ${currentUser.id}, re-fetching...`);
-                await fetchUserProfile(currentUser.id, currentUser);
-                console.log(`[Auth Effect] Re-fetched profile for ${currentUser.id} after creation.`);
+              } finally {
+                if (!ignore) {
+                  console.log("[Auth Effect] Setting loading to false after profile operations");
+                  setLoading(false);
+                }
               }
-            }
-          } catch (profileError) {
-             console.error("[Auth Effect] Error handling profile in onAuthStateChange:", profileError);
-          } finally {
-             if (!ignore) {
-                console.log("[Auth Effect] Setting loading to false in onAuthStateChange finally block.");
-                setLoading(false); 
-             }
-          }
-        } else if (!currentUser) {
-          console.log("[Auth Effect] User logged out, clearing profile.");
-          setProfile(null);
-          if (!ignore && loading) {
-             console.log("[Auth Effect] Setting loading to false on logout.");
-             setLoading(false); 
+            }, 0);
+          } else {
+            // For other events with a user, just set loading to false
+            if (!ignore) setLoading(false);
           }
         } else {
-           console.log("[Auth Effect] No user change or irrelevant event, skipping profile fetch/check.");
-           if (!ignore && loading) setLoading(false);
+          // No user, clear profile and set loading to false
+          console.log("[Auth Effect] No user, clearing profile");
+          setProfile(null);
+          if (!ignore) setLoading(false);
         }
       }
     );
+
+    // Then check for an initial session
+    const checkInitialSession = async () => {
+      try {
+        console.log("[Auth Effect] Checking initial session...");
+        
+        // Use a timeout to avoid hanging indefinitely
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('getSession timeout')), 5000);
+        });
+        
+        const { data } = await Promise.race([sessionPromise, timeoutPromise]) as { data: { session: Session | null } };
+        if (ignore) return;
+        
+        const initialSession = data.session;
+        console.log("[Auth Effect] Initial session check result:", initialSession?.user?.id || 'No session');
+        
+        // If we have a session, update state and fetch profile
+        if (initialSession?.user) {
+          setSession(initialSession);
+          setUser(initialSession.user);
+          
+          // Non-blocking profile fetch
+          setTimeout(async () => {
+            if (ignore) return;
+            try {
+              await fetchUserProfile(initialSession.user.id, initialSession.user);
+            } finally {
+              if (!ignore) {
+                console.log("[Auth Effect] Setting loading to false after initial profile fetch");
+                setLoading(false);
+              }
+            }
+          }, 0);
+        } else {
+          // No initial session
+          console.log("[Auth Effect] No initial session found");
+          if (!ignore) setLoading(false);
+        }
+      } catch (err) {
+        console.error("[Auth Effect] Error checking initial session:", err);
+        if (!ignore) {
+          // Even on error, we should exit the loading state
+          setLoading(false);
+        }
+      }
+    };
+    
+    // Start the initial session check
+    checkInitialSession();
 
     return () => {
       console.log("[Auth Effect] Cleaning up effect.");
       ignore = true;
       subscription.unsubscribe();
     };
-  }, []); 
+  }, [toast]); 
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();

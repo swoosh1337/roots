@@ -37,12 +37,6 @@ export const useRituals = () => {
     
     try {
       console.log(`[useRituals] Starting to fetch rituals for user ${user.id}`);
-      console.log(`[useRituals] Auth status: User authenticated: ${!!user}`);
-      
-      // Check if we have a valid session with access token
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log(`[useRituals] Session exists: ${!!session}, Access token exists: ${!!session?.access_token?.slice(0, 10)}...`);
-      
       setLoading(true);
       
       // Create a promise that will resolve after a timeout
@@ -92,8 +86,6 @@ export const useRituals = () => {
           : "There was a problem loading your rituals.",
         variant: "destructive"
       });
-      
-      // Even on error, set loading to false to prevent UI from being stuck
     } finally {
       console.log(`[useRituals] Finished fetching rituals (success or error)`);
       setLoading(false);
@@ -112,7 +104,7 @@ export const useRituals = () => {
     }
     
     try {
-      const { data, error } = await supabase
+      const { data, error } await supabase
         .from('habits')
         .insert({
           name,
@@ -276,19 +268,31 @@ export const useRituals = () => {
 
   // Load rituals on initial mount or when user changes
   useEffect(() => {
-    console.log("[useRituals Effect] Running effect. User:", user);
-    if (user) {
-      console.log("[useRituals Effect] User exists, calling fetchRituals.");
-      fetchRituals();
-    } else {
+    let mounted = true;
+    console.log("[useRituals Effect] Running effect. User:", user?.id);
+    
+    // Don't try to fetch if no user
+    if (!user) {
       console.log("[useRituals Effect] No user found, resetting rituals and loading state.");
-      // If there's no user, we are not loading rituals, clear existing ones if any
       setRituals([]); 
       setLoading(false);
       setError(null);
+      return;
     }
-    // Intentionally excluding fetchRituals from dependencies to avoid potential loops
-    // if fetchRituals itself causes state changes.
+    
+    console.log("[useRituals Effect] User exists, calling fetchRituals.");
+    
+    // Use setTimeout to ensure auth is fully initialized first
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        fetchRituals();
+      }
+    }, 100);
+    
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [user]); // Depend only on user
 
   return {
