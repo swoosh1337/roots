@@ -19,6 +19,8 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Add explicit extensions for better module resolution
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
   },
   optimizeDeps: {
     esbuildOptions: {
@@ -26,7 +28,14 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
       define: {
         global: 'globalThis',
       },
-    }
+    },
+    // Force include problematic dependencies
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@supabase/supabase-js'
+    ]
   },
   // Force clear the vite cache on startup
   cacheDir: '.vite',
@@ -35,4 +44,11 @@ export default defineConfig(({ mode }: ConfigEnv) => ({
     // Improve CSS processing
     devSourcemap: true,
   },
+  // Add build options to improve stability
+  build: {
+    sourcemap: true,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    }
+  }
 }));
