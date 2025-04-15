@@ -4,21 +4,23 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Sprout } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signInWithGoogle } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -81,6 +83,18 @@ const Auth = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      // Redirect happens via Supabase OAuth flow, no need to setLoading(false) here
+    } catch (error) {
+      // Error is handled within signInWithGoogle, but we'll reset loading state here
+      console.error("Google Auth initiation failed:", error);
+      setGoogleLoading(false);
     }
   };
 
@@ -202,12 +216,23 @@ const Auth = () => {
             >
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || googleLoading}
                 className="w-full py-6 mt-6 bg-[#A1C181] hover:bg-[#A1C181]/90 text-white rounded-full font-medium shadow-md"
               >
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </motion.div>
+            
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#2E3D27]/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-[#DBE4C6] text-[#2E3D27]/60">OR</span>
+              </div>
+            </div>
+            
+            <GoogleSignInButton onClick={handleGoogleAuth} loading={googleLoading} />
             
             <p className="text-center text-sm text-[#2E3D27]/70 mt-4">
               Don't have an account?{" "}
@@ -284,12 +309,23 @@ const Auth = () => {
             >
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || googleLoading}
                 className="w-full py-6 mt-6 bg-[#A1C181] hover:bg-[#A1C181]/90 text-white rounded-full font-medium shadow-md"
               >
                 {loading ? "Creating Account..." : "Create Account"}
               </Button>
             </motion.div>
+            
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#2E3D27]/20"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-[#DBE4C6] text-[#2E3D27]/60">OR</span>
+              </div>
+            </div>
+            
+            <GoogleSignInButton onClick={handleGoogleAuth} loading={googleLoading} />
             
             <p className="text-center text-sm text-[#2E3D27]/70 mt-4">
               Already have an account?{" "}
