@@ -4,18 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
-// Define the database habit type
-interface DbHabit {
-  id: string;
-  name: string;
-  streak_count: number;
-  is_active: boolean;
-  is_chained: boolean;
-  user_id: string;
-  last_completed?: string | null;
-  created_at: string;
-}
-
 // Define the Ritual type 
 export interface Ritual {
   id: string;
@@ -37,35 +25,15 @@ export const useRituals = () => {
     if (!user) return;
     
     try {
-      console.log(`[useRituals] Starting to fetch rituals for user ${user.id}`);
       setLoading(true);
       
-      // Create a promise that will resolve after a timeout
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('fetchRituals timeout'));
-        }, 5000);  // 5 second timeout
-      });
-      
-      // Race the database query against the timeout
-      const result = await Promise.race([
-        supabase
-          .from('habits')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false }),
-        timeoutPromise
-      ]) as { data: DbHabit[], error: Error | null } | Error;
-      
-      // Handle timeout error
-      if (result instanceof Error) {
-        throw result;
-      }
-      
-      const { data, error } = result;
+      const { data, error } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
-      console.log(`[useRituals] Successfully fetched ${data.length} rituals for user ${user.id}`);
       
       // Map the database habits to our Ritual interface
       const mappedRituals: Ritual[] = data.map(habit => ({
@@ -78,17 +46,14 @@ export const useRituals = () => {
       
       setRituals(mappedRituals);
     } catch (err) {
-      console.error(`[useRituals] Error fetching rituals:`, err);
+      console.error('Error fetching rituals:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch rituals');
       toast({
         title: "Error Fetching Rituals",
-        description: err instanceof Error && err.message === 'fetchRituals timeout' 
-          ? "Request timed out. Using cached data if available."
-          : "There was a problem loading your rituals.",
+        description: "There was a problem loading your rituals.",
         variant: "destructive"
       });
     } finally {
-      console.log(`[useRituals] Finished fetching rituals (success or error)`);
       setLoading(false);
     }
   };
@@ -146,7 +111,7 @@ export const useRituals = () => {
     
     try {
       // Convert our Ritual status to the database format
-      const dbUpdates: Record<string, string | number | boolean> = {};
+      const dbUpdates: Record<string, any> = {};
       
       if (updates.name) dbUpdates.name = updates.name;
       if (updates.streak_count !== undefined) dbUpdates.streak_count = updates.streak_count;
@@ -269,32 +234,10 @@ export const useRituals = () => {
 
   // Load rituals on initial mount or when user changes
   useEffect(() => {
-    let mounted = true;
-    console.log("[useRituals Effect] Running effect. User:", user?.id);
-    
-    // Don't try to fetch if no user
-    if (!user) {
-      console.log("[useRituals Effect] No user found, resetting rituals and loading state.");
-      setRituals([]); 
-      setLoading(false);
-      setError(null);
-      return;
+    if (user) {
+      fetchRituals();
     }
-    
-    console.log("[useRituals Effect] User exists, calling fetchRituals.");
-    
-    // Use setTimeout to ensure auth is fully initialized first
-    const timeoutId = setTimeout(() => {
-      if (mounted) {
-        fetchRituals();
-      }
-    }, 100);
-    
-    return () => {
-      mounted = false;
-      clearTimeout(timeoutId);
-    };
-  }, [user]); // Depend only on user
+  }, [user]);
 
   return {
     rituals,

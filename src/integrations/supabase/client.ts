@@ -3,18 +3,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Read variables from Vite environment variables
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Check if variables are defined
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  console.error("Supabase URL or Anon Key not found. Make sure to set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.");
-  throw new Error("Supabase environment variables not set.");
-}
-
-// Extract project ref from URL - example URL: https://sakeurhfemssebptfycs.supabase.co
-const PROJECT_REF = SUPABASE_URL.match(/https:\/\/(.*?)\.supabase\.co/)?.[1] || '';
+const SUPABASE_URL = "https://sakeurhfemssebptfycs.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNha2V1cmhmZW1zc2VicHRmeWNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzMjg0MzgsImV4cCI6MjA1OTkwNDQzOH0.EPQihkfsIv0shGV6hz_lSA35ZA9LihG8aPo7Trci3Ec";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -24,24 +14,5 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     persistSession: true,
     storage: localStorage,
     autoRefreshToken: true,
-    detectSessionInUrl: false,
-    flowType: 'pkce',
-    debug: false
-  },
-  global: {
-    fetch: (url, options) => {
-      const timeout = 8000; // 8 second timeout
-      const controller = new AbortController();
-      
-      // Set up a timeout that will abort the fetch
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-      
-      return fetch(url, {
-        ...options,
-        signal: controller.signal
-      }).finally(() => {
-        clearTimeout(timeoutId);
-      });
-    }
   }
 });
