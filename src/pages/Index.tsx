@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRituals, Ritual } from '@/hooks/useRituals';
 import FocusMode from '@/components/FocusMode';
@@ -96,9 +95,7 @@ const Index = () => {
 
   // Handler for closing the ritual library
   const handleCloseLibrary = () => {
-    if (currentRitual) {
-      setDisplayMode('focus');
-    }
+    setDisplayMode('focus');
   };
 
   // Check if we have data to display
@@ -118,22 +115,24 @@ const Index = () => {
         <ProfileButton onClick={toggleProfilePanel} />
       </div>
 
-      {displayMode === 'focus' && currentRitual ? (
+      {/* Render FocusMode conditionally */}
+      {displayMode === 'focus' && currentRitual && (
         <FocusMode
           onOpenLibrary={() => setDisplayMode('library')}
           currentRitual={currentRitual}
           onCompletedRitual={handleCompletedRitual}
         />
-      ) : (
-        <RitualLibrary
-          rituals={rituals.map(ritual => mapRitualForUI(ritual))}
-          isOpen={true}
-          onClose={handleCloseLibrary}
-          onSelectRitual={handleSelectRitual}
-          onAddRitual={handleOpenAddModal}
-          onChainRituals={handleOpenChainModal}
-        />
       )}
+
+      {/* Render RitualLibrary always, control visibility with isOpen */}
+      <RitualLibrary
+        rituals={rituals.map(ritual => mapRitualForUI(ritual))}
+        isOpen={displayMode === 'library'}
+        onClose={handleCloseLibrary}
+        onSelectRitual={handleSelectRitual}
+        onAddRitual={handleOpenAddModal}
+        onChainRituals={handleOpenChainModal}
+      />
 
       {/* Modals */}
       <AddRitualModal
@@ -141,7 +140,7 @@ const Index = () => {
         onClose={() => setShowAddModal(false)}
         onAddRitual={handleAddRitual}
       />
-      
+
       <ChainRitualsModal
         isOpen={showChainModal}
         onClose={() => setShowChainModal(false)}
@@ -150,7 +149,7 @@ const Index = () => {
       />
 
       {/* Profile Panel */}
-      <ProfilePanel 
+      <ProfilePanel
         isOpen={profileOpen}
         onClose={() => setProfileOpen(false)}
         stats={profileStats}

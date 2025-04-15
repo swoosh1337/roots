@@ -1,8 +1,19 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+
+// Define the database habit type
+interface DbHabit {
+  id: string;
+  name: string;
+  streak_count: number;
+  is_active: boolean;
+  is_chained: boolean;
+  user_id: string;
+  last_completed?: string | null;
+  created_at: string;
+}
 
 // Define the Ritual type 
 export interface Ritual {
@@ -25,15 +36,41 @@ export const useRituals = () => {
     if (!user) return;
     
     try {
+      console.log(`[useRituals] Starting to fetch rituals for user ${user.id}`);
+      console.log(`[useRituals] Auth status: User authenticated: ${!!user}`);
+      
+      // Check if we have a valid session with access token
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log(`[useRituals] Session exists: ${!!session}, Access token exists: ${!!session?.access_token?.slice(0, 10)}...`);
+      
       setLoading(true);
       
-      const { data, error } = await supabase
-        .from('habits')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      // Create a promise that will resolve after a timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('fetchRituals timeout'));
+        }, 5000);  // 5 second timeout
+      });
+      
+      // Race the database query against the timeout
+      const result = await Promise.race([
+        supabase
+          .from('habits')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        timeoutPromise
+      ]) as { data: DbHabit[], error: Error | null } | Error;
+      
+      // Handle timeout error
+      if (result instanceof Error) {
+        throw result;
+      }
+      
+      const { data, error } = result;
       
       if (error) throw error;
+      console.log(`[useRituals] Successfully fetched ${data.length} rituals for user ${user.id}`);
       
       // Map the database habits to our Ritual interface
       const mappedRituals: Ritual[] = data.map(habit => ({
@@ -46,14 +83,19 @@ export const useRituals = () => {
       
       setRituals(mappedRituals);
     } catch (err) {
-      console.error('Error fetching rituals:', err);
+      console.error(`[useRituals] Error fetching rituals:`, err);
       setError(err instanceof Error ? err.message : 'Failed to fetch rituals');
       toast({
         title: "Error Fetching Rituals",
-        description: "There was a problem loading your rituals.",
+        description: err instanceof Error && err.message === 'fetchRituals timeout' 
+          ? "Request timed out. Using cached data if available."
+          : "There was a problem loading your rituals.",
         variant: "destructive"
       });
+      
+      // Even on error, set loading to false to prevent UI from being stuck
     } finally {
+      console.log(`[useRituals] Finished fetching rituals (success or error)`);
       setLoading(false);
     }
   };
@@ -111,7 +153,7 @@ export const useRituals = () => {
     
     try {
       // Convert our Ritual status to the database format
-      const dbUpdates: Record<string, any> = {};
+      const dbUpdates: Record<string, string | number | boolean> = {};
       
       if (updates.name) dbUpdates.name = updates.name;
       if (updates.streak_count !== undefined) dbUpdates.streak_count = updates.streak_count;
@@ -234,10 +276,20 @@ export const useRituals = () => {
 
   // Load rituals on initial mount or when user changes
   useEffect(() => {
+    console.log("[useRituals Effect] Running effect. User:", user);
     if (user) {
+      console.log("[useRituals Effect] User exists, calling fetchRituals.");
       fetchRituals();
+    } else {
+      console.log("[useRituals Effect] No user found, resetting rituals and loading state.");
+      // If there's no user, we are not loading rituals, clear existing ones if any
+      setRituals([]); 
+      setLoading(false);
+      setError(null);
     }
-  }, [user]);
+    // Intentionally excluding fetchRituals from dependencies to avoid potential loops
+    // if fetchRituals itself causes state changes.
+  }, [user]); // Depend only on user
 
   return {
     rituals,
