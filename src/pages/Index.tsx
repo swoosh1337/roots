@@ -96,9 +96,7 @@ const Index = () => {
 
   // Handler for closing the ritual library
   const handleCloseLibrary = () => {
-    if (currentRitual) {
-      setDisplayMode('focus');
-    }
+    setDisplayMode('focus');
   };
 
   // Check if we have data to display
@@ -118,22 +116,24 @@ const Index = () => {
         <ProfileButton onClick={toggleProfilePanel} />
       </div>
 
-      {displayMode === 'focus' && currentRitual ? (
+      {/* Always render FocusMode */}
+      {currentRitual && (
         <FocusMode
           onOpenLibrary={() => setDisplayMode('library')}
           currentRitual={currentRitual}
           onCompletedRitual={handleCompletedRitual}
         />
-      ) : (
-        <RitualLibrary
-          rituals={rituals.map(ritual => mapRitualForUI(ritual))}
-          isOpen={true}
-          onClose={handleCloseLibrary}
-          onSelectRitual={handleSelectRitual}
-          onAddRitual={handleOpenAddModal}
-          onChainRituals={handleOpenChainModal}
-        />
       )}
+
+      {/* Always render RitualLibrary, controlling visibility with isOpen prop */}
+      <RitualLibrary
+        rituals={rituals.map(ritual => mapRitualForUI(ritual))}
+        isOpen={displayMode === 'library'}
+        onClose={handleCloseLibrary}
+        onSelectRitual={handleSelectRitual}
+        onAddRitual={handleOpenAddModal}
+        onChainRituals={handleOpenChainModal}
+      />
 
       {/* Modals */}
       <AddRitualModal
