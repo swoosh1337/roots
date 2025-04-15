@@ -1,11 +1,11 @@
 
-import { defineConfig } from "vite";
+import { defineConfig, ConfigEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }: ConfigEnv) => ({
   server: {
     host: "::",
     port: 8080,
@@ -22,8 +22,10 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     esbuildOptions: {
-      // Enable to fix the NODE_PATH issue
-      nodeModules: true
+      // Node.js global to browser globalThis
+      define: {
+        global: 'globalThis',
+      },
     }
   },
   // Force clear the vite cache on startup
