@@ -50,26 +50,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signOut = async () => {
-    setLoading(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (!error) {
+      // Only attempt to sign out if we have a session
+      if (session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error("Error logging out:", error);
+          toast({
+            title: "Logout Error",
+            description: "Failed to log out. Please try again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Logged Out",
+            description: "You have been logged out successfully 🌿",
+          });
+        }
+      } else {
+        // If no session exists, just update our local state
+        console.log("No active session found, clearing local state only");
+        setSession(null);
+        setUser(null);
         toast({
           title: "Logged Out",
           description: "You have been logged out successfully 🌿",
         });
-      } else {
-        console.error("Error logging out:", error);
-        toast({
-          title: "Logout Error",
-          description: "Failed to log out. Please try again.",
-          variant: "destructive",
-        });
       }
     } catch (error) {
       console.error("Exception during logout:", error);
-    } finally {
-      setLoading(false);
+      toast({
+        title: "Logout Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
