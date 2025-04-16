@@ -41,20 +41,24 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) {
+      console.log('[Upload] No file or user, exiting.');
+      return;
+    }
+
+    setUploading(true);
+    console.log('[Upload] Starting image upload for user:', user.id);
+
     try {
-      // Get the file from the input
-      const file = event.target.files?.[0];
-      if (!file || !user) return;
-
-      setUploading(true);
-
       // Create a unique file name
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
+      console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with path: ${filePath}`);
 
       // Upload the file to Supabase Storage
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('profile-imgs')
         .upload(filePath, file, {
           upsert: true,
@@ -62,23 +66,43 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
         });
 
       if (uploadError) {
-        throw uploadError;
+        console.error('[Upload] Supabase storage upload error:', uploadError);
+        throw uploadError; // Re-throw to be caught by the main catch block
       }
+      console.log('[Upload] File uploaded successfully to storage.');
 
       // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-imgs')
-        .getPublicUrl(filePath);
+      console.log(`[Upload] Getting public URL for path: ${filePath}`);
+      // getPublicUrl returns { data: { publicUrl: string } } directly or throws
+      let publicUrl: string;
+      try {
+        const { data: urlData } = supabase.storage
+          .from('profile-imgs')
+          .getPublicUrl(filePath);
+          
+        if (!urlData || !urlData.publicUrl) {
+          console.error('[Upload] Public URL data is missing after getPublicUrl call.');
+          throw new Error('Failed to retrieve public URL after upload.');
+        }
+        publicUrl = urlData.publicUrl;
+      } catch (urlError) {
+        console.error('[Upload] Error getting public URL:', urlError);
+        throw urlError; // Re-throw to the main catch block
+      }
+      console.log(`[Upload] Got public URL: ${publicUrl}`);
 
       // Update the user's profile with the new image URL
+      console.log(`[Upload] Updating user profile table for user: ${user.id}`);
       const { error: updateError } = await supabase
         .from('users')
         .update({ profile_img_url: publicUrl })
         .eq('id', user.id);
 
       if (updateError) {
-        throw updateError;
+        console.error('[Upload] Error updating user profile table:', updateError);
+        throw updateError; // Re-throw
       }
+      console.log('[Upload] User profile table updated successfully.');
 
       toast({
         title: "Profile Updated",
@@ -86,7 +110,8 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       });
 
     } catch (error) {
-      console.error('Error uploading image:', error);
+      // General catch block logs any error thrown from the try block
+      console.error('[Upload] Overall error in handleImageUpload:', error);
       toast({
         title: "Upload Failed",
         description: "There was an error uploading your image. Please try again.",
@@ -96,6 +121,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       setUploading(false);
       // Clear the input value so the same file can be selected again
       if (event.target) event.target.value = '';
+      console.log('[Upload] Upload process finished.');
     }
   };
 

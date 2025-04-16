@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Sprout } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { FcGoogle } from 'react-icons/fc';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -259,18 +259,19 @@ const Auth = () => {
               whileTap={{ scale: 0.98 }}
             >
               <Button
-                type="button"
+                variant="outline"
                 onClick={signInWithGoogle}
                 disabled={googleLoading}
-                className="w-full flex items-center justify-center py-6 bg-[#FDFBF7] hover:bg-[#FDFBF7]/90 text-[#2E3D27] border border-[#2E3D27]/20 rounded-full font-medium shadow-sm"
+                className="w-full py-6 bg-white hover:bg-white/90 border-[#2E3D27]/20 text-[#2E3D27] rounded-full shadow-sm"
               >
-                {/* Google SVG icon - direct inline SVG instead of using the Icon component */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M8 12 L16 12"></path>
-                  <path d="M12 8 L12 16"></path>
-                </svg>
-                {googleLoading ? "Connecting..." : "Sign in with Google"}
+                {googleLoading ? (
+                  "Redirecting..."
+                ) : (
+                  <>
+                    <FcGoogle className="mr-2 h-5 w-5" />
+                    Sign in with Google
+                  </>
+                )}
               </Button>
             </motion.div>
             
@@ -352,7 +353,7 @@ const Auth = () => {
                 disabled={loading}
                 className="w-full py-6 mt-6 bg-[#A1C181] hover:bg-[#A1C181]/90 text-white rounded-full font-medium shadow-md"
               >
-                {loading ? "Creating Account..." : "Create Account"}
+                {loading ? "Creating account..." : "Create Account"}
               </Button>
             </motion.div>
 
@@ -361,9 +362,7 @@ const Auth = () => {
                 <div className="w-full border-t border-[#2E3D27]/20"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-[#DBE4C6] text-[#2E3D27]/60">
-                  Or continue with
-                </span>
+                <span className="bg-[#DBE4C6] px-2 text-[#2E3D27]/60">Or continue with</span>
               </div>
             </div>
 
@@ -372,18 +371,19 @@ const Auth = () => {
               whileTap={{ scale: 0.98 }}
             >
               <Button
-                type="button"
+                variant="outline"
                 onClick={signInWithGoogle}
                 disabled={googleLoading}
-                className="w-full flex items-center justify-center py-6 bg-[#FDFBF7] hover:bg-[#FDFBF7]/90 text-[#2E3D27] border border-[#2E3D27]/20 rounded-full font-medium shadow-sm"
+                className="w-full py-6 bg-white hover:bg-white/90 border-[#2E3D27]/20 text-[#2E3D27] rounded-full shadow-sm"
               >
-                {/* Google SVG icon - direct inline SVG instead of using the Icon component */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M8 12 L16 12"></path>
-                  <path d="M12 8 L12 16"></path>
-                </svg>
-                {googleLoading ? "Connecting..." : "Sign up with Google"}
+                {googleLoading ? (
+                  "Redirecting..."
+                ) : (
+                  <>
+                    <FcGoogle className="mr-2 h-5 w-5" />
+                    Sign up with Google
+                  </>
+                )}
               </Button>
             </motion.div>
             
