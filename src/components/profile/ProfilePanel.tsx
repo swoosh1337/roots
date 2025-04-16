@@ -151,7 +151,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       console.log(`[Upload] Updating user profile table for user: ${user.id}`);
       const { error: updateError } = await supabase
         .from('users')
-        .update({ profile_img_url: publicUrl })
+        .update({ profile_img_url: urlData.publicUrl }) // Store base URL without timestamp in DB
         .eq('id', user.id);
 
       if (updateError) {
@@ -189,28 +189,28 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
     }
   };
 
-  // Get profile image with fallback logic
+  // Get profile image with correct priority logic
   const getProfileImage = () => {
-    console.log("ProfilePanel: getProfileImage called with profileImgUrl:", profileImgUrl);
-    console.log("ProfilePanel: User metadata avatar_url:", user?.user_metadata?.avatar_url);
-    
-    // First try the state variable (which might have been updated during this session)
+    // Step 1: Check if we have a profile image URL from our database (user uploaded)
     if (profileImgUrl) {
+      console.log("ProfilePanel: Using profile_img_url from state:", profileImgUrl);
       return profileImgUrl;
     }
-    // Then try user's profile_img_url from user metadata
-    if (user?.user_metadata?.profile_img_url) {
-      return user.user_metadata.profile_img_url;
-    }
-    // Then try Google avatar if available
+    
+    // Step 2: Fall back to Google avatar if available
     if (user?.user_metadata?.avatar_url) {
+      console.log("ProfilePanel: Using avatar_url from user metadata:", user.user_metadata.avatar_url);
       return user.user_metadata.avatar_url;
     }
-    // If user has picture metadata, use that
+    
+    // Step 3: Check if user has picture in metadata
     if (user?.user_metadata?.picture) {
+      console.log("ProfilePanel: Using picture from user metadata:", user.user_metadata.picture);
       return user.user_metadata.picture;
     }
-    // Otherwise use placeholder
+    
+    // Step 4: Default to placeholder
+    console.log("ProfilePanel: Using default placeholder image");
     return "/placeholder.svg";
   };
 

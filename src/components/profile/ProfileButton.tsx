@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,24 +69,28 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
     };
   }, [user]);
   
-  // Get profile image with fallback logic
+  // Get profile image with correct priority logic
   const getProfileImage = () => {
-    console.log("getProfileImage called with profileImgUrl:", profileImgUrl);
-    console.log("User metadata avatar_url:", user?.user_metadata?.avatar_url);
-    
-    // First try user's profile_img_url from our database
+    // Step 1: Check if we have a profile image URL from our database (user uploaded)
     if (profileImgUrl) {
+      console.log("Using profile_img_url from database:", profileImgUrl);
       return profileImgUrl;
     }
-    // Then try Google avatar if available
+    
+    // Step 2: Fall back to Google avatar if available
     if (user?.user_metadata?.avatar_url) {
+      console.log("Using avatar_url from user metadata:", user.user_metadata.avatar_url);
       return user.user_metadata.avatar_url;
     }
-    // If user has picture metadata, use that
+    
+    // Step 3: Check if user has picture in metadata
     if (user?.user_metadata?.picture) {
+      console.log("Using picture from user metadata:", user.user_metadata.picture);
       return user.user_metadata.picture;
     }
-    // Otherwise use placeholder
+    
+    // Step 4: Default to placeholder
+    console.log("Using default placeholder image");
     return "/placeholder.svg";
   };
   
