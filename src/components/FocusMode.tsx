@@ -68,10 +68,10 @@ const FocusMode: React.FC<FocusModeProps> = ({
         <Menu className="w-6 h-6 text-ritual-forest" />
       </button>
 
-      {/* Test mode toggle button */}
+      {/* Test mode toggle button - MOVED TO BOTTOM LEFT */}
       <button 
         onClick={toggleTestMode}
-        className={`absolute top-6 right-6 w-12 h-12 rounded-full shadow-md
+        className={`absolute bottom-6 left-6 w-12 h-12 rounded-full shadow-md
                   flex items-center justify-center hover:shadow-lg
                   transition-all duration-300 z-10 ${testMode ? 'bg-ritual-green text-white' : 'bg-white text-ritual-forest'}`}
         aria-label="Toggle test mode"
