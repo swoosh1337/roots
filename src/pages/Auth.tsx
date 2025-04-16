@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Sprout } from 'lucide-react';
-import { Icon } from 'lucide-react';  // Alternative import method
 import { useAuth } from '@/hooks/useAuth';
 
 const Auth = () => {
@@ -264,7 +264,12 @@ const Auth = () => {
                 disabled={googleLoading}
                 className="w-full flex items-center justify-center py-6 bg-[#FDFBF7] hover:bg-[#FDFBF7]/90 text-[#2E3D27] border border-[#2E3D27]/20 rounded-full font-medium shadow-sm"
               >
-                <Icon name="google" size={20} className="mr-2" />
+                {/* Google SVG icon - direct inline SVG instead of using the Icon component */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M8 12 L16 12"></path>
+                  <path d="M12 8 L12 16"></path>
+                </svg>
                 {googleLoading ? "Connecting..." : "Sign in with Google"}
               </Button>
             </motion.div>
@@ -372,7 +377,12 @@ const Auth = () => {
                 disabled={googleLoading}
                 className="w-full flex items-center justify-center py-6 bg-[#FDFBF7] hover:bg-[#FDFBF7]/90 text-[#2E3D27] border border-[#2E3D27]/20 rounded-full font-medium shadow-sm"
               >
-                <Icon name="google" size={20} className="mr-2" />
+                {/* Google SVG icon - direct inline SVG instead of using the Icon component */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M8 12 L16 12"></path>
+                  <path d="M12 8 L12 16"></path>
+                </svg>
                 {googleLoading ? "Connecting..." : "Sign up with Google"}
               </Button>
             </motion.div>
