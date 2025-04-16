@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Menu } from 'lucide-react';
+import { Menu, TestTube } from 'lucide-react';
 import TreeVisual from './TreeVisual';
 import { Button } from '@/components/ui/button';
 import { Ritual } from '@/hooks/useRituals';
@@ -32,6 +32,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
   const [showAffirmation, setShowAffirmation] = useState(false);
   const [affirmation, setAffirmation] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
+  const [testMode, setTestMode] = useState(false);
 
   useEffect(() => {
     // Set a random affirmation when component mounts
@@ -51,6 +52,10 @@ const FocusMode: React.FC<FocusModeProps> = ({
     }, 1500);
   };
 
+  const toggleTestMode = () => {
+    setTestMode(prev => !prev);
+  };
+
   return (
     <div className="min-h-screen bg-ritual-paper flex flex-col">
       {/* Top left menu button */}
@@ -63,11 +68,26 @@ const FocusMode: React.FC<FocusModeProps> = ({
         <Menu className="w-6 h-6 text-ritual-forest" />
       </button>
 
+      {/* Test mode toggle button */}
+      <button 
+        onClick={toggleTestMode}
+        className={`absolute top-6 right-6 w-12 h-12 rounded-full shadow-md
+                  flex items-center justify-center hover:shadow-lg
+                  transition-all duration-300 z-10 ${testMode ? 'bg-ritual-green text-white' : 'bg-white text-ritual-forest'}`}
+        aria-label="Toggle test mode"
+      >
+        <TestTube className="w-6 h-6" />
+      </button>
+
       {/* Main centered content */}
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         {/* Tree visualization */}
         <div className="tree-container mb-8">
-          <TreeVisual streak={currentRitual.streak_count} isAnimating={isAnimating} />
+          <TreeVisual 
+            streak={currentRitual.streak_count} 
+            isAnimating={isAnimating}
+            testMode={testMode} 
+          />
         </div>
 
         {/* Ritual name */}
