@@ -25,6 +25,35 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
+
+  // Fetch the user's profile image URL when the component mounts or user changes
+  React.useEffect(() => {
+    const fetchProfileImage = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('profile_img_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching profile image:', error);
+          return;
+        }
+        
+        if (data && data.profile_img_url) {
+          setProfileImgUrl(data.profile_img_url);
+        }
+      } catch (error) {
+        console.error('Exception fetching profile image:', error);
+      }
+    };
+    
+    fetchProfileImage();
+  }, [user]);
 
   const handleAddFriend = () => {
     toast({
@@ -83,6 +112,9 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       }
       const publicUrl = urlData.publicUrl;
       console.log(`[Upload] Got public URL: ${publicUrl}`);
+      
+      // Update state with the new URL
+      setProfileImgUrl(publicUrl);
 
       // Update the user's profile with the new image URL
       console.log(`[Upload] Updating user profile table for user: ${user.id}`);
@@ -101,11 +133,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
         title: "Profile Updated",
         description: "Your profile image has been updated successfully! 🌿",
       });
-
-      // Refresh the page to see the updated profile image
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
 
     } catch (error) {
       console.error('[Upload] Overall error in handleImageUpload:', error);
@@ -133,7 +160,11 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
 
   // Get profile image with fallback logic
   const getProfileImage = () => {
-    // First try user's profile_img_url from our database
+    // First try the state variable (which might have been updated during this session)
+    if (profileImgUrl) {
+      return profileImgUrl;
+    }
+    // Then try user's profile_img_url from user metadata
     if (user?.user_metadata?.profile_img_url) {
       return user.user_metadata.profile_img_url;
     }
