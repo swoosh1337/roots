@@ -80,17 +80,16 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
     console.log('[Upload] Starting image upload for user:', user.id);
 
     try {
-      // Create a unique file name
+      // Create a consistent file path for this user - always same name to enable overwriting
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `${user.id}/avatar.${fileExt}`;
       console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with path: ${filePath}`);
 
-      // Upload the file to Supabase Storage
+      // Upload the file to Supabase Storage with upsert: true to overwrite existing file
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('profile-imgs')
         .upload(filePath, file, {
-          upsert: true,
+          upsert: true, // Enables overwriting existing files
           contentType: file.type,
         });
 
@@ -110,7 +109,10 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
         console.error('[Upload] Public URL data is missing after getPublicUrl call.');
         throw new Error('Failed to retrieve public URL after upload.');
       }
-      const publicUrl = urlData.publicUrl;
+      
+      // Add cache-busting parameter to force image refresh
+      const timestamp = new Date().getTime();
+      const publicUrl = `${urlData.publicUrl}?t=${timestamp}`;
       console.log(`[Upload] Got public URL: ${publicUrl}`);
       
       // Update state with the new URL

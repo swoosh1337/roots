@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,7 +30,10 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
         }
         
         if (data && data.profile_img_url) {
-          setProfileImgUrl(data.profile_img_url);
+          // Add cache-busting parameter to force browser to reload the image
+          const timestamp = new Date().getTime();
+          const urlWithTimestamp = `${data.profile_img_url.split('?')[0]}?t=${timestamp}`;
+          setProfileImgUrl(urlWithTimestamp);
         }
       } catch (error) {
         console.error('Exception fetching profile image:', error);
@@ -37,6 +41,28 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
     };
     
     fetchProfileImage();
+    
+    // Set up a listener for storage changes
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+          filter: `id=eq.${user?.id}`
+        },
+        (payload) => {
+          console.log('User profile updated:', payload);
+          fetchProfileImage();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
   
   // Get profile image with fallback logic
