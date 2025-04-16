@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -57,8 +58,36 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       const filePath = `${fileName}`;
       console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with path: ${filePath}`);
 
+      // Check if bucket exists first
+      const { data: bucketData, error: bucketError } = await supabase
+        .storage
+        .getBucket('profile-imgs');
+        
+      if (bucketError) {
+        console.error('[Upload] Bucket check error:', bucketError);
+        
+        // Create bucket if it doesn't exist
+        if (bucketError.message.includes('does not exist')) {
+          console.log('[Upload] Bucket does not exist, attempting to create...');
+          const { error: createBucketError } = await supabase
+            .storage
+            .createBucket('profile-imgs', {
+              public: true,
+              fileSizeLimit: 1024 * 1024 * 2, // 2MB
+            });
+            
+          if (createBucketError) {
+            console.error('[Upload] Failed to create bucket:', createBucketError);
+            throw createBucketError;
+          }
+          console.log('[Upload] Bucket created successfully');
+        } else {
+          throw bucketError;
+        }
+      }
+
       // Upload the file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('profile-imgs')
         .upload(filePath, file, {
           upsert: true,
@@ -69,26 +98,20 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
         console.error('[Upload] Supabase storage upload error:', uploadError);
         throw uploadError; // Re-throw to be caught by the main catch block
       }
-      console.log('[Upload] File uploaded successfully to storage.');
+      console.log('[Upload] File uploaded successfully to storage.', uploadData);
 
       // Get the public URL
       console.log(`[Upload] Getting public URL for path: ${filePath}`);
       // getPublicUrl returns { data: { publicUrl: string } } directly or throws
-      let publicUrl: string;
-      try {
-        const { data: urlData } = supabase.storage
-          .from('profile-imgs')
-          .getPublicUrl(filePath);
+      const { data: urlData } = supabase.storage
+        .from('profile-imgs')
+        .getPublicUrl(filePath);
           
-        if (!urlData || !urlData.publicUrl) {
-          console.error('[Upload] Public URL data is missing after getPublicUrl call.');
-          throw new Error('Failed to retrieve public URL after upload.');
-        }
-        publicUrl = urlData.publicUrl;
-      } catch (urlError) {
-        console.error('[Upload] Error getting public URL:', urlError);
-        throw urlError; // Re-throw to the main catch block
+      if (!urlData || !urlData.publicUrl) {
+        console.error('[Upload] Public URL data is missing after getPublicUrl call.');
+        throw new Error('Failed to retrieve public URL after upload.');
       }
+      const publicUrl = urlData.publicUrl;
       console.log(`[Upload] Got public URL: ${publicUrl}`);
 
       // Update the user's profile with the new image URL
@@ -109,12 +132,23 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
         description: "Your profile image has been updated successfully! 🌿",
       });
 
+      // Refresh the page to see the updated profile image
+      // This is a simple way to get the updated user data
+      window.location.reload();
+
     } catch (error) {
       // General catch block logs any error thrown from the try block
       console.error('[Upload] Overall error in handleImageUpload:', error);
+      // Log more detailed information for debugging
+      if (error instanceof Error) {
+        console.error('[Upload] Error message:', error.message);
+        console.error('[Upload] Error name:', error.name);
+        console.error('[Upload] Error stack:', error.stack);
+      }
+      
       toast({
         title: "Upload Failed",
-        description: "There was an error uploading your image. Please try again.",
+        description: `There was an error uploading your image: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
