@@ -1,14 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { X, Leaf, Camera } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import ProfileStats from './ProfileStats';
 import StreakCalendar from './StreakCalendar';
 import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
+import UserProfileHeader from './UserProfileHeader';
+import ProfileActions from './ProfileActions';
 
 interface ProfilePanelProps {
   isOpen: boolean;
@@ -24,7 +25,6 @@ interface ProfilePanelProps {
 const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const [uploading, setUploading] = useState(false);
   const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
 
   // Fetch the user's profile image URL when the component mounts or user changes
@@ -98,97 +98,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
     });
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) {
-      console.log('[Upload] No file or user, exiting.');
-      return;
-    }
-
-    setUploading(true);
-    console.log('[Upload] Starting image upload for user:', user.id);
-
-    try {
-      // Create a consistent file path for this user - always same name to enable overwriting
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/avatar.${fileExt}`;
-      console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with path: ${filePath}`);
-
-      // Upload the file to Supabase Storage with upsert: true to overwrite existing file
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('profile-imgs')
-        .upload(filePath, file, {
-          upsert: true, // Enables overwriting existing files
-          contentType: file.type,
-        });
-
-      if (uploadError) {
-        console.error('[Upload] Supabase storage upload error:', uploadError);
-        throw uploadError;
-      }
-      console.log('[Upload] File uploaded successfully to storage.', uploadData);
-
-      // Get the public URL
-      console.log(`[Upload] Getting public URL for path: ${filePath}`);
-      const { data: urlData } = supabase.storage
-        .from('profile-imgs')
-        .getPublicUrl(filePath);
-          
-      if (!urlData || !urlData.publicUrl) {
-        console.error('[Upload] Public URL data is missing after getPublicUrl call.');
-        throw new Error('Failed to retrieve public URL after upload.');
-      }
-      
-      // Add cache-busting parameter to force image refresh
-      const timestamp = new Date().getTime();
-      const publicUrl = `${urlData.publicUrl}?t=${timestamp}`;
-      console.log(`[Upload] Got public URL: ${publicUrl}`);
-      
-      // Update state immediately with the new URL
-      setProfileImgUrl(publicUrl);
-
-      // Update the user's profile with the new image URL
-      console.log(`[Upload] Updating user profile table for user: ${user.id}`);
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ profile_img_url: urlData.publicUrl }) // Store base URL without timestamp in DB
-        .eq('id', user.id);
-
-      if (updateError) {
-        console.error('[Upload] Error updating user profile table:', updateError);
-        throw updateError;
-      }
-      console.log('[Upload] User profile table updated successfully.');
-
-      toast({
-        title: "Profile Updated",
-        description: "Your profile image has been updated successfully! 🌿",
-      });
-
-    } catch (error) {
-      console.error('[Upload] Overall error in handleImageUpload:', error);
-      
-      // Enhanced error reporting for debugging
-      let errorMessage = 'Unknown error';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        console.error('[Upload] Error name:', error.name);
-        console.error('[Upload] Error message:', error.message);
-        console.error('[Upload] Error stack:', error.stack);
-      }
-      
-      toast({
-        title: "Upload Failed",
-        description: `There was an error uploading your image: ${errorMessage}`,
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-      if (event.target) event.target.value = '';
-      console.log('[Upload] Upload process finished.');
-    }
-  };
-
   // Get profile image with correct priority logic
   const getProfileImage = () => {
     // Step 1: Check if we have a profile image URL from our database (user uploaded)
@@ -216,6 +125,11 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
 
   const avatarSrc = getProfileImage();
   console.log("ProfilePanel: Final avatar source:", avatarSrc);
+
+  // Handler for image updates from the ProfileAvatar component
+  const handleImageUpdate = (newImageUrl: string) => {
+    setProfileImgUrl(newImageUrl);
+  };
 
   return (
     <>
@@ -247,54 +161,12 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
           <X size={24} />
         </button>
 
-        {/* Top section with green background */}
-        <div className="bg-[#E7F1E5] rounded-tl-3xl p-8 pt-12 flex flex-col items-center relative">
-          {/* Leaf decoration */}
-          <div className="absolute top-3 left-3 text-ritual-green opacity-30">
-            <Leaf size={24} />
-          </div>
-          
-          {/* Avatar with upload button */}
-          <div className="relative group">
-            <Avatar className="h-20 w-20 border-2 border-ritual-moss">
-              <AvatarImage src={avatarSrc} alt="User Avatar" />
-              <AvatarFallback className="bg-ritual-moss/20 text-ritual-forest text-xl">
-                {user?.email?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            
-            {/* Upload overlay - visible on hover */}
-            <label 
-              htmlFor="avatar-upload" 
-              className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
-              aria-label="Upload profile picture"
-            >
-              <Camera size={20} />
-            </label>
-            
-            {/* Hidden file input */}
-            <input 
-              id="avatar-upload" 
-              type="file" 
-              accept="image/*" 
-              onChange={handleImageUpload}
-              disabled={uploading}
-              className="hidden"
-            />
-            
-            {/* Loading indicator during upload */}
-            {uploading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full">
-                <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
-              </div>
-            )}
-          </div>
-
-          {/* User Name */}
-          <h2 className="font-serif text-2xl font-bold text-[#2E4C2F] mt-4">
-            {user?.email?.split('@')[0] || 'Rishi'}
-          </h2>
-        </div>
+        {/* User Profile Header with Avatar */}
+        <UserProfileHeader 
+          user={user} 
+          avatarSrc={avatarSrc} 
+          onImageUpdate={handleImageUpdate} 
+        />
 
         {/* Content section - Make it flex column with grow */}
         <div className="flex flex-col flex-grow p-6 gap-6 overflow-y-auto">
@@ -307,39 +179,15 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
             <StreakCalendar />
           </div>
 
-          {/* Action Buttons */}
-          <div className="w-full space-y-3 mt-4">
-            <Button 
-              className="w-full bg-ritual-green hover:bg-ritual-green/90 text-white rounded-full py-6"
-              onClick={handleAddFriend}
-            >
-              Add Friend
-            </Button>
-            
-            <Button 
-              className="w-full bg-ritual-green hover:bg-ritual-green/90 text-white rounded-full py-6"
-              onClick={handleViewGarden}
-            >
-              View Garden
-            </Button>
-          </div>
+          {/* Separator */}
+          <Separator className="my-2 bg-ritual-moss/30" />
 
-          {/* Spacer to push logout to bottom */}
-          <div className="flex-grow"></div>
-
-          {/* Divider */}
-          <Separator className="my-4 bg-ritual-moss/30" />
-
-          {/* Logout Button */}
-          <div className="pb-4">
-            <Button
-              variant="ghost" 
-              className="w-full text-center text-[#A14444] hover:text-[#B65C5C] hover:bg-transparent"
-              onClick={signOut} 
-            >
-              Log Out
-            </Button>
-          </div>
+          {/* Action Buttons and Logout */}
+          <ProfileActions 
+            onAddFriend={handleAddFriend}
+            onViewGarden={handleViewGarden}
+            onSignOut={signOut}
+          />
         </div>
       </motion.div>
     </>
