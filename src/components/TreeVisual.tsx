@@ -84,17 +84,6 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
           transition={{ duration: 0.5 }}
         />
         
-        {/* Trunk - common to all trees */}
-        <motion.path 
-          d="M100 230C100 230 95 180 100 160C105 140 100 130 100 130"
-          stroke="#A67C52"
-          strokeWidth="10"
-          strokeLinecap="round"
-          initial={{ pathLength: isAnimating ? 0 : 1 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.5, delay: 0.2 }}
-        />
-        
         {/* Specific stage components */}
         {children}
       </motion.svg>
@@ -104,24 +93,24 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'sprout':
         return baseSVG(
           <>
-            {/* Small leaves */}
-            <motion.circle 
-              cx="100" 
-              cy="125" 
-              r="8" 
-              fill="#A1C181"
+            {/* Trunk - simple straight line */}
+            <motion.path 
+              d="M100 230L100 210"
+              stroke="#A67C52"
+              strokeWidth="4"
+              strokeLinecap="round"
+              initial={{ pathLength: isAnimating ? 0 : 1 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+            />
+            
+            {/* Single leaf */}
+            <motion.path 
+              d="M100 210C100 210 95 200 100 198C105 200 100 210 100 210Z" 
+              fill="#8BAA76"
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.7 }}
-            />
-            <motion.circle 
-              cx="105" 
-              cy="120" 
-              r="7" 
-              fill="#A1C181"
-              initial={isAnimating ? { scale: 0, opacity: 0 } : false}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.9 }}
             />
           </>
         );
@@ -129,20 +118,24 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'sapling':
         return baseSVG(
           <>
+            {/* Longer trunk */}
+            <motion.path 
+              d="M100 230L100 190"
+              stroke="#A67C52"
+              strokeWidth="6"
+              strokeLinecap="round"
+              initial={{ pathLength: isAnimating ? 0 : 1 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+            />
+            
             {/* Two leaves */}
             <motion.path 
-              d="M85 115C75 105 80 90 95 95C110 100 115 115 100 120C85 125 75 115 85 115Z" 
-              fill="#A1C181"
+              d="M100 190C90 185 85 175 95 170C105 175 110 185 100 190Z" 
+              fill="#8BAA76"
               initial={isAnimating ? { opacity: 0, scale: 0.5 } : false}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
-            />
-            <motion.path 
-              d="M115 115C125 105 120 90 105 95C90 100 85 115 100 120C115 125 125 115 115 115Z" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0.5 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
             />
           </>
         );
@@ -150,51 +143,24 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'young':
         return baseSVG(
           <>
-            {/* Three branched young tree */}
+            {/* Slightly curved trunk */}
             <motion.path 
-              d="M100 130C100 130 80 110 85 90C90 70 110 80 110 80" 
+              d="M100 230C100 230 95 210 100 180C105 150 100 150 100 150" 
               stroke="#A67C52" 
-              strokeWidth="5" 
+              strokeWidth="8" 
               strokeLinecap="round"
               initial={isAnimating ? { pathLength: 0 } : false}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }} 
+              transition={{ duration: 0.8, delay: 0.3 }} 
             />
+            
+            {/* Cloud-like foliage */}
             <motion.path 
-              d="M100 130C100 130 120 110 115 90C110 70 90 80 90 80" 
-              stroke="#A67C52" 
-              strokeWidth="5" 
-              strokeLinecap="round"
-              initial={isAnimating ? { pathLength: 0 } : false}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
-            />
-            <motion.circle 
-              cx="85" 
-              cy="82" 
-              r="12" 
-              fill="#A1C181"
+              d="M100 150C70 150 70 120 90 110C110 100 130 110 130 130C130 150 100 150 100 150Z" 
+              fill="#8BAA76"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 1 }}
-            />
-            <motion.circle 
-              cx="115" 
-              cy="82" 
-              r="12" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 1.2 }}
-            />
-            <motion.circle 
-              cx="100" 
-              cy="70" 
-              r="15" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 1.4 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
             />
           </>
         );
@@ -202,69 +168,33 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'full':
         return baseSVG(
           <>
-            {/* Full leafy tree */}
+            {/* Thicker trunk with slight curve */}
             <motion.path 
-              d="M100 130C100 130 70 110 65 80C60 50 90 60 100 50" 
-              stroke="#A67C52" 
-              strokeWidth="5" 
+              d="M100 230C100 230 95 200 100 170C105 140 100 130 100 130" 
+              stroke="#9E7553" 
+              strokeWidth="10" 
               strokeLinecap="round"
               initial={isAnimating ? { pathLength: 0 } : false}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
             />
+            
+            {/* Fluffy, cloud-like foliage */}
             <motion.path 
-              d="M100 130C100 130 130 110 135 80C140 50 110 60 100 50" 
-              stroke="#A67C52" 
-              strokeWidth="5" 
-              strokeLinecap="round"
-              initial={isAnimating ? { pathLength: 0 } : false}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
+              d="M100 130C60 130 60 90 80 80C60 70 70 40 90 40C110 40 120 70 100 80C120 90 140 110 120 130C100 140 100 130 100 130Z" 
+              fill="#8BAA76"
+              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
             />
-            <motion.circle 
-              cx="65" 
-              cy="70" 
-              r="20" 
-              fill="#A1C181"
+            
+            {/* Darker undertones */}
+            <motion.path 
+              d="M100 130C80 130 70 110 75 95C65 100 60 120 80 125C90 135 100 130 100 130Z" 
+              fill="#7A9969"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 1 }}
-            />
-            <motion.circle 
-              cx="100" 
-              cy="50" 
-              r="22" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.2 }}
-            />
-            <motion.circle 
-              cx="135" 
-              cy="70" 
-              r="20" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.4 }}
-            />
-            <motion.circle 
-              cx="80" 
-              cy="90" 
-              r="18" 
-              fill="#94B49F"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.6 }}
-            />
-            <motion.circle 
-              cx="120" 
-              cy="90" 
-              r="18" 
-              fill="#94B49F"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.8 }}
             />
           </>
         );
@@ -272,125 +202,82 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'blossom':
         return baseSVG(
           <>
-            {/* Tree with blossoms */}
+            {/* Strong trunk with texture */}
             <motion.path 
-              d="M100 130C100 130 70 110 65 80C60 50 90 60 100 50" 
-              stroke="#A67C52" 
-              strokeWidth="5" 
+              d="M100 230C100 230 95 200 100 170C105 140 100 130 100 130" 
+              stroke="#9E7553" 
+              strokeWidth="12" 
               strokeLinecap="round"
               initial={isAnimating ? { pathLength: 0 } : false}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
             />
+            
+            {/* Texture lines on trunk */}
             <motion.path 
-              d="M100 130C100 130 130 110 135 80C140 50 110 60 100 50" 
-              stroke="#A67C52" 
-              strokeWidth="5" 
+              d="M95 200L105 195M95 180L105 175" 
+              stroke="#8B6B4A" 
+              strokeWidth="2" 
               strokeLinecap="round"
               initial={isAnimating ? { pathLength: 0 } : false}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
+              transition={{ duration: 0.4, delay: 0.7 }}
             />
-            <motion.circle 
-              cx="65" 
-              cy="70" 
-              r="20" 
-              fill="#A1C181"
+            
+            {/* Lush, full foliage */}
+            <motion.path 
+              d="M100 130C50 130 50 80 70 60C40 60 50 20 80 20C110 20 120 50 100 60C130 70 150 100 120 130C100 140 100 130 100 130Z" 
+              fill="#8BAA76"
+              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            />
+            
+            {/* Darker undertones */}
+            <motion.path 
+              d="M100 130C70 130 60 100 65 85C55 90 50 110 70 125C90 135 100 130 100 130Z" 
+              fill="#7A9969"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 1 }}
             />
-            <motion.circle 
-              cx="100" 
-              cy="50" 
-              r="22" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.2 }}
-            />
-            <motion.circle 
-              cx="135" 
-              cy="70" 
-              r="20" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.4 }}
-            />
-            <motion.circle 
-              cx="80" 
-              cy="90" 
-              r="18" 
-              fill="#94B49F"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.6 }}
-            />
-            <motion.circle 
-              cx="120" 
-              cy="90" 
-              r="18" 
-              fill="#94B49F"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.8 }}
-            />
             
-            {/* Blossoms - animate appearance */}
+            {/* Blossoms */}
             <motion.circle 
-              cx="65" 
-              cy="60" 
-              r="5" 
+              cx="70" 
+              cy="50" 
+              r="6" 
               fill="#FFCFD2"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: [0, 1.2, 1] }}
-              transition={{ duration: 0.5, delay: 2 }}
+              transition={{ duration: 0.5, delay: 1.2 }}
             />
             <motion.circle 
               cx="90" 
-              cy="45" 
+              cy="40" 
               r="5" 
               fill="#FFCFD2"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: [0, 1.2, 1] }}
-              transition={{ duration: 0.5, delay: 2.1 }}
+              transition={{ duration: 0.5, delay: 1.3 }}
             />
             <motion.circle 
-              cx="110" 
-              cy="45" 
-              r="5" 
-              fill="#FFCFD2"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: [0, 1.2, 1] }}
-              transition={{ duration: 0.5, delay: 2.2 }}
-            />
-            <motion.circle 
-              cx="135" 
+              cx="120" 
               cy="60" 
+              r="6" 
+              fill="#FFCFD2"
+              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
+              animate={{ opacity: 1, scale: [0, 1.2, 1] }}
+              transition={{ duration: 0.5, delay: 1.4 }}
+            />
+            <motion.circle 
+              cx="115" 
+              cy="90" 
               r="5" 
               fill="#FFCFD2"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: [0, 1.2, 1] }}
-              transition={{ duration: 0.5, delay: 2.3 }}
-            />
-            <motion.circle 
-              cx="75" 
-              cy="85" 
-              r="4" 
-              fill="#FFCFD2"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: [0, 1.2, 1] }}
-              transition={{ duration: 0.5, delay: 2.4 }}
-            />
-            <motion.circle 
-              cx="125" 
-              cy="85" 
-              r="4" 
-              fill="#FFCFD2"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: [0, 1.2, 1] }}
-              transition={{ duration: 0.5, delay: 2.5 }}
+              transition={{ duration: 0.5, delay: 1.5 }}
             />
           </>
         );
@@ -398,88 +285,63 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'fruit':
         return baseSVG(
           <>
-            {/* Tree with glowing fruit */}
+            {/* Strong mature trunk with texture */}
             <motion.path 
-              d="M100 130C100 130 70 110 65 80C60 50 90 60 100 50" 
-              stroke="#A67C52" 
-              strokeWidth="5" 
+              d="M100 230C95 215 90 200 95 170C100 140 95 130 100 130" 
+              stroke="#8B6B4A" 
+              strokeWidth="14" 
               strokeLinecap="round"
               initial={isAnimating ? { pathLength: 0 } : false}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
             />
+            
+            {/* Texture on trunk */}
             <motion.path 
-              d="M100 130C100 130 130 110 135 80C140 50 110 60 100 50" 
-              stroke="#A67C52" 
-              strokeWidth="5" 
+              d="M90 200L100 195M90 180L100 175M90 160L100 155" 
+              stroke="#7D5F3F" 
+              strokeWidth="2" 
               strokeLinecap="round"
               initial={isAnimating ? { pathLength: 0 } : false}
               animate={{ pathLength: 1 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
+              transition={{ duration: 0.4, delay: 0.7 }}
             />
-            <motion.circle 
-              cx="65" 
-              cy="70" 
-              r="20" 
-              fill="#A1C181"
+            
+            {/* Lush, full foliage - more detailed shape */}
+            <motion.path 
+              d="M100 130C40 130 40 80 60 50C30 60 30 10 70 10C110 10 130 40 110 60C140 60 160 90 130 130C110 150 100 130 100 130Z" 
+              fill="#7A9969"
+              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+            />
+            
+            {/* Lighter highlights */}
+            <motion.path 
+              d="M90 20C110 10 130 30 120 50C140 40 150 70 130 90C140 110 120 125 100 125C85 125 70 100 80 80C60 70 70 40 90 20Z" 
+              fill="#8BAA76"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 1 }}
             />
-            <motion.circle 
-              cx="100" 
-              cy="50" 
-              r="22" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.2 }}
-            />
-            <motion.circle 
-              cx="135" 
-              cy="70" 
-              r="20" 
-              fill="#A1C181"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.4 }}
-            />
-            <motion.circle 
-              cx="80" 
-              cy="90" 
-              r="18" 
-              fill="#94B49F"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.6 }}
-            />
-            <motion.circle 
-              cx="120" 
-              cy="90" 
-              r="18" 
-              fill="#94B49F"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.8 }}
-            />
             
-            {/* Glowing Fruits - with pulsing animation */}
+            {/* Fruits with glow effect */}
             <motion.circle 
-              cx="65" 
+              cx="60" 
               cy="60" 
-              r="6" 
+              r="7" 
               fill="#FFD6A5"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false} 
+              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: [0, 1.2, 1] }}
               transition={isAnimating 
-                ? { duration: 0.6, delay: 2 }
+                ? { duration: 0.6, delay: 1.2 }
                 : { scale: [1, 1.1, 1], opacity: [1, 0.8, 1], repeat: Infinity, repeatType: "reverse", duration: 2 }
               }
             />
             <motion.circle 
-              cx="65" 
+              cx="60" 
               cy="60" 
-              r="8" 
+              r="9" 
               fill="#FFD6A5" 
               fillOpacity="0.3"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
@@ -489,20 +351,20 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             
             <motion.circle 
               cx="90" 
-              cy="45" 
-              r="6" 
+              cy="40" 
+              r="7" 
               fill="#FFD6A5"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: [0, 1.2, 1] }}
               transition={isAnimating 
-                ? { duration: 0.6, delay: 2.1 }
+                ? { duration: 0.6, delay: 1.3 }
                 : { scale: [1, 1.1, 1], opacity: [1, 0.8, 1], repeat: Infinity, repeatType: "reverse", duration: 2.3 }
               }
             />
             <motion.circle 
               cx="90" 
-              cy="45" 
-              r="8" 
+              cy="40" 
+              r="9" 
               fill="#FFD6A5" 
               fillOpacity="0.3"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
@@ -511,21 +373,21 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             />
             
             <motion.circle 
-              cx="110" 
-              cy="45" 
-              r="6" 
+              cx="130" 
+              cy="70" 
+              r="7" 
               fill="#FFD6A5"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: [0, 1.2, 1] }}
               transition={isAnimating 
-                ? { duration: 0.6, delay: 2.2 }
+                ? { duration: 0.6, delay: 1.4 }
                 : { scale: [1, 1.1, 1], opacity: [1, 0.8, 1], repeat: Infinity, repeatType: "reverse", duration: 1.9 }
               }
             />
             <motion.circle 
-              cx="110" 
-              cy="45" 
-              r="8" 
+              cx="130" 
+              cy="70" 
+              r="9" 
               fill="#FFD6A5" 
               fillOpacity="0.3"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
@@ -534,72 +396,26 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             />
             
             <motion.circle 
-              cx="135" 
-              cy="60" 
+              cx="115" 
+              cy="110" 
               r="6" 
               fill="#FFD6A5"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: 1, scale: [0, 1.2, 1] }}
               transition={isAnimating 
-                ? { duration: 0.6, delay: 2.3 }
+                ? { duration: 0.6, delay: 1.5 }
                 : { scale: [1, 1.1, 1], opacity: [1, 0.8, 1], repeat: Infinity, repeatType: "reverse", duration: 2.2 }
               }
             />
             <motion.circle 
-              cx="135" 
-              cy="60" 
+              cx="115" 
+              cy="110" 
               r="8" 
               fill="#FFD6A5" 
               fillOpacity="0.3"
               initial={isAnimating ? { opacity: 0, scale: 0 } : false}
               animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.2, 1] }}
               transition={{ duration: 2.5, repeat: Infinity, repeatType: "reverse", delay: 0.6 }}
-            />
-            
-            <motion.circle 
-              cx="75" 
-              cy="85" 
-              r="5" 
-              fill="#FFD6A5"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: [0, 1.2, 1] }}
-              transition={isAnimating 
-                ? { duration: 0.6, delay: 2.4 }
-                : { scale: [1, 1.1, 1], opacity: [1, 0.8, 1], repeat: Infinity, repeatType: "reverse", duration: 2 }
-              }
-            />
-            <motion.circle 
-              cx="75" 
-              cy="85" 
-              r="7" 
-              fill="#FFD6A5" 
-              fillOpacity="0.3"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.2, 1] }}
-              transition={{ duration: 2.2, repeat: Infinity, repeatType: "reverse", delay: 0.8 }}
-            />
-            
-            <motion.circle 
-              cx="125" 
-              cy="85" 
-              r="5" 
-              fill="#FFD6A5"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: 1, scale: [0, 1.2, 1] }}
-              transition={isAnimating 
-                ? { duration: 0.6, delay: 2.5 }
-                : { scale: [1, 1.1, 1], opacity: [1, 0.8, 1], repeat: Infinity, repeatType: "reverse", duration: 1.8 }
-              }
-            />
-            <motion.circle 
-              cx="125" 
-              cy="85" 
-              r="7" 
-              fill="#FFD6A5" 
-              fillOpacity="0.3"
-              initial={isAnimating ? { opacity: 0, scale: 0 } : false}
-              animate={{ opacity: [0.3, 0.5, 0.3], scale: [1, 1.2, 1] }}
-              transition={{ duration: 2.4, repeat: Infinity, repeatType: "reverse", delay: 1 }}
             />
           </>
         );
