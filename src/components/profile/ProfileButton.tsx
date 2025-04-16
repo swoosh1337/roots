@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +17,7 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
       if (!user) return;
       
       try {
+        console.log("Fetching profile image for user ID:", user.id);
         const { data, error } = await supabase
           .from('users')
           .select('profile_img_url')
@@ -29,10 +29,13 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
           return;
         }
         
+        console.log("Profile image data from database:", data);
+        
         if (data && data.profile_img_url) {
           // Add cache-busting parameter to force browser to reload the image
           const timestamp = new Date().getTime();
           const urlWithTimestamp = `${data.profile_img_url.split('?')[0]}?t=${timestamp}`;
+          console.log("Setting profile image URL with timestamp:", urlWithTimestamp);
           setProfileImgUrl(urlWithTimestamp);
         }
       } catch (error) {
@@ -67,6 +70,9 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
   
   // Get profile image with fallback logic
   const getProfileImage = () => {
+    console.log("getProfileImage called with profileImgUrl:", profileImgUrl);
+    console.log("User metadata avatar_url:", user?.user_metadata?.avatar_url);
+    
     // First try user's profile_img_url from our database
     if (profileImgUrl) {
       return profileImgUrl;
@@ -75,9 +81,16 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
     if (user?.user_metadata?.avatar_url) {
       return user.user_metadata.avatar_url;
     }
+    // If user has picture metadata, use that
+    if (user?.user_metadata?.picture) {
+      return user.user_metadata.picture;
+    }
     // Otherwise use placeholder
     return "/placeholder.svg";
   };
+  
+  const avatarSrc = getProfileImage();
+  console.log("Final avatar source:", avatarSrc);
   
   return (
     <button 
@@ -85,7 +98,7 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
       className="rounded-full hover:ring-2 hover:ring-ritual-green transition-all duration-300"
     >
       <Avatar className="h-9 w-9 border border-ritual-moss">
-        <AvatarImage src={getProfileImage()} alt="User Avatar" />
+        <AvatarImage src={avatarSrc} alt="User Avatar" />
         <AvatarFallback className="bg-ritual-moss/20 text-ritual-forest">
           {user?.email?.charAt(0) || 'U'}
         </AvatarFallback>

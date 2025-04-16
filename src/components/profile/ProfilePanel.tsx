@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -28,11 +28,12 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
   const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
 
   // Fetch the user's profile image URL when the component mounts or user changes
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchProfileImage = async () => {
       if (!user) return;
       
       try {
+        console.log("ProfilePanel: Fetching profile image for user ID:", user.id);
         const { data, error } = await supabase
           .from('users')
           .select('profile_img_url')
@@ -44,8 +45,14 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
           return;
         }
         
+        console.log("ProfilePanel: Profile image data from database:", data);
+        
         if (data && data.profile_img_url) {
-          setProfileImgUrl(data.profile_img_url);
+          // Add cache-busting parameter
+          const timestamp = new Date().getTime();
+          const urlWithTimestamp = `${data.profile_img_url.split('?')[0]}?t=${timestamp}`;
+          console.log("ProfilePanel: Setting profile URL with timestamp:", urlWithTimestamp);
+          setProfileImgUrl(urlWithTimestamp);
         }
       } catch (error) {
         console.error('Exception fetching profile image:', error);
@@ -53,6 +60,28 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
     };
     
     fetchProfileImage();
+    
+    // Set up a listener for user profile updates
+    const channel = supabase
+      .channel('profile-panel-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users',
+          filter: `id=eq.${user?.id}`
+        },
+        (payload) => {
+          console.log('ProfilePanel: User profile updated:', payload);
+          fetchProfileImage();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const handleAddFriend = () => {
@@ -115,7 +144,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       const publicUrl = `${urlData.publicUrl}?t=${timestamp}`;
       console.log(`[Upload] Got public URL: ${publicUrl}`);
       
-      // Update state with the new URL
+      // Update state immediately with the new URL
       setProfileImgUrl(publicUrl);
 
       // Update the user's profile with the new image URL
@@ -162,6 +191,9 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
 
   // Get profile image with fallback logic
   const getProfileImage = () => {
+    console.log("ProfilePanel: getProfileImage called with profileImgUrl:", profileImgUrl);
+    console.log("ProfilePanel: User metadata avatar_url:", user?.user_metadata?.avatar_url);
+    
     // First try the state variable (which might have been updated during this session)
     if (profileImgUrl) {
       return profileImgUrl;
@@ -174,9 +206,16 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
     if (user?.user_metadata?.avatar_url) {
       return user.user_metadata.avatar_url;
     }
+    // If user has picture metadata, use that
+    if (user?.user_metadata?.picture) {
+      return user.user_metadata.picture;
+    }
     // Otherwise use placeholder
     return "/placeholder.svg";
   };
+
+  const avatarSrc = getProfileImage();
+  console.log("ProfilePanel: Final avatar source:", avatarSrc);
 
   return (
     <>
@@ -218,7 +257,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
           {/* Avatar with upload button */}
           <div className="relative group">
             <Avatar className="h-20 w-20 border-2 border-ritual-moss">
-              <AvatarImage src={getProfileImage()} alt="User Avatar" />
+              <AvatarImage src={avatarSrc} alt="User Avatar" />
               <AvatarFallback className="bg-ritual-moss/20 text-ritual-forest text-xl">
                 {user?.email?.charAt(0) || 'U'}
               </AvatarFallback>
