@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -26,41 +25,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
-  const [bucketCreated, setBucketCreated] = useState(false);
-
-  // Check if the bucket exists when the component mounts
-  useEffect(() => {
-    const checkBucket = async () => {
-      try {
-        const { data, error } = await supabase.storage.getBucket('profile-imgs');
-        if (error) {
-          // If bucket doesn't exist, create it
-          if (error.message.includes('does not exist')) {
-            const { error: createError } = await supabase.storage.createBucket('profile-imgs', {
-              public: true,
-              fileSizeLimit: 1024 * 1024 * 2, // 2MB
-            });
-            
-            if (createError) {
-              console.error('Failed to create bucket:', createError);
-              return;
-            }
-            console.log('Bucket created successfully');
-            setBucketCreated(true);
-          }
-        } else {
-          console.log('Bucket already exists');
-          setBucketCreated(true);
-        }
-      } catch (err) {
-        console.error('Error checking bucket:', err);
-      }
-    };
-
-    if (user) {
-      checkBucket();
-    }
-  }, [user]);
 
   const handleAddFriend = () => {
     toast({
@@ -92,24 +56,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
       console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with path: ${filePath}`);
-
-      // Since we've already checked if the bucket exists in useEffect, 
-      // we can directly try to upload
-      if (!bucketCreated) {
-        // Try to create the bucket again just in case
-        const { error: createBucketError } = await supabase
-          .storage
-          .createBucket('profile-imgs', {
-            public: true,
-            fileSizeLimit: 1024 * 1024 * 2, // 2MB
-          });
-        
-        if (createBucketError) {
-          console.error('[Upload] Failed to create bucket:', createBucketError);
-          throw new Error(`Failed to create storage bucket: ${createBucketError.message}`);
-        }
-        console.log('[Upload] Bucket created on demand successfully');
-      }
 
       // Upload the file to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -163,15 +109,19 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
 
     } catch (error) {
       console.error('[Upload] Overall error in handleImageUpload:', error);
+      
+      // Enhanced error reporting for debugging
+      let errorMessage = 'Unknown error';
       if (error instanceof Error) {
-        console.error('[Upload] Error message:', error.message);
+        errorMessage = error.message;
         console.error('[Upload] Error name:', error.name);
+        console.error('[Upload] Error message:', error.message);
         console.error('[Upload] Error stack:', error.stack);
       }
       
       toast({
         title: "Upload Failed",
-        description: `There was an error uploading your image: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `There was an error uploading your image: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
