@@ -27,17 +27,16 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user, avatarSrc, onImageU
     console.log('[Upload] Starting image upload for user:', user.id);
 
     try {
-      // Upload directly to the bucket root with userId as filename prefix
-      // This matches the expected policy format using split_part(name, '-', 1)
+      // Create a consistent file path for this user - always same name to enable overwriting
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-avatar-${Date.now()}.${fileExt}`;
-      console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with name: ${fileName}`);
+      const filePath = `${user.id}/avatar.${fileExt}`;
+      console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with path: ${filePath}`);
 
-      // Upload the file to Supabase Storage 
+      // Upload the file to Supabase Storage with upsert: true to overwrite existing file
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('profile-imgs')
-        .upload(fileName, file, {
-          upsert: true,
+        .upload(filePath, file, {
+          upsert: true, // Enables overwriting existing files
           contentType: file.type,
         });
 
@@ -48,10 +47,10 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user, avatarSrc, onImageU
       console.log('[Upload] File uploaded successfully to storage.', uploadData);
 
       // Get the public URL
-      console.log(`[Upload] Getting public URL for: ${fileName}`);
+      console.log(`[Upload] Getting public URL for path: ${filePath}`);
       const { data: urlData } = supabase.storage
         .from('profile-imgs')
-        .getPublicUrl(fileName);
+        .getPublicUrl(filePath);
           
       if (!urlData || !urlData.publicUrl) {
         console.error('[Upload] Public URL data is missing after getPublicUrl call.');
