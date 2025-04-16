@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,41 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
+  const [bucketCreated, setBucketCreated] = useState(false);
+
+  // Check if the bucket exists when the component mounts
+  useEffect(() => {
+    const checkBucket = async () => {
+      try {
+        const { data, error } = await supabase.storage.getBucket('profile-imgs');
+        if (error) {
+          // If bucket doesn't exist, create it
+          if (error.message.includes('does not exist')) {
+            const { error: createError } = await supabase.storage.createBucket('profile-imgs', {
+              public: true,
+              fileSizeLimit: 1024 * 1024 * 2, // 2MB
+            });
+            
+            if (createError) {
+              console.error('Failed to create bucket:', createError);
+              return;
+            }
+            console.log('Bucket created successfully');
+            setBucketCreated(true);
+          }
+        } else {
+          console.log('Bucket already exists');
+          setBucketCreated(true);
+        }
+      } catch (err) {
+        console.error('Error checking bucket:', err);
+      }
+    };
+
+    if (user) {
+      checkBucket();
+    }
+  }, [user]);
 
   const handleAddFriend = () => {
     toast({
@@ -58,32 +93,22 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       const filePath = `${fileName}`;
       console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with path: ${filePath}`);
 
-      // Check if bucket exists first
-      const { data: bucketData, error: bucketError } = await supabase
-        .storage
-        .getBucket('profile-imgs');
+      // Since we've already checked if the bucket exists in useEffect, 
+      // we can directly try to upload
+      if (!bucketCreated) {
+        // Try to create the bucket again just in case
+        const { error: createBucketError } = await supabase
+          .storage
+          .createBucket('profile-imgs', {
+            public: true,
+            fileSizeLimit: 1024 * 1024 * 2, // 2MB
+          });
         
-      if (bucketError) {
-        console.error('[Upload] Bucket check error:', bucketError);
-        
-        // Create bucket if it doesn't exist
-        if (bucketError.message.includes('does not exist')) {
-          console.log('[Upload] Bucket does not exist, attempting to create...');
-          const { error: createBucketError } = await supabase
-            .storage
-            .createBucket('profile-imgs', {
-              public: true,
-              fileSizeLimit: 1024 * 1024 * 2, // 2MB
-            });
-            
-          if (createBucketError) {
-            console.error('[Upload] Failed to create bucket:', createBucketError);
-            throw createBucketError;
-          }
-          console.log('[Upload] Bucket created successfully');
-        } else {
-          throw bucketError;
+        if (createBucketError) {
+          console.error('[Upload] Failed to create bucket:', createBucketError);
+          throw new Error(`Failed to create storage bucket: ${createBucketError.message}`);
         }
+        console.log('[Upload] Bucket created on demand successfully');
       }
 
       // Upload the file to Supabase Storage
@@ -96,13 +121,12 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
 
       if (uploadError) {
         console.error('[Upload] Supabase storage upload error:', uploadError);
-        throw uploadError; // Re-throw to be caught by the main catch block
+        throw uploadError;
       }
       console.log('[Upload] File uploaded successfully to storage.', uploadData);
 
       // Get the public URL
       console.log(`[Upload] Getting public URL for path: ${filePath}`);
-      // getPublicUrl returns { data: { publicUrl: string } } directly or throws
       const { data: urlData } = supabase.storage
         .from('profile-imgs')
         .getPublicUrl(filePath);
@@ -123,7 +147,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
 
       if (updateError) {
         console.error('[Upload] Error updating user profile table:', updateError);
-        throw updateError; // Re-throw
+        throw updateError;
       }
       console.log('[Upload] User profile table updated successfully.');
 
@@ -133,13 +157,12 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       });
 
       // Refresh the page to see the updated profile image
-      // This is a simple way to get the updated user data
-      window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
 
     } catch (error) {
-      // General catch block logs any error thrown from the try block
       console.error('[Upload] Overall error in handleImageUpload:', error);
-      // Log more detailed information for debugging
       if (error instanceof Error) {
         console.error('[Upload] Error message:', error.message);
         console.error('[Upload] Error name:', error.name);
@@ -153,7 +176,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       });
     } finally {
       setUploading(false);
-      // Clear the input value so the same file can be selected again
       if (event.target) event.target.value = '';
       console.log('[Upload] Upload process finished.');
     }

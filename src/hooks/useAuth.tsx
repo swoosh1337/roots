@@ -66,6 +66,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             title: "Logged Out",
             description: "You have been logged out successfully 🌿",
           });
+          // Force client-side refresh after logout to clear any cached state
+          window.location.href = '/auth';
         }
       } else {
         // If no session exists, just update our local state
