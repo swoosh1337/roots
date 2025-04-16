@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { X, Leaf } from 'lucide-react';
+import { X, Leaf, Camera } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import ProfileStats from './ProfileStats';
 import StreakCalendar from './StreakCalendar';
 import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfilePanelProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface ProfilePanelProps {
 const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+  const [uploading, setUploading] = useState(false);
 
   const handleAddFriend = () => {
     toast({
@@ -36,6 +38,79 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
       title: "Coming Soon",
       description: "Garden view will be available in a future update!",
     });
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      // Get the file from the input
+      const file = event.target.files?.[0];
+      if (!file || !user) return;
+
+      setUploading(true);
+
+      // Create a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload the file to Supabase Storage
+      const { error: uploadError, data } = await supabase.storage
+        .from('profile-imgs')
+        .upload(filePath, file, {
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-imgs')
+        .getPublicUrl(filePath);
+
+      // Update the user's profile with the new image URL
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ profile_img_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile image has been updated successfully! 🌿",
+      });
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload Failed",
+        description: "There was an error uploading your image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      // Clear the input value so the same file can be selected again
+      if (event.target) event.target.value = '';
+    }
+  };
+
+  // Get profile image with fallback logic
+  const getProfileImage = () => {
+    // First try user's profile_img_url from our database
+    if (user?.user_metadata?.profile_img_url) {
+      return user.user_metadata.profile_img_url;
+    }
+    // Then try Google avatar if available
+    if (user?.user_metadata?.avatar_url) {
+      return user.user_metadata.avatar_url;
+    }
+    // Otherwise use placeholder
+    return "/placeholder.svg";
   };
 
   return (
@@ -75,13 +150,41 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
             <Leaf size={24} />
           </div>
           
-          {/* Avatar */}
-          <Avatar className="h-20 w-20 border-2 border-ritual-moss">
-            <AvatarImage src="/placeholder.svg" alt="User Avatar" />
-            <AvatarFallback className="bg-ritual-moss/20 text-ritual-forest text-xl">
-              {user?.email?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          {/* Avatar with upload button */}
+          <div className="relative group">
+            <Avatar className="h-20 w-20 border-2 border-ritual-moss">
+              <AvatarImage src={getProfileImage()} alt="User Avatar" />
+              <AvatarFallback className="bg-ritual-moss/20 text-ritual-forest text-xl">
+                {user?.email?.charAt(0) || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* Upload overlay - visible on hover */}
+            <label 
+              htmlFor="avatar-upload" 
+              className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity"
+              aria-label="Upload profile picture"
+            >
+              <Camera size={20} />
+            </label>
+            
+            {/* Hidden file input */}
+            <input 
+              id="avatar-upload" 
+              type="file" 
+              accept="image/*" 
+              onChange={handleImageUpload}
+              disabled={uploading}
+              className="hidden"
+            />
+            
+            {/* Loading indicator during upload */}
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full">
+                <div className="h-5 w-5 border-2 border-t-transparent border-white rounded-full animate-spin" />
+              </div>
+            )}
+          </div>
 
           {/* User Name */}
           <h2 className="font-serif text-2xl font-bold text-[#2E4C2F] mt-4">
