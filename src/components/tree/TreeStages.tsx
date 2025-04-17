@@ -2,7 +2,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Define the color palette for the tree components
+/**
+ * Color palette for tree components
+ * Defines consistent, soft colors for different tree parts
+ * - ground: Light green background for the base
+ * - trunk: Warm brown for the tree trunk
+ * - leaf: Soft green for primary leaf color
+ * - leafDark: Darker green for depth and shading
+ * - blossom: Soft pink for flower details
+ * - fruit: Warm orange for fruit elements
+ */
 export const treeColors = {
   ground: '#E6F4DC',
   trunk: '#A67C52',
@@ -12,7 +21,16 @@ export const treeColors = {
   fruit: '#FFD6A5'
 };
 
-// Map stage names to streak counts for quick access buttons
+/**
+ * Mapping of tree stages to streak counts
+ * Defines the minimum streak count required to reach each tree stage
+ * - sprout: Initial stage (0 streak)
+ * - sapling: Reached at 3 consecutive days
+ * - young: Reached at 7 consecutive days
+ * - full: Reached at 14 consecutive days
+ * - blossom: Reached at 30 consecutive days
+ * - fruit: Reached at 50 consecutive days
+ */
 export const stageToStreakMap = {
   'sprout': 0,
   'sapling': 3,
@@ -22,9 +40,25 @@ export const stageToStreakMap = {
   'fruit': 50
 };
 
+/**
+ * Type definition for tree stages based on the stageToStreakMap keys
+ */
 export type TreeStage = keyof typeof stageToStreakMap;
 
-// Helper function to determine tree stage based on streak count
+/**
+ * Determines the current tree stage based on the user's streak count
+ * 
+ * @param streak - Number of consecutive days a ritual has been maintained
+ * @returns The corresponding tree stage based on streak progression
+ * 
+ * Stage progression logic:
+ * - 0-2 days: sprout
+ * - 3-6 days: sapling
+ * - 7-13 days: young
+ * - 14-29 days: full
+ * - 30-49 days: blossom
+ * - 50+ days: fruit
+ */
 export const getTreeStage = (streak: number): TreeStage => {
   if (streak >= 50) return 'fruit';
   if (streak >= 30) return 'blossom';
@@ -34,7 +68,13 @@ export const getTreeStage = (streak: number): TreeStage => {
   return 'sprout';
 };
 
-// Base SVG wrapper component used by all tree stages
+/**
+ * Base SVG wrapper for all tree stage components
+ * Provides consistent ground and animation handling
+ * 
+ * @param children - Tree stage-specific SVG elements
+ * @param isAnimating - Flag to control initial growth animation
+ */
 export const BaseSVG: React.FC<{
   children: React.ReactNode;
   isAnimating: boolean;
@@ -47,7 +87,7 @@ export const BaseSVG: React.FC<{
     xmlns="http://www.w3.org/2000/svg"
     className={`${isAnimating ? 'animate-tree-grow' : 'animate-sway'}`}
   >
-    {/* Ground */}
+    {/* Ground element with subtle animation */}
     <motion.ellipse 
       cx="100" 
       cy="230" 
@@ -59,7 +99,7 @@ export const BaseSVG: React.FC<{
       transition={{ duration: 0.5 }}
     />
     
-    {/* Tree components passed as children */}
+    {/* Render specific tree stage components */}
     {children}
   </motion.svg>
 );
