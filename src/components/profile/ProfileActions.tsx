@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileActionsProps {
   onAddFriend: () => void;
@@ -14,6 +15,13 @@ const ProfileActions: React.FC<ProfileActionsProps> = ({
   onViewGarden, 
   onSignOut 
 }) => {
+  const navigate = useNavigate();
+
+  const handleViewGarden = () => {
+    navigate('/garden');
+    onViewGarden(); // Still call the original handler for any side effects
+  };
+
   return (
     <>
       <div className="w-full space-y-3 mt-4">
@@ -26,7 +34,7 @@ const ProfileActions: React.FC<ProfileActionsProps> = ({
         
         <Button 
           className="w-full bg-ritual-green hover:bg-ritual-green/90 text-white rounded-full py-6"
-          onClick={onViewGarden}
+          onClick={handleViewGarden}
         >
           View Garden
         </Button>
