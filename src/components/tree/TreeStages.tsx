@@ -86,16 +86,13 @@ export const BaseSVG: React.FC<{
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={`${isAnimating ? 'animate-tree-grow' : 'animate-sway'}`}
-    initial={isAnimating ? { opacity: 0, scale: 0.9 } : false}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.4 }}
   >
-    {/* Ground element with subtle animation - wider oval for better grounding */}
+    {/* Ground element with subtle animation */}
     <motion.ellipse 
       cx="100" 
       cy="230" 
-      rx="55" 
-      ry="12" 
+      rx="50" 
+      ry="15" 
       fill={treeColors.ground}
       initial={isAnimating ? { opacity: 0.5, scale: 0.9 } : false}
       animate={{ opacity: 1, scale: 1 }}
