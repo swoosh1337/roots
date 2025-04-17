@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Edit, Link, CheckCircle, Pause } from 'lucide-react';
+import StreakTracker from './StreakTracker';
 
 // Update to use UIRitual interface instead of importing Ritual from useRituals
 interface UIRitual {
@@ -9,6 +10,7 @@ interface UIRitual {
   name: string;
   streak: number;
   status: 'active' | 'paused' | 'chained';
+  last_completed?: string | null;
 }
 
 interface RitualLibraryProps {
@@ -86,6 +88,12 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
                   <Edit className="w-4 h-4 text-gray-500" />
                 </button>
               </div>
+              
+              {/* Add Streak Tracker component */}
+              <StreakTracker 
+                lastCompletedDate={ritual.last_completed} 
+                streakCount={ritual.streak} 
+              />
               
               <div className="flex justify-between items-center mt-4">
                 <span className="text-sm text-gray-500">Day {ritual.streak}</span>

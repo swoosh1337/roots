@@ -16,6 +16,7 @@ interface UIRitual {
   name: string;
   streak: number;
   status: 'active' | 'paused' | 'chained';
+  last_completed?: string | null;
 }
 
 const Index = () => {
@@ -63,7 +64,8 @@ const Index = () => {
       id: ritual.id,
       name: ritual.name,
       streak: ritual.streak_count,
-      status: ritual.status
+      status: ritual.status,
+      last_completed: ritual.last_completed
     };
   };
 
