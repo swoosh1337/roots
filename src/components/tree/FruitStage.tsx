@@ -12,34 +12,37 @@ const FruitStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
     <BaseSVG isAnimating={isAnimating}>
       {/* Large trunk with widening base */}
       <motion.path
-        d="M95 230c0 0 -5 -100 5 -110"
+        d="M100 230C100 230 95 140 100 110C105 105 95 105 100 110"
         stroke={treeColors.trunk}
         strokeWidth="12"
-        fill="none"
         strokeLinecap="round"
+        fill="none"
         initial={{ pathLength: isAnimating ? 0 : 1 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       />
       
-      {/* Large rounded foliage based on mockup */}
-      <motion.ellipse
-        cx="100" 
-        cy="100" 
-        rx="45" 
-        ry="40"
+      {/* Top foliage layer */}
+      <motion.path
+        d="M100 110C75 95 60 105 85 115C115 95 130 110 100 110Z"
         fill={treeColors.leaf}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.7 }}
       />
       
-      {/* Darker bottom layer for depth */}
-      <motion.ellipse
-        cx="100" 
-        cy="120" 
-        rx="40" 
-        ry="30"
+      {/* Middle foliage layer */}
+      <motion.path
+        d="M100 115C70 110 55 125 85 130C115 125 135 110 100 115Z"
+        fill={treeColors.leaf}
+        initial={isAnimating ? { scale: 0, opacity: 0 } : false}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+      />
+      
+      {/* Bottom foliage layer for depth */}
+      <motion.path
+        d="M95 130C70 125 60 140 90 145C120 140 125 125 95 130Z"
         fill={treeColors.leafDark}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
@@ -48,9 +51,9 @@ const FruitStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
       
       {/* Fruit details */}
       <motion.circle 
-        cx="70" 
-        cy="90" 
-        r="7" 
+        cx="75" 
+        cy="110" 
+        r="6" 
         fill={treeColors.fruit}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ 
@@ -63,9 +66,9 @@ const FruitStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
         }
       />
       <motion.circle 
-        cx="130" 
-        cy="95" 
-        r="7" 
+        cx="125" 
+        cy="115" 
+        r="6" 
         fill={treeColors.fruit}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ 
@@ -78,9 +81,9 @@ const FruitStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
         }
       />
       <motion.circle 
-        cx="85" 
-        cy="75" 
-        r="7" 
+        cx="90" 
+        cy="95" 
+        r="6" 
         fill={treeColors.fruit}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ 
@@ -93,9 +96,9 @@ const FruitStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
         }
       />
       <motion.circle 
-        cx="115" 
-        cy="80" 
-        r="7" 
+        cx="110" 
+        cy="100" 
+        r="6" 
         fill={treeColors.fruit}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ 

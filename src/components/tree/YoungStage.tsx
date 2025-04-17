@@ -12,9 +12,9 @@ const YoungStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
     <BaseSVG isAnimating={isAnimating}>
       {/* Slightly curved taller trunk */}
       <motion.path
-        d="M100 230c0 0 -5 -70 0 -75"
+        d="M100 230C100 230 97 170 100 155"
         stroke={treeColors.trunk}
-        strokeWidth="5"
+        strokeWidth="7"
         fill="none"
         strokeLinecap="round"
         initial={{ pathLength: isAnimating ? 0 : 1 }}
@@ -24,7 +24,7 @@ const YoungStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
       
       {/* Three-leaf clover style top based on mockup */}
       <motion.path 
-        d="M100 155c-10 0 -20 -10 -5 -5c-5 -10 15 -10 10 0c15 -5 5 15 -5 5z" 
+        d="M100 155C85 145 80 150 95 160C105 145 115 150 100 155C95 140 85 140 100 155Z" 
         fill={treeColors.leaf}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}

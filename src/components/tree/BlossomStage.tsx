@@ -10,56 +10,59 @@ interface TreeStageProps {
 const BlossomStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
   return (
     <BaseSVG isAnimating={isAnimating}>
-      {/* Tree trunk - slightly thicker */}
+      {/* Tree trunk - thicker with base widening */}
       <motion.path
-        d="M95 230c0 0 -10 -100 5 -110"
+        d="M100 230C100 230 95 140 100 110C105 105 95 105 100 110"
         stroke={treeColors.trunk}
         strokeWidth="10"
-        fill="none"
         strokeLinecap="round"
+        fill="none"
         initial={{ pathLength: isAnimating ? 0 : 1 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       />
       
-      {/* Large rounded foliage based on mockup */}
-      <motion.ellipse
-        cx="100" 
-        cy="110" 
-        rx="40" 
-        ry="35"
+      {/* Top foliage layer */}
+      <motion.path
+        d="M100 110C75 100 60 110 85 120C115 100 130 115 100 110Z"
         fill={treeColors.leaf}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.7 }}
       />
       
-      {/* Darker bottom layer for depth */}
-      <motion.ellipse
-        cx="100" 
-        cy="125" 
-        rx="35" 
-        ry="25"
+      {/* Middle foliage layer */}
+      <motion.path
+        d="M100 120C70 115 55 130 85 135C115 130 135 115 100 120Z"
+        fill={treeColors.leaf}
+        initial={isAnimating ? { scale: 0, opacity: 0 } : false}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+      />
+      
+      {/* Bottom foliage layer for depth */}
+      <motion.path
+        d="M95 135C70 130 60 145 90 150C120 145 125 130 95 135Z"
         fill={treeColors.leafDark}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.9 }}
       />
       
-      {/* Flower/blossom details */}
+      {/* Small flower/blossom details */}
       <motion.circle 
-        cx="70" 
-        cy="100" 
-        r="5" 
+        cx="80" 
+        cy="115" 
+        r="4" 
         fill={treeColors.blossom}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.3, delay: 1.2 }}
       />
       <motion.circle 
-        cx="130" 
-        cy="105" 
-        r="5" 
+        cx="120" 
+        cy="118" 
+        r="4" 
         fill={treeColors.blossom}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
@@ -67,8 +70,8 @@ const BlossomStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
       />
       <motion.circle 
         cx="100" 
-        cy="90" 
-        r="5" 
+        cy="95" 
+        r="4" 
         fill={treeColors.blossom}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}

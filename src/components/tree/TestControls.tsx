@@ -26,7 +26,7 @@ const TestControls: React.FC<TestControlsProps> = ({
   ];
   
   return (
-    <div className="absolute bottom-0 left-0 w-full">
+    <div className="absolute bottom-0 left-0 w-full pt-16"> {/* Added more padding-top for spacing */}
       {/* Stage buttons */}
       <div className="flex flex-wrap justify-center gap-2 mt-4">
         {stages.map((stage) => (

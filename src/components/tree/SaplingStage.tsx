@@ -12,9 +12,9 @@ const SaplingStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
     <BaseSVG isAnimating={isAnimating}>
       {/* Slightly curved trunk */}
       <motion.path
-        d="M100 230c0 0 -3 -50 0 -55"
+        d="M100 230C100 230 98 185 100 175"
         stroke={treeColors.trunk}
-        strokeWidth="4"
+        strokeWidth="6"
         fill="none"
         strokeLinecap="round"
         initial={{ pathLength: isAnimating ? 0 : 1 }}
@@ -22,9 +22,9 @@ const SaplingStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
         transition={{ duration: 0.8, delay: 0.2 }}
       />
       
-      {/* Double leaf top based on mockup */}
+      {/* Two-leaf top based on mockup */}
       <motion.path 
-        d="M100 175c-5 -8 -15 -8 -8 0c-2 -10 15 -8 8 0z" 
+        d="M100 175C92 165 85 170 95 180C105 170 95 160 100 175Z" 
         fill={treeColors.leaf}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
