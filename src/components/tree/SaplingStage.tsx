@@ -10,11 +10,11 @@ interface TreeStageProps {
 const SaplingStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
   return (
     <BaseSVG isAnimating={isAnimating}>
-      {/* Slightly curved trunk */}
+      {/* Slightly curved trunk with taper */}
       <motion.path
-        d="M100 230c0 0 -3 -50 0 -55"
+        d="M100 230 C98 210 102 185 100 175"
         stroke={treeColors.trunk}
-        strokeWidth="4"
+        strokeWidth="3"
         fill="none"
         strokeLinecap="round"
         initial={{ pathLength: isAnimating ? 0 : 1 }}
@@ -22,13 +22,22 @@ const SaplingStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
         transition={{ duration: 0.8, delay: 0.2 }}
       />
       
-      {/* Double leaf top based on mockup */}
+      {/* Small cluster of leaves */}
       <motion.path 
-        d="M100 175c-5 -8 -15 -8 -8 0c-2 -10 15 -8 8 0z" 
+        d="M100 175 C92 165 85 172 100 170 C108 165 115 172 100 170 Z" 
         fill={treeColors.leaf}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.7 }}
+      />
+      
+      {/* Small inner leaf detail for depth */}
+      <motion.path 
+        d="M100 173 C95 170 97 175 100 172 Z" 
+        fill={treeColors.leafDark}
+        initial={isAnimating ? { scale: 0, opacity: 0 } : false}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
       />
     </BaseSVG>
   );

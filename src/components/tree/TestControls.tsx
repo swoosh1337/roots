@@ -26,9 +26,16 @@ const TestControls: React.FC<TestControlsProps> = ({
   ];
   
   return (
-    <div className="absolute bottom-0 left-0 w-full">
+    <motion.div 
+      className="absolute bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-sm rounded-t-lg shadow-md"
+      initial={{ y: 100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <p className="text-xs text-center text-ritual-forest/70 mb-3">Test Controls</p>
+      
       {/* Stage buttons */}
-      <div className="flex flex-wrap justify-center gap-2 mt-4">
+      <div className="flex justify-center gap-2 mb-3">
         {stages.map((stage) => (
           <motion.button
             key={stage.name}
@@ -46,7 +53,7 @@ const TestControls: React.FC<TestControlsProps> = ({
       </div>
       
       {/* Increment/decrement controls */}
-      <div className="flex justify-center mt-4 space-x-2">
+      <div className="flex justify-center space-x-2">
         <motion.button
           whileTap={{ scale: 0.95 }}
           className="p-2 rounded-full bg-ritual-green text-white"
@@ -67,7 +74,7 @@ const TestControls: React.FC<TestControlsProps> = ({
           <Plus size={16} />
         </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

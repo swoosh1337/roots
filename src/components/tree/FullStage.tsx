@@ -10,9 +10,9 @@ interface TreeStageProps {
 const FullStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
   return (
     <BaseSVG isAnimating={isAnimating}>
-      {/* Curved trunk */}
+      {/* Thicker trunk with natural curve */}
       <motion.path
-        d="M100 230c0 0 -10 -80 0 -90"
+        d="M100 230 C96 190 104 150 100 130"
         stroke={treeColors.trunk}
         strokeWidth="8"
         fill="none"
@@ -22,18 +22,18 @@ const FullStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
         transition={{ duration: 0.8, delay: 0.2 }}
       />
       
-      {/* Rounded cloud-like foliage based on mockup */}
+      {/* Main canopy - layered cloud-like foliage */}
       <motion.path 
-        d="M100 140c-25 -5 -40 -20 -20 -10c-15 -20 15 -15 20 -5c5 -10 35 -5 20 15c20 10 -15 5 -20 0z" 
+        d="M100 130 C70 130 60 110 75 95 C65 80 80 60 100 70 C120 60 135 80 125 95 C140 110 130 130 100 130 Z" 
         fill={treeColors.leaf}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.7 }}
       />
       
-      {/* Darker areas for depth */}
+      {/* Inner leaf clusters for depth and dimension */}
       <motion.path 
-        d="M90 145c-15 -5 -25 -15 0 -5c-5 -15 25 -5 5 5z" 
+        d="M100 120 C80 120 75 100 90 95 C75 85 90 75 100 85 C110 75 125 85 110 95 C125 100 120 120 100 120 Z" 
         fill={treeColors.leafDark}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}

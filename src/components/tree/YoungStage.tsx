@@ -10,9 +10,9 @@ interface TreeStageProps {
 const YoungStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
   return (
     <BaseSVG isAnimating={isAnimating}>
-      {/* Slightly curved taller trunk */}
+      {/* Growing trunk with natural taper */}
       <motion.path
-        d="M100 230c0 0 -5 -70 0 -75"
+        d="M100 230 C97 200 103 170 100 155"
         stroke={treeColors.trunk}
         strokeWidth="5"
         fill="none"
@@ -22,13 +22,22 @@ const YoungStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
         transition={{ duration: 0.8, delay: 0.2 }}
       />
       
-      {/* Three-leaf clover style top based on mockup */}
+      {/* Multiple leaf clusters */}
       <motion.path 
-        d="M100 155c-10 0 -20 -10 -5 -5c-5 -10 15 -10 10 0c15 -5 5 15 -5 5z" 
+        d="M100 155 C85 145 75 150 90 140 C95 125 105 125 110 140 C125 150 115 145 100 155 Z" 
         fill={treeColors.leaf}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.7 }}
+      />
+      
+      {/* Inner leaf details for depth */}
+      <motion.path 
+        d="M100 150 C90 145 85 150 100 145 C110 145 105 150 100 150 Z" 
+        fill={treeColors.leafDark}
+        initial={isAnimating ? { scale: 0, opacity: 0 } : false}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.9 }}
       />
     </BaseSVG>
   );

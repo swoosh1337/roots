@@ -4,21 +4,21 @@ import { motion } from 'framer-motion';
 
 /**
  * Color palette for tree components
- * Defines consistent, soft colors for different tree parts
- * - ground: Light green background for the base
- * - trunk: Warm brown for the tree trunk
- * - leaf: Soft green for primary leaf color
- * - leafDark: Darker green for depth and shading
- * - blossom: Soft pink for flower details
- * - fruit: Warm orange for fruit elements
+ * Defines natural, organic colors for different tree parts
+ * - ground: Soft earth tone for the base
+ * - trunk: Rich brown for the tree trunk
+ * - leaf: Fresh green for primary leaf color
+ * - leafDark: Deeper green for depth and shading
+ * - blossom: Delicate pink for flower details
+ * - fruit: Warm orange-red for fruit elements
  */
 export const treeColors = {
   ground: '#E6F4DC',
-  trunk: '#A67C52',
-  leaf: '#8BAA76',
-  leafDark: '#7A9969',
-  blossom: '#FFCFD2',
-  fruit: '#FFD6A5'
+  trunk: '#8D6E63',
+  leaf: '#7CB342',
+  leafDark: '#558B2F',
+  blossom: '#F8BBD0',
+  fruit: '#FF8A65'
 };
 
 /**

@@ -10,25 +10,21 @@ interface TreeStageProps {
 const SproutStage: React.FC<TreeStageProps> = ({ isAnimating }) => {
   return (
     <BaseSVG isAnimating={isAnimating}>
-      {/* Simple straight trunk */}
-      <motion.rect
-        x="98" 
-        y="195" 
-        width="4" 
-        height="35"
-        fill={treeColors.trunk}
-        rx="2"
-        initial={{ scaleY: isAnimating ? 0 : 1, originY: "100%" }}
-        animate={{ scaleY: 1, originY: "100%" }}
+      {/* Thin straight sprout stem */}
+      <motion.path
+        d="M100 195 L100 230"
+        stroke={treeColors.trunk}
+        strokeWidth="2"
+        fill="none"
+        strokeLinecap="round"
+        initial={{ pathLength: isAnimating ? 0 : 1, originY: "100%" }}
+        animate={{ pathLength: 1 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       />
       
-      {/* Single leaf based on mockup */}
-      <motion.ellipse
-        cx="100" 
-        cy="185" 
-        rx="10" 
-        ry="15"
+      {/* Two tiny seed leaves */}
+      <motion.path
+        d="M100 195 C95 190 90 193 100 195 C105 190 110 193 100 195 Z"
         fill={treeColors.leaf}
         initial={isAnimating ? { scale: 0, opacity: 0 } : false}
         animate={{ scale: 1, opacity: 1 }}
