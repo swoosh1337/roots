@@ -23,7 +23,7 @@ const StreakTracker: React.FC<StreakTrackerProps> = ({
     const daysArray: boolean[] = [];
     const labelsArray: string[] = [];
     
-    // Generate array of last N days
+    // Generate array of last N days, starting from Monday
     for (let i = days - 1; i >= 0; i--) {
       const date = subDays(today, i);
       const dayLabel = format(date, 'EEE'); // Mon, Tue, etc.
@@ -53,7 +53,7 @@ const StreakTracker: React.FC<StreakTrackerProps> = ({
   }, [lastCompletedDate, streakCount, days]);
 
   return (
-    <div className="flex items-center justify-start space-x-1 mt-1">
+    <div className="flex items-center justify-center space-x-1 mt-1">
       {completedDays.map((completed, index) => (
         <TooltipProvider key={index} delayDuration={300}>
           <Tooltip>
