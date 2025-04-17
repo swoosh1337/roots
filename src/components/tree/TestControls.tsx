@@ -15,7 +15,6 @@ const TestControls: React.FC<TestControlsProps> = ({
   testStreak, 
   onStreakChange 
 }) => {
-  // Quick access stage buttons for test mode
   const stages = [
     { name: 'sprout', label: '1' },
     { name: 'sapling', label: '2' },
@@ -27,20 +26,18 @@ const TestControls: React.FC<TestControlsProps> = ({
   
   return (
     <motion.div 
-      className="absolute bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-sm rounded-t-lg shadow-md"
-      initial={{ y: 100 }}
-      animate={{ y: 0 }}
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-white/80 backdrop-blur-sm rounded-full shadow-md p-2 flex items-center space-x-4"
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <p className="text-xs text-center text-ritual-forest/70 mb-3">Test Controls</p>
-      
       {/* Stage buttons */}
-      <div className="flex justify-center gap-2 mb-3">
+      <div className="flex items-center space-x-2">
         {stages.map((stage) => (
           <motion.button
             key={stage.name}
             whileTap={{ scale: 0.95 }}
-            className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium transition-colors
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors
                       ${currentStage === stage.name 
                         ? 'bg-ritual-green text-white shadow-md' 
                         : 'bg-white text-ritual-forest border border-ritual-moss/30'}`}
@@ -53,10 +50,10 @@ const TestControls: React.FC<TestControlsProps> = ({
       </div>
       
       {/* Increment/decrement controls */}
-      <div className="flex justify-center space-x-2">
+      <div className="flex items-center space-x-2">
         <motion.button
           whileTap={{ scale: 0.95 }}
-          className="p-2 rounded-full bg-ritual-green text-white"
+          className="p-1.5 rounded-full bg-ritual-green/10 text-ritual-green hover:bg-ritual-green/20"
           onClick={() => onStreakChange(Math.max(0, testStreak - 1))}
           aria-label="Decrease streak"
         >
@@ -67,7 +64,7 @@ const TestControls: React.FC<TestControlsProps> = ({
         </div>
         <motion.button
           whileTap={{ scale: 0.95 }}
-          className="p-2 rounded-full bg-ritual-green text-white"
+          className="p-1.5 rounded-full bg-ritual-green/10 text-ritual-green hover:bg-ritual-green/20"
           onClick={() => onStreakChange(testStreak + 1)}
           aria-label="Increase streak"
         >
