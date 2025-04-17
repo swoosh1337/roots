@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, TestTube } from 'lucide-react';
 import TreeVisual from './TreeVisual';
+import StreakTracker from './StreakTracker';
 import { Button } from '@/components/ui/button';
 import { Ritual } from '@/hooks/useRituals';
 
@@ -82,11 +83,19 @@ const FocusMode: React.FC<FocusModeProps> = ({
       {/* Main centered content */}
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         {/* Tree visualization */}
-        <div className="tree-container mb-8">
+        <div className="tree-container mb-4">
           <TreeVisual 
             streak={currentRitual.streak_count} 
             isAnimating={isAnimating}
             testMode={testMode} 
+          />
+        </div>
+
+        {/* Add StreakTracker below the tree */}
+        <div className="mb-6 mt-2">
+          <StreakTracker
+            lastCompletedDate={currentRitual.last_completed}
+            streakCount={currentRitual.streak_count}
           />
         </div>
 
