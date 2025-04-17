@@ -110,4 +110,25 @@
     bottom: 0;
     pointer-events: none;
   }
+  
+  /* Drag and Drop styles */
+  .dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  
+  .drop-target {
+    background-color: rgba(161, 193, 129, 0.3);
+    border: 2px dashed #A1C181;
+    border-radius: 0.5rem;
+  }
+  
+  /* Tree cell styles */
+  .tree-cell {
+    transition: all 0.3s ease;
+  }
+  
+  .tree-cell:hover {
+    transform: translateY(-2px);
+  }
 }
