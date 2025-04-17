@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, TestTube } from 'lucide-react';
 import TreeVisual from './TreeVisual';
-import { Button } from '@/components/ui/button';
 import { Ritual } from '@/hooks/useRituals';
 
 interface FocusModeProps {
@@ -68,10 +67,10 @@ const FocusMode: React.FC<FocusModeProps> = ({
         <Menu className="w-6 h-6 text-ritual-forest" />
       </button>
 
-      {/* Test mode toggle button - MOVED TO BOTTOM LEFT */}
+      {/* Test mode toggle button - BOTTOM RIGHT for better visibility */}
       <button 
         onClick={toggleTestMode}
-        className={`absolute bottom-6 left-6 w-12 h-12 rounded-full shadow-md
+        className={`fixed bottom-6 right-6 w-12 h-12 rounded-full shadow-md
                   flex items-center justify-center hover:shadow-lg
                   transition-all duration-300 z-10 ${testMode ? 'bg-ritual-green text-white' : 'bg-white text-ritual-forest'}`}
         aria-label="Toggle test mode"
@@ -80,9 +79,9 @@ const FocusMode: React.FC<FocusModeProps> = ({
       </button>
 
       {/* Main centered content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        {/* Tree visualization */}
-        <div className="tree-container mb-8">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-6 pb-20">
+        {/* Tree visualization with more vertical space */}
+        <div className="tree-container mb-8 pt-0">
           <TreeVisual 
             streak={currentRitual.streak_count} 
             isAnimating={isAnimating}

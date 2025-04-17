@@ -50,19 +50,21 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
   };
 
   return (
-    <div className="relative w-64 h-72 flex flex-col items-center justify-center"> {/* Increased height for more spacing */}
+    <div className="relative w-64 h-80 flex flex-col items-center justify-center"> {/* Increased height for more spacing */}
       <FallingPetals stage={currentStage} />
-      <div className="mb-12"> {/* Added margin-bottom to create space between tree and controls */}
+      <div className="mb-20"> {/* Increased bottom margin to create more space */}
         {renderTree()}
       </div>
       
-      {/* Test mode controls */}
+      {/* Test mode controls positioned at bottom with good spacing */}
       {testMode && (
-        <TestControls 
-          currentStage={currentStage}
-          testStreak={testStreak}
-          onStreakChange={setTestStreak}
-        />
+        <div className="absolute bottom-0 left-0 w-full">
+          <TestControls 
+            currentStage={currentStage}
+            testStreak={testStreak}
+            onStreakChange={setTestStreak}
+          />
+        </div>
       )}
     </div>
   );

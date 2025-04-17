@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus } from 'lucide-react';
 import { TreeStage, stageToStreakMap } from './TreeStages';
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface TestControlsProps {
   currentStage: TreeStage;
@@ -15,7 +16,7 @@ const TestControls: React.FC<TestControlsProps> = ({
   testStreak, 
   onStreakChange 
 }) => {
-  // Quick access stage buttons for test mode
+  // Stage definitions with proper labels
   const stages = [
     { name: 'sprout', label: '1' },
     { name: 'sapling', label: '2' },
@@ -26,41 +27,42 @@ const TestControls: React.FC<TestControlsProps> = ({
   ];
   
   return (
-    <div className="absolute bottom-0 left-0 w-full pt-16"> {/* Added more padding-top for spacing */}
-      {/* Stage buttons */}
-      <div className="flex flex-wrap justify-center gap-2 mt-4">
+    <div className="px-4 py-6 flex flex-col items-center gap-4 bg-white/80 backdrop-blur-sm rounded-t-xl border-t border-ritual-moss/20 shadow-sm">
+      {/* Stage selector using toggle group from shadcn/ui */}
+      <ToggleGroup type="single" value={currentStage} onValueChange={(value) => {
+        if (value) onStreakChange(stageToStreakMap[value as TreeStage]);
+      }} className="bg-ritual-ground/30 p-1 rounded-full">
         {stages.map((stage) => (
-          <motion.button
+          <ToggleGroupItem
             key={stage.name}
-            whileTap={{ scale: 0.95 }}
-            className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium transition-colors
-                      ${currentStage === stage.name 
-                        ? 'bg-ritual-green text-white shadow-md' 
-                        : 'bg-white text-ritual-forest border border-ritual-moss/30'}`}
-            onClick={() => onStreakChange(stageToStreakMap[stage.name as keyof typeof stageToStreakMap])}
+            value={stage.name}
             aria-label={`Set tree to stage ${stage.label}`}
+            className={`w-8 h-8 rounded-full text-xs font-medium transition-all duration-300
+              data-[state=on]:bg-ritual-green data-[state=on]:text-white
+              data-[state=off]:bg-transparent data-[state=off]:text-ritual-forest
+              hover:bg-ritual-green/10`}
           >
             {stage.label}
-          </motion.button>
+          </ToggleGroupItem>
         ))}
-      </div>
+      </ToggleGroup>
       
-      {/* Increment/decrement controls */}
-      <div className="flex justify-center mt-4 space-x-2">
+      {/* Streak adjustment controls */}
+      <div className="flex items-center gap-3">
         <motion.button
           whileTap={{ scale: 0.95 }}
-          className="p-2 rounded-full bg-ritual-green text-white"
+          className="p-2 rounded-full bg-ritual-green/10 text-ritual-forest hover:bg-ritual-green/20 transition-colors"
           onClick={() => onStreakChange(Math.max(0, testStreak - 1))}
           aria-label="Decrease streak"
         >
           <Minus size={16} />
         </motion.button>
-        <div className="px-3 py-1 bg-white rounded-full shadow-sm border border-ritual-moss/30 text-sm">
+        <div className="px-4 py-1 rounded-full bg-white border border-ritual-moss/30 text-sm font-medium min-w-[3rem] text-center">
           {testStreak}
         </div>
         <motion.button
           whileTap={{ scale: 0.95 }}
-          className="p-2 rounded-full bg-ritual-green text-white"
+          className="p-2 rounded-full bg-ritual-green/10 text-ritual-forest hover:bg-ritual-green/20 transition-colors"
           onClick={() => onStreakChange(testStreak + 1)}
           aria-label="Increase streak"
         >
