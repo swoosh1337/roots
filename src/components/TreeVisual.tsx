@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus } from 'lucide-react';
@@ -27,8 +26,18 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
     if (streak >= 3) return 'sapling';
     return 'sprout';
   };
+
+  // Map stage names to streak counts for quick access buttons
+  const stageToStreakMap = {
+    'sprout': 0,
+    'sapling': 3,
+    'young': 7,
+    'full': 14,
+    'blossom': 30,
+    'fruit': 50
+  };
   
-  // Color palette based on the screenshots
+  // Color palette based on the mockups
   const colors = {
     ground: '#E6F4DC',
     trunk: '#A67C52',
@@ -41,7 +50,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
   const renderTree = () => {
     const stage = getTreeStage();
     
-    // Base SVG components for all stages - trunk and ground
+    // Base SVG components for all stages - ground
     const baseSVG = (children: React.ReactNode) => (
       <motion.svg
         width="200"
@@ -68,6 +77,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       </motion.svg>
     );
 
+    // Based on the provided mockups, here are the simplified tree stages
     switch (stage) {
       case 'sprout':
         return baseSVG(
@@ -79,15 +89,18 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
               width="4" 
               height="35"
               fill={colors.trunk}
-              rx="1"
+              rx="2"
               initial={{ scaleY: isAnimating ? 0 : 1, originY: "100%" }}
               animate={{ scaleY: 1, originY: "100%" }}
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             
-            {/* Single leaf */}
-            <motion.path 
-              d="M100 195C100 195 92 185 100 180C108 185 100 195 100 195Z" 
+            {/* Single leaf based on mockup */}
+            <motion.ellipse
+              cx="100" 
+              cy="185" 
+              rx="10" 
+              ry="15"
               fill={colors.leaf}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
@@ -99,22 +112,21 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'sapling':
         return baseSVG(
           <>
-            {/* Slightly taller trunk */}
-            <motion.rect
-              x="97" 
-              y="175" 
-              width="6" 
-              height="55"
-              fill={colors.trunk}
-              rx="2"
-              initial={{ scaleY: isAnimating ? 0 : 1, originY: "100%" }}
-              animate={{ scaleY: 1, originY: "100%" }}
+            {/* Slightly curved trunk */}
+            <motion.path
+              d="M100 230c0 0 -3 -50 0 -55"
+              stroke={colors.trunk}
+              strokeWidth="4"
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: isAnimating ? 0 : 1 }}
+              animate={{ pathLength: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             
-            {/* Heart-shaped leaf on top */}
+            {/* Double leaf top based on mockup */}
             <motion.path 
-              d="M100 175c-5-7-15-7-15 3s10 15 15 15c5 0 15-5 15-15s-10-10-15-3z" 
+              d="M100 175c-5 -8 -15 -8 -8 0c-2 -10 15 -8 8 0z" 
               fill={colors.leaf}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
@@ -126,22 +138,21 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'young':
         return baseSVG(
           <>
-            {/* Slightly taller trunk */}
-            <motion.rect
-              x="97" 
-              y="165" 
-              width="6" 
-              height="65"
-              fill={colors.trunk}
-              rx="2"
-              initial={{ scaleY: isAnimating ? 0 : 1, originY: "100%" }}
-              animate={{ scaleY: 1, originY: "100%" }}
+            {/* Slightly curved taller trunk */}
+            <motion.path
+              d="M100 230c0 0 -5 -70 0 -75"
+              stroke={colors.trunk}
+              strokeWidth="5"
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: isAnimating ? 0 : 1 }}
+              animate={{ pathLength: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             
-            {/* Three-leaf clover style top */}
+            {/* Three-leaf clover style top based on mockup */}
             <motion.path 
-              d="M100 165c-8-5-18 0-15 10 2 10 12 8 15 5 3 3 13 5 15-5 3-10-7-15-15-10z" 
+              d="M100 155c-10 0 -20 -10 -5 -5c-5 -10 15 -10 10 0c15 -5 5 15 -5 5z" 
               fill={colors.leaf}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
@@ -153,18 +164,21 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'full':
         return baseSVG(
           <>
-            {/* Wider trunk with slight taper */}
+            {/* Curved trunk */}
             <motion.path
-              d="M90 230c0-40 3-60 10-75 7 15 10 35 10 75H90z" 
-              fill={colors.trunk}
-              initial={{ scaleY: isAnimating ? 0 : 1, originY: "100%" }}
-              animate={{ scaleY: 1, originY: "100%" }}
+              d="M100 230c0 0 -10 -80 0 -90"
+              stroke={colors.trunk}
+              strokeWidth="8"
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: isAnimating ? 0 : 1 }}
+              animate={{ pathLength: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             
-            {/* Simple cloud-like foliage */}
+            {/* Rounded cloud-like foliage based on mockup */}
             <motion.path 
-              d="M100 155c-25 0-35-20-30-35 5-15 20-15 30-5 10-10 25-10 30 5 5 15-5 35-30 35z" 
+              d="M100 140c-25 -5 -40 -20 -20 -10c-15 -20 15 -15 20 -5c5 -10 35 -5 20 15c20 10 -15 5 -20 0z" 
               fill={colors.leaf}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
@@ -173,7 +187,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             
             {/* Darker areas for depth */}
             <motion.path 
-              d="M85 145c0-15 10-25 15-15 5-10 15 0 15 15-10 15-20 15-30 0z" 
+              d="M90 145c-15 -5 -25 -15 0 -5c-5 -15 25 -5 5 5z" 
               fill={colors.leafDark}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
@@ -185,27 +199,36 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'blossom':
         return baseSVG(
           <>
-            {/* Wider trunk with more taper */}
+            {/* Tree trunk - slightly thicker */}
             <motion.path
-              d="M85 230c0-40 5-65 15-80 10 15 15 40 15 80H85z" 
-              fill={colors.trunk}
-              initial={{ scaleY: isAnimating ? 0 : 1, originY: "100%" }}
-              animate={{ scaleY: 1, originY: "100%" }}
+              d="M95 230c0 0 -10 -100 5 -110"
+              stroke={colors.trunk}
+              strokeWidth="10"
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: isAnimating ? 0 : 1 }}
+              animate={{ pathLength: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             
-            {/* Large cloud-like foliage */}
-            <motion.path 
-              d="M100 150c-30 0-45-25-40-45 5-20 25-20 40-5 15-15 35-15 40 5 5 20-10 45-40 45z" 
+            {/* Large rounded foliage based on mockup */}
+            <motion.ellipse
+              cx="100" 
+              cy="110" 
+              rx="40" 
+              ry="35"
               fill={colors.leaf}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.7 }}
             />
             
-            {/* Darker areas for depth */}
-            <motion.path 
-              d="M80 130c0-20 15-35 20-25 10-10 20 5 20 25-15 20-25 20-40 0z" 
+            {/* Darker bottom layer for depth */}
+            <motion.ellipse
+              cx="100" 
+              cy="125" 
+              rx="35" 
+              ry="25"
               fill={colors.leafDark}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
@@ -215,7 +238,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             {/* Flower/blossom details */}
             <motion.circle 
               cx="70" 
-              cy="120" 
+              cy="100" 
               r="5" 
               fill={colors.blossom}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
@@ -224,7 +247,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             />
             <motion.circle 
               cx="130" 
-              cy="125" 
+              cy="105" 
               r="5" 
               fill={colors.blossom}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
@@ -233,7 +256,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             />
             <motion.circle 
               cx="100" 
-              cy="105" 
+              cy="90" 
               r="5" 
               fill={colors.blossom}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
@@ -246,27 +269,36 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       case 'fruit':
         return baseSVG(
           <>
-            {/* Wider trunk with more taper - like in the screenshot */}
+            {/* Large trunk with widening base */}
             <motion.path
-              d="M85 230c0-40 5-65 15-85 10 20 15 45 15 85H85z" 
-              fill={colors.trunk}
-              initial={{ scaleY: isAnimating ? 0 : 1, originY: "100%" }}
-              animate={{ scaleY: 1, originY: "100%" }}
+              d="M95 230c0 0 -5 -100 5 -110"
+              stroke={colors.trunk}
+              strokeWidth="12"
+              fill="none"
+              strokeLinecap="round"
+              initial={{ pathLength: isAnimating ? 0 : 1 }}
+              animate={{ pathLength: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             
-            {/* Large cloud-like foliage similar to the screenshot */}
-            <motion.path 
-              d="M100 145c-35 0-50-25-45-45 5-20 25-20 45-5 20-15 40-15 45 5 5 20-10 45-45 45z" 
+            {/* Large rounded foliage based on mockup */}
+            <motion.ellipse
+              cx="100" 
+              cy="100" 
+              rx="45" 
+              ry="40"
               fill={colors.leaf}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.7 }}
             />
             
-            {/* Darker areas for depth */}
-            <motion.path 
-              d="M75 125c0-20 15-35 25-25 10-10 25 5 25 25-15 20-35 20-50 0z" 
+            {/* Darker bottom layer for depth */}
+            <motion.ellipse
+              cx="100" 
+              cy="120" 
+              rx="40" 
+              ry="30"
               fill={colors.leafDark}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ scale: 1, opacity: 1 }}
@@ -276,8 +308,8 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             {/* Fruit details */}
             <motion.circle 
               cx="70" 
-              cy="120" 
-              r="6" 
+              cy="90" 
+              r="7" 
               fill={colors.fruit}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ 
@@ -291,8 +323,8 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
             />
             <motion.circle 
               cx="130" 
-              cy="125" 
-              r="6" 
+              cy="95" 
+              r="7" 
               fill={colors.fruit}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ 
@@ -305,9 +337,9 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
               }
             />
             <motion.circle 
-              cx="90" 
-              cy="105" 
-              r="6" 
+              cx="85" 
+              cy="75" 
+              r="7" 
               fill={colors.fruit}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ 
@@ -320,9 +352,9 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
               }
             />
             <motion.circle 
-              cx="110" 
-              cy="115" 
-              r="6" 
+              cx="115" 
+              cy="80" 
+              r="7" 
               fill={colors.fruit}
               initial={isAnimating ? { scale: 0, opacity: 0 } : false}
               animate={{ 
@@ -373,6 +405,39 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
     ));
   };
 
+  // Quick access stage buttons for test mode
+  const renderStageButtons = () => {
+    if (!testMode) return null;
+    
+    const stages = [
+      { name: 'sprout', label: '1' },
+      { name: 'sapling', label: '2' },
+      { name: 'young', label: '3' },
+      { name: 'full', label: '4' },
+      { name: 'blossom', label: '5' },
+      { name: 'fruit', label: '6' }
+    ];
+    
+    return (
+      <div className="flex flex-wrap justify-center gap-2 mt-4">
+        {stages.map((stage) => (
+          <motion.button
+            key={stage.name}
+            whileTap={{ scale: 0.95 }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-medium transition-colors
+                      ${getTreeStage() === stage.name 
+                        ? 'bg-ritual-green text-white shadow-md' 
+                        : 'bg-white text-ritual-forest border border-ritual-moss/30'}`}
+            onClick={() => setTestStreak(stageToStreakMap[stage.name as keyof typeof stageToStreakMap])}
+            aria-label={`Set tree to stage ${stage.label}`}
+          >
+            {stage.label}
+          </motion.button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="relative w-64 h-64 flex flex-col items-center justify-center">
       {renderFallingPetals()}
@@ -380,26 +445,32 @@ const TreeVisual: React.FC<TreeVisualProps> = ({ streak: initialStreak, isAnimat
       
       {/* Test mode controls */}
       {testMode && (
-        <div className="absolute bottom-0 left-0 w-full flex justify-center mt-4 space-x-2">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-ritual-green text-white"
-            onClick={() => setTestStreak(prev => Math.max(0, prev - 1))}
-            aria-label="Decrease streak"
-          >
-            <Minus size={16} />
-          </motion.button>
-          <div className="px-3 py-1 bg-white rounded-full shadow-sm border border-ritual-moss/30 text-sm">
-            {testStreak}
+        <div className="absolute bottom-0 left-0 w-full">
+          {/* Stage buttons */}
+          {renderStageButtons()}
+          
+          {/* Existing increment/decrement controls */}
+          <div className="flex justify-center mt-4 space-x-2">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-full bg-ritual-green text-white"
+              onClick={() => setTestStreak(prev => Math.max(0, prev - 1))}
+              aria-label="Decrease streak"
+            >
+              <Minus size={16} />
+            </motion.button>
+            <div className="px-3 py-1 bg-white rounded-full shadow-sm border border-ritual-moss/30 text-sm">
+              {testStreak}
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-full bg-ritual-green text-white"
+              onClick={() => setTestStreak(prev => prev + 1)}
+              aria-label="Increase streak"
+            >
+              <Plus size={16} />
+            </motion.button>
           </div>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-ritual-green text-white"
-            onClick={() => setTestStreak(prev => prev + 1)}
-            aria-label="Increase streak"
-          >
-            <Plus size={16} />
-          </motion.button>
         </div>
       )}
     </div>
