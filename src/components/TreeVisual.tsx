@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { getTreeStage } from './tree/TreeStages';
+import TestControls from './tree/TestControls';
 
 interface TreeVisualProps {
   streak: number;
@@ -50,4 +51,3 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
 };
 
 export default TreeVisual;
-
