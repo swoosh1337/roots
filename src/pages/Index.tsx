@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useRituals, Ritual } from '@/hooks/useRituals';
 import FocusMode from '@/components/FocusMode';
 import AddRitualModal from '@/components/AddRitualModal';
@@ -7,6 +8,8 @@ import ChainRitualsModal from '@/components/ChainRitualsModal';
 import RitualLibrary from '@/components/RitualLibrary';
 import ProfileButton from '@/components/profile/ProfileButton';
 import ProfilePanel from '@/components/profile/ProfilePanel';
+import { FloatingAction } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type DisplayMode = 'focus' | 'library';
 
@@ -20,6 +23,7 @@ interface UIRitual {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const { rituals, loading, createRitual, completeRitual, chainRituals } = useRituals();
   const [displayMode, setDisplayMode] = useState<DisplayMode>('focus');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -136,6 +140,17 @@ const Index = () => {
       {/* Profile Button */}
       <div className="absolute top-6 right-6 z-10">
         <ProfileButton onClick={toggleProfilePanel} />
+      </div>
+      
+      {/* Garden Button */}
+      <div className="absolute top-6 left-6 z-10">
+        <Button
+          onClick={() => navigate('/garden')}
+          variant="outline"
+          className="flex items-center gap-2 rounded-full bg-white/70 backdrop-blur-sm hover:bg-white/90 transition-all"
+        >
+          <span>View Garden</span>
+        </Button>
       </div>
 
       {/* Always render FocusMode */}
