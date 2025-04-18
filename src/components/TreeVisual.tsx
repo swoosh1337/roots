@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getTreeStage } from './tree/TreeStages';
 import TestControls from './tree/TestControls';
+import WaterDrop from './animations/WaterDrop';
+import Ripple from './animations/Ripple';
 
 interface TreeVisualProps {
   streak: number;
@@ -34,11 +36,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
   const currentStreak = testMode ? testStreak : streak;
   const currentStage = getTreeStage(currentStreak);
   
-  // For debugging - log the current image path
   const imagePath = stageImages[currentStage];
-  console.log("Current tree stage:", currentStage);
-  console.log("Image path:", imagePath);
-  console.log("Image exists check:", imageExists(imagePath));
   
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
@@ -48,7 +46,6 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Add image onError handling to help debug */}
         <img
           src={imagePath}
           alt={`Tree at ${currentStage} stage`}
@@ -60,6 +57,11 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
           }}
           style={{ maxHeight: '100%', maxWidth: '100%' }}
         />
+        
+        <AnimatePresence>
+          <WaterDrop isAnimating={isAnimating} />
+          <Ripple isAnimating={isAnimating} />
+        </AnimatePresence>
       </motion.div>
       
       {testMode && (

@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, TestTube } from 'lucide-react';
 import TreeVisual from './TreeVisual';
 import StreakTracker from './StreakTracker';
@@ -34,6 +33,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
   const [affirmation, setAffirmation] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
   const [testMode, setTestMode] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     // Set a random affirmation when component mounts
@@ -43,7 +43,9 @@ const FocusMode: React.FC<FocusModeProps> = ({
 
   const handleRitualCompletion = () => {
     setIsAnimating(true);
+    setIsCompleted(true);
     setShowAffirmation(true);
+    
     // Call the parent callback
     onCompletedRitual(currentRitual.id);
     
@@ -106,13 +108,30 @@ const FocusMode: React.FC<FocusModeProps> = ({
 
         {/* Main button */}
         <div className="w-full max-w-md">
-          <button
-            onClick={handleRitualCompletion}
-            className="ritual-button w-full"
-            disabled={isAnimating}
-          >
-            I kept my ritual alive today
-          </button>
+          <AnimatePresence mode="wait">
+            {!isCompleted ? (
+              <motion.button
+                key="complete-button"
+                className="ritual-button w-full"
+                onClick={handleRitualCompletion}
+                initial={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                disabled={isAnimating}
+              >
+                I kept my ritual alive today
+              </motion.button>
+            ) : (
+              <motion.div
+                key="completion-message"
+                className="text-center text-ritual-forest text-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                See you tomorrow 🌱
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Affirmation (conditional) */}
