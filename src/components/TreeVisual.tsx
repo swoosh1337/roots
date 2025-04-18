@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { getTreeStage } from './tree/TreeStages';
@@ -10,14 +9,13 @@ interface TreeVisualProps {
   testMode?: boolean;
 }
 
-// Updated image paths - using relative paths instead of absolute paths
 const stageImages = {
-  sprout: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b', // placeholder image
-  sapling: 'https://images.unsplash.com/photo-1518770660439-4636190af475', // placeholder image
-  young: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6', // placeholder image
-  full: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7', // placeholder image
-  blossom: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b', // placeholder image
-  fruit: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6' // placeholder image
+  sprout: 'https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-1.png',
+  sapling: 'https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-2.png',
+  young: 'https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-3.png',
+  full: 'https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-4.png',
+  blossom: 'https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-5.png',
+  fruit: 'https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-6.png'
 };
 
 // Helper method to verify image loading
