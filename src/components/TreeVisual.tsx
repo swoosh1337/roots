@@ -30,14 +30,18 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
   
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
-      <motion.img
-        src={stageImages[currentStage]}
-        alt={`Tree at ${currentStage} stage`}
-        className={`w-48 h-48 object-contain ${isAnimating ? 'animate-tree-grow' : 'animate-sway'}`}
+      <motion.div
+        className={`w-full h-full flex items-center justify-center ${isAnimating ? '' : 'animate-sway'}`}
         initial={isAnimating ? { scale: 0.95, opacity: 0.8 } : false}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
-      />
+      >
+        <img
+          src={stageImages[currentStage]}
+          alt={`Tree at ${currentStage} stage`}
+          className="w-full h-full object-contain"
+        />
+      </motion.div>
       
       {testMode && (
         <TestControls 
