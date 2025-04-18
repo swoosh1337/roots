@@ -1,19 +1,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { format, parseISO, subDays, isWithinInterval } from 'date-fns';
+import { format, parseISO, subDays, isWithinInterval, startOfWeek, addDays } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StreakTrackerProps {
   lastCompletedDate: string | null;
   streakCount: number;
-  days?: number;
 }
 
 const StreakTracker: React.FC<StreakTrackerProps> = ({ 
   lastCompletedDate, 
-  streakCount, 
-  days = 7 
+  streakCount
 }) => {
   const [completedDays, setCompletedDays] = useState<boolean[]>([]);
   const [dayLabels, setDayLabels] = useState<string[]>([]);
@@ -23,9 +21,12 @@ const StreakTracker: React.FC<StreakTrackerProps> = ({
     const daysArray: boolean[] = [];
     const labelsArray: string[] = [];
     
-    // Generate array of last N days, starting from Monday
-    for (let i = days - 1; i >= 0; i--) {
-      const date = subDays(today, i);
+    // Get the Monday of the current week
+    const currentWeekMonday = startOfWeek(today, { weekStartsOn: 1 });
+    
+    // Generate array for the current week (Monday to Sunday)
+    for (let i = 0; i < 7; i++) {
+      const date = addDays(currentWeekMonday, i);
       const dayLabel = format(date, 'EEE'); // Mon, Tue, etc.
       const dayFormatted = format(date, 'yyyy-MM-dd');
       labelsArray.push(dayLabel);
@@ -50,7 +51,7 @@ const StreakTracker: React.FC<StreakTrackerProps> = ({
     
     setCompletedDays(daysArray);
     setDayLabels(labelsArray);
-  }, [lastCompletedDate, streakCount, days]);
+  }, [lastCompletedDate, streakCount]);
 
   return (
     <div className="flex items-center justify-center space-x-1 mt-1">

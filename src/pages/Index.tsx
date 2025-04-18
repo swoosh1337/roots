@@ -45,6 +45,26 @@ const Index = () => {
     }
   }, [rituals, currentRitual]);
 
+  // Update currentRitual when rituals array changes (e.g. after completion)
+  useEffect(() => {
+    if (currentRitual) {
+      const updatedRitualData = rituals.find(r => r.id === currentRitual.id);
+      
+      if (updatedRitualData) {
+        // Check if streak count or last_completed has changed
+        if (
+          updatedRitualData.streak_count !== currentRitual.streak_count ||
+          updatedRitualData.last_completed !== currentRitual.last_completed
+        ) {
+          setCurrentRitual(updatedRitualData);
+        }
+      } else {
+        // If ritual no longer exists in the array, reset currentRitual
+        setCurrentRitual(null);
+      }
+    }
+  }, [rituals]);
+
   // Handle modal openings
   const handleOpenAddModal = () => {
     setShowAddModal(true);
