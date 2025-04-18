@@ -10,6 +10,7 @@ interface TreeVisualProps {
   testMode?: boolean;
 }
 
+// These URLs need to be double-checked - this is likely where the issue is
 const stageImages = {
   sprout: '/lovable-uploads/8582287a-166e-48b7-bcda-03138c829c67.png',
   sapling: '/lovable-uploads/57c52578-6395-4c7f-a494-632c296154f8.png',
@@ -17,6 +18,13 @@ const stageImages = {
   full: '/lovable-uploads/39e0a590-fca7-4a27-b0fa-8f4f64a8a9ff.png',
   blossom: '/lovable-uploads/9b0965ce-7864-4af2-a1df-4682815fec5c.png',
   fruit: '/lovable-uploads/469c0b68-551b-43dc-b9b5-d129e9afeaf8.png'
+};
+
+// Add a method to verify image loading
+const imageExists = (url: string): boolean => {
+  const img = new Image();
+  img.src = url;
+  return img.complete;
 };
 
 const TreeVisual: React.FC<TreeVisualProps> = ({ 
@@ -28,6 +36,11 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
   const currentStreak = testMode ? testStreak : streak;
   const currentStage = getTreeStage(currentStreak);
   
+  // For debugging - log the current image path
+  const imagePath = stageImages[currentStage];
+  console.log("Current tree stage:", currentStage);
+  console.log("Image path:", imagePath);
+  
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
       <motion.div
@@ -36,10 +49,16 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+        {/* Add image onError handling to help debug */}
         <img
-          src={stageImages[currentStage]}
+          src={imagePath}
           alt={`Tree at ${currentStage} stage`}
           className="w-full h-full object-contain"
+          onError={(e) => {
+            console.error("Failed to load image:", imagePath);
+            e.currentTarget.style.border = "1px dashed red";
+            e.currentTarget.style.padding = "8px";
+          }}
         />
       </motion.div>
       
