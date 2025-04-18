@@ -1,14 +1,7 @@
 
 import React, { useState } from 'react';
-import { getTreeStage, TreeStage } from './tree/TreeStages';
-import SproutStage from './tree/SproutStage';
-import SaplingStage from './tree/SaplingStage';
-import YoungStage from './tree/YoungStage';
-import FullStage from './tree/FullStage';
-import BlossomStage from './tree/BlossomStage';
-import FruitStage from './tree/FruitStage';
-import FallingPetals from './tree/FallingPetals';
-import TestControls from './tree/TestControls';
+import { motion } from 'framer-motion';
+import { getTreeStage } from './tree/TreeStages';
 
 interface TreeVisualProps {
   streak: number;
@@ -16,45 +9,35 @@ interface TreeVisualProps {
   testMode?: boolean;
 }
 
+const stageImages = {
+  sprout: '/lovable-uploads/8582287a-166e-48b7-bcda-03138c829c67.png',
+  sapling: '/lovable-uploads/57c52578-6395-4c7f-a494-632c296154f8.png',
+  young: '/lovable-uploads/01317a2f-bd10-4ff8-9778-14977ef4c4f6.png',
+  full: '/lovable-uploads/39e0a590-fca7-4a27-b0fa-8f4f64a8a9ff.png',
+  blossom: '/lovable-uploads/9b0965ce-7864-4af2-a1df-4682815fec5c.png',
+  fruit: '/lovable-uploads/469c0b68-551b-43dc-b9b5-d129e9afeaf8.png'
+};
+
 const TreeVisual: React.FC<TreeVisualProps> = ({ 
-  streak: initialStreak, 
-  isAnimating, 
+  streak, 
+  isAnimating,
   testMode = false 
 }) => {
-  const [testStreak, setTestStreak] = useState(initialStreak);
+  const [testStreak, setTestStreak] = useState(streak);
+  const currentStreak = testMode ? testStreak : streak;
+  const currentStage = getTreeStage(currentStreak);
   
-  // Use testStreak if in testMode, otherwise use the prop value
-  const streak = testMode ? testStreak : initialStreak;
-  
-  // Get current tree stage based on streak
-  const currentStage = getTreeStage(streak);
-  
-  // Render the appropriate tree stage component
-  const renderTree = () => {
-    switch (currentStage) {
-      case 'sprout':
-        return <SproutStage isAnimating={isAnimating} />;
-      case 'sapling':
-        return <SaplingStage isAnimating={isAnimating} />;
-      case 'young':
-        return <YoungStage isAnimating={isAnimating} />;
-      case 'full':
-        return <FullStage isAnimating={isAnimating} />;
-      case 'blossom':
-        return <BlossomStage isAnimating={isAnimating} />;
-      case 'fruit':
-        return <FruitStage isAnimating={isAnimating} />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="relative w-64 h-64 flex flex-col items-center justify-center">
-      <FallingPetals stage={currentStage} />
-      {renderTree()}
+    <div className="relative w-64 h-64 flex items-center justify-center">
+      <motion.img
+        src={stageImages[currentStage]}
+        alt={`Tree at ${currentStage} stage`}
+        className={`w-48 h-48 object-contain ${isAnimating ? 'animate-tree-grow' : 'animate-sway'}`}
+        initial={isAnimating ? { scale: 0.95, opacity: 0.8 } : false}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      />
       
-      {/* Test mode controls */}
       {testMode && (
         <TestControls 
           currentStage={currentStage}
@@ -67,3 +50,4 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
 };
 
 export default TreeVisual;
+
