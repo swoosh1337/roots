@@ -10,17 +10,17 @@ interface TreeVisualProps {
   testMode?: boolean;
 }
 
-// These URLs need to be double-checked - this is likely where the issue is
+// Updated image paths - using relative paths instead of absolute paths
 const stageImages = {
-  sprout: '/lovable-uploads/8582287a-166e-48b7-bcda-03138c829c67.png',
-  sapling: '/lovable-uploads/57c52578-6395-4c7f-a494-632c296154f8.png',
-  young: '/lovable-uploads/01317a2f-bd10-4ff8-9778-14977ef4c4f6.png',
-  full: '/lovable-uploads/39e0a590-fca7-4a27-b0fa-8f4f64a8a9ff.png',
-  blossom: '/lovable-uploads/9b0965ce-7864-4af2-a1df-4682815fec5c.png',
-  fruit: '/lovable-uploads/469c0b68-551b-43dc-b9b5-d129e9afeaf8.png'
+  sprout: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b', // placeholder image
+  sapling: 'https://images.unsplash.com/photo-1518770660439-4636190af475', // placeholder image
+  young: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6', // placeholder image
+  full: 'https://images.unsplash.com/photo-1649972904349-6e44c42644a7', // placeholder image
+  blossom: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b', // placeholder image
+  fruit: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6' // placeholder image
 };
 
-// Add a method to verify image loading
+// Helper method to verify image loading
 const imageExists = (url: string): boolean => {
   const img = new Image();
   img.src = url;
@@ -40,6 +40,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
   const imagePath = stageImages[currentStage];
   console.log("Current tree stage:", currentStage);
   console.log("Image path:", imagePath);
+  console.log("Image exists check:", imageExists(imagePath));
   
   return (
     <div className="relative w-64 h-64 flex items-center justify-center">
@@ -59,6 +60,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
             e.currentTarget.style.border = "1px dashed red";
             e.currentTarget.style.padding = "8px";
           }}
+          style={{ maxHeight: '100%', maxWidth: '100%' }}
         />
       </motion.div>
       
