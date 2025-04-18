@@ -1,9 +1,8 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Ritual } from '@/types/ritual';
 
 // Fetch rituals from Supabase
-export const fetchUserRituals = async (userId: string) => {
+export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
   const { data, error } = await supabase
     .from('habits')
     .select('*')
@@ -12,14 +11,14 @@ export const fetchUserRituals = async (userId: string) => {
 
   if (error) throw error;
 
-  // Map the database habits to our Ritual interface
+  // Map the database habits to our Ritual interface with proper status type checking
   return data.map(habit => ({
     id: habit.id,
     name: habit.name,
     streak_count: habit.streak_count,
     status: habit.is_chained ? 'chained' : (habit.is_active ? 'active' : 'paused'),
     last_completed: habit.last_completed
-  }));
+  } as Ritual)); // Add explicit type assertion to ensure it matches the Ritual interface
 };
 
 // Create a new ritual
