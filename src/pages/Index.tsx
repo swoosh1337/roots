@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRituals, Ritual } from '@/hooks/useRituals';
 import FocusMode from '@/components/FocusMode';
@@ -7,8 +6,10 @@ import ChainRitualsModal from '@/components/ChainRitualsModal';
 import RitualLibrary from '@/components/RitualLibrary';
 import ProfileButton from '@/components/profile/ProfileButton';
 import ProfilePanel from '@/components/profile/ProfilePanel';
+import Garden from '@/components/garden/Garden';
 
-type DisplayMode = 'focus' | 'library';
+// Update displayMode to include 'garden'
+type DisplayMode = 'focus' | 'library' | 'garden';
 
 // Define a UI Ritual type that matches what our components expect
 interface UIRitual {
@@ -121,6 +122,18 @@ const Index = () => {
     setDisplayMode('focus');
   };
 
+  // Handler for opening the garden view
+  const handleViewGarden = () => {
+    setDisplayMode('garden');
+    // Close the profile panel when opening garden
+    setProfileOpen(false);
+  };
+
+  // Handler for closing the garden view
+  const handleCloseGarden = () => {
+    setDisplayMode('focus');
+  };
+
   // Check if we have data to display
   if (loading) {
     return (
@@ -157,6 +170,14 @@ const Index = () => {
         onChainRituals={handleOpenChainModal}
       />
 
+      {/* Garden View */}
+      {displayMode === 'garden' && (
+        <Garden 
+          rituals={rituals} 
+          onClose={handleCloseGarden} 
+        />
+      )}
+
       {/* Modals */}
       <AddRitualModal
         isOpen={showAddModal}
@@ -176,6 +197,7 @@ const Index = () => {
         isOpen={profileOpen}
         onClose={() => setProfileOpen(false)}
         stats={profileStats}
+        onViewGarden={handleViewGarden}
       />
     </div>
   );

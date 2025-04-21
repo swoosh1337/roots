@@ -1,0 +1,78 @@
+.ritual-popup-container {
+  position: absolute;
+  top: 100%; /* Start right at the bottom of the tile */
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: 88%; /* Slightly wider to ensure text fits properly */
+  max-width: 160px;
+  margin-top: 0; /* Remove margin to place directly under tile */
+  z-index: 50; /* Higher z-index to overlay tiles below */
+
+  /* Styling */
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  padding: 14px 14px; /* Reduced horizontal padding */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically */
+  text-align: center;
+}
+
+/* Adjust triangle/notch positioning to be at the very top */
+.ritual-popup-container::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid white;
+  z-index: 51; /* Ensure triangle is above any potential overlay */
+}
+
+.ritual-popup-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center children horizontally */
+  justify-content: center; /* Center children vertically */
+}
+
+.ritual-popup-name {
+  color: #2e7d32;
+  font-size: 1.2rem; 
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Ensure flexbox centering */
+  align-items: center;
+  padding: 0;
+}
+
+.ritual-popup-streak {
+  color: #333;
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Ensure flexbox centering */
+  align-items: center;
+}
+
+/* Remove close button - users can close by clicking elsewhere */
+.ritual-popup-close {
+  display: none;
+} 

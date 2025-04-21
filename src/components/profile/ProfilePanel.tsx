@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -20,9 +19,10 @@ interface ProfilePanelProps {
     ritualsCreated: number;
     chains: number;
   };
+  onViewGarden: () => void;
 }
 
-const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) => {
+const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onViewGarden }) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
@@ -88,13 +88,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
     toast({
       title: "Friend Request Sent",
       description: "Your friend request has been sent!",
-    });
-  };
-
-  const handleViewGarden = () => {
-    toast({
-      title: "Coming Soon",
-      description: "Garden view will be available in a future update!",
     });
   };
 
@@ -185,7 +178,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats }) =
           {/* Action Buttons and Logout */}
           <ProfileActions 
             onAddFriend={handleAddFriend}
-            onViewGarden={handleViewGarden}
+            onViewGarden={onViewGarden}
             onSignOut={signOut}
           />
         </div>
