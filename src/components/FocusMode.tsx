@@ -35,24 +35,70 @@ const FocusMode: React.FC<FocusModeProps> = ({
   const [testMode, setTestMode] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
 
+  // Function to check if a ritual has been completed today
+  const isCompletedToday = (lastCompletedStr?: string | null): boolean => {
+    if (!lastCompletedStr) return false;
+    
+    // Convert both dates to YYYY-MM-DD format for comparison
+    const today = new Date().toISOString().split('T')[0];
+    const lastCompleted = new Date(lastCompletedStr).toISOString().split('T')[0];
+    
+    return today === lastCompleted;
+  };
+
   useEffect(() => {
     // Set a random affirmation when component mounts
     const randomIndex = Math.floor(Math.random() * affirmations.length);
     setAffirmation(affirmations[randomIndex]);
-  }, []);
+    
+    // Check if the ritual has already been completed today
+    const completedToday = isCompletedToday(currentRitual.last_completed);
+    setIsCompleted(completedToday);
+    setShowAffirmation(completedToday);
+  }, [currentRitual.last_completed]);
 
-  const handleRitualCompletion = () => {
+  // Reset state when currentRitual changes
+  useEffect(() => {
+    // Check if the ritual has already been completed today
+    const completedToday = isCompletedToday(currentRitual.last_completed);
+    setIsCompleted(completedToday);
+    setShowAffirmation(completedToday);
+    setIsAnimating(false);
+
+    // Set a random affirmation when ritual changes
+    const randomIndex = Math.floor(Math.random() * affirmations.length);
+    setAffirmation(affirmations[randomIndex]);
+  }, [currentRitual.id]);
+
+  const handleRitualCompletion = async () => {
     setIsAnimating(true);
-    setIsCompleted(true);
-    setShowAffirmation(true);
     
-    // Call the parent callback
-    onCompletedRitual(currentRitual.id);
-    
-    // Reset animation state after animation completes
-    setTimeout(() => {
+    try {
+      console.log('Starting ritual completion for:', currentRitual.id);
+      // Call the parent callback and await its result
+      await onCompletedRitual(currentRitual.id);
+      console.log('Ritual completion successful');
+      
+      // Only update UI state after successful completion
+      setIsCompleted(true);
+      setShowAffirmation(true);
+      
+      // Reset animation state after animation completes
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 1500);
+    } catch (error) {
+      // If there's an error, don't update UI state
       setIsAnimating(false);
-    }, 1500);
+      console.error('Error completing ritual in FocusMode:', error);
+      // Log more details about the error
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      } else {
+        console.error('Unknown error type:', error);
+      }
+    }
   };
 
   const toggleTestMode = () => {

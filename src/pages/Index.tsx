@@ -92,7 +92,7 @@ const Index = () => {
 
   // Handler for when user completes a ritual
   const handleCompletedRitual = (ritualId: string) => {
-    completeRitual(ritualId);
+    return completeRitual(ritualId);
   };
 
   // Handler for when user selects a different ritual

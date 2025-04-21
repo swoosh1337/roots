@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -111,6 +110,8 @@ export const useRituals = () => {
         title: "Ritual Completed!",
         description: "Your tree is growing stronger each day.",
       });
+
+      return update;
     } catch (err) {
       console.error('Error completing ritual:', err);
       toast({
@@ -118,6 +119,7 @@ export const useRituals = () => {
         description: "There was a problem completing your ritual.",
         variant: "destructive"
       });
+      throw err;
     }
   };
 
