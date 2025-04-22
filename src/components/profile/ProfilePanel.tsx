@@ -20,9 +20,10 @@ interface ProfilePanelProps {
     chains: number;
   };
   onViewGarden: () => void;
+  onAddFriend: () => void;
 }
 
-const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onViewGarden }) => {
+const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onViewGarden, onAddFriend }) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
@@ -83,13 +84,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onV
       supabase.removeChannel(channel);
     };
   }, [user]);
-
-  const handleAddFriend = () => {
-    toast({
-      title: "Friend Request Sent",
-      description: "Your friend request has been sent!",
-    });
-  };
 
   // Get profile image with correct priority logic
   const getProfileImage = () => {
@@ -177,7 +171,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onV
 
           {/* Action Buttons and Logout */}
           <ProfileActions 
-            onAddFriend={handleAddFriend}
+            onAddFriend={onAddFriend}
             onViewGarden={onViewGarden}
             onSignOut={signOut}
           />

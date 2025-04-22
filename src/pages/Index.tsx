@@ -3,6 +3,7 @@ import { useRituals, Ritual } from '@/hooks/useRituals';
 import FocusMode from '@/components/FocusMode';
 import AddRitualModal from '@/components/AddRitualModal';
 import ChainRitualsModal from '@/components/ChainRitualsModal';
+import AddFriendModal from '@/components/AddFriendModal';
 import RitualLibrary from '@/components/RitualLibrary';
 import ProfileButton from '@/components/profile/ProfileButton';
 import ProfilePanel from '@/components/profile/ProfilePanel';
@@ -25,6 +26,7 @@ const Index = () => {
   const [displayMode, setDisplayMode] = useState<DisplayMode>('focus');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showChainModal, setShowChainModal] = useState(false);
+  const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [currentRitual, setCurrentRitual] = useState<Ritual | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -68,14 +70,13 @@ const Index = () => {
     }
   }, [rituals]);
 
-  // Handle modal openings
-  const handleOpenAddModal = () => {
-    setShowAddModal(true);
-  };
+  // Handlers for opening modals
+  const handleOpenAddRitualModal = () => setShowAddModal(true);
+  const handleOpenChainModal = () => setShowChainModal(true);
+  const handleOpenAddFriendModal = () => setShowAddFriendModal(true);
 
-  const handleOpenChainModal = () => {
-    setShowChainModal(true);
-  };
+  // Handlers for closing modals
+  const handleCloseAddFriendModal = () => setShowAddFriendModal(false);
 
   const toggleProfilePanel = () => {
     setProfileOpen(!profileOpen);
@@ -117,6 +118,13 @@ const Index = () => {
   const handleChainRituals = (ritualIds: string[]) => {
     chainRituals(ritualIds);
     setShowChainModal(false);
+  };
+  
+  // Handler for sending friend request (Placeholder)
+  const handleSendFriendRequest = (identifier: string) => {
+    console.log("Sending friend request to:", identifier); // Placeholder logic
+    // TODO: Implement actual backend call to send friend request
+    setShowAddFriendModal(false); // Close modal after sending
   };
 
   // Handler for closing the ritual library
@@ -168,7 +176,7 @@ const Index = () => {
         isOpen={displayMode === 'library'}
         onClose={handleCloseLibrary}
         onSelectRitual={handleSelectRitual}
-        onAddRitual={handleOpenAddModal}
+        onAddRitual={handleOpenAddRitualModal}
         onChainRituals={handleOpenChainModal}
       />
 
@@ -193,6 +201,12 @@ const Index = () => {
         rituals={rituals.map(ritual => mapRitualForUI(ritual))}
         onChainRituals={handleChainRituals}
       />
+      
+      <AddFriendModal
+        isOpen={showAddFriendModal}
+        onClose={handleCloseAddFriendModal}
+        onSendRequest={handleSendFriendRequest}
+      />
 
       {/* Profile Panel */}
       <ProfilePanel 
@@ -200,6 +214,7 @@ const Index = () => {
         onClose={() => setProfileOpen(false)}
         stats={profileStats}
         onViewGarden={handleViewGarden}
+        onAddFriend={handleOpenAddFriendModal}
       />
     </div>
   );
