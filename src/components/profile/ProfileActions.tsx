@@ -1,16 +1,15 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ProfileActionsProps {
-  onAddFriend: () => void;
+  onOpenFriends: () => void;
   onViewGarden: () => void;
   onSignOut: () => void;
 }
 
 const ProfileActions: React.FC<ProfileActionsProps> = ({ 
-  onAddFriend, 
+  onOpenFriends,
   onViewGarden, 
   onSignOut 
 }) => {
@@ -18,14 +17,14 @@ const ProfileActions: React.FC<ProfileActionsProps> = ({
     <>
       <div className="w-full space-y-3 mt-4">
         <Button 
-          className="w-full bg-ritual-green hover:bg-ritual-green/90 text-white rounded-full py-6"
-          onClick={onAddFriend}
+          className="w-full bg-ritual-green hover:bg-ritual-green/90 text-[#2F4F4F] font-medium rounded-full py-6"
+          onClick={onOpenFriends}
         >
-          Add Friend
+          Friends
         </Button>
         
         <Button 
-          className="w-full bg-ritual-green hover:bg-ritual-green/90 text-white rounded-full py-6"
+          className="w-full bg-ritual-green hover:bg-ritual-green/90 text-[#2F4F4F] font-medium rounded-full py-6"
           onClick={onViewGarden}
         >
           View Garden

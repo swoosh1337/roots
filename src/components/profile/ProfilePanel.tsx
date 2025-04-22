@@ -9,6 +9,9 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import UserProfileHeader from './UserProfileHeader';
 import ProfileActions from './ProfileActions';
+import FriendsPanel from '../friends/FriendsPanel';
+import AddFriendModal from '../AddFriendModal';
+import FriendGardenView from '../friends/FriendGardenView';
 
 interface ProfilePanelProps {
   isOpen: boolean;
@@ -19,14 +22,47 @@ interface ProfilePanelProps {
     ritualsCreated: number;
     chains: number;
   };
-  onViewGarden: () => void;
-  onAddFriend: () => void;
+  onViewGarden: () => void; // For user's own garden
+  onAddFriend: () => void; // Opens the AddFriendModal
 }
 
-const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onViewGarden, onAddFriend }) => {
+const ProfilePanel: React.FC<ProfilePanelProps> = ({ 
+  isOpen, 
+  onClose, 
+  stats, 
+  onViewGarden,
+  onAddFriend 
+}) => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
+  
+  // State for the Friends panel visibility
+  const [isFriendsPanelOpen, setIsFriendsPanelOpen] = useState(false);
+  // State to track which friend's garden to view
+  const [selectedFriendIdForGarden, setSelectedFriendIdForGarden] = useState<string | null>(null);
+  
+  // Open/close functions for the Friends panel
+  const openFriendsPanel = () => {
+    setIsFriendsPanelOpen(true);
+    // Reset friend garden view when opening friends panel
+    setSelectedFriendIdForGarden(null); 
+  };
+  const closeFriendsPanel = () => setIsFriendsPanelOpen(false);
+
+  // Function to handle selecting a friend to view their garden
+  const handleSelectFriendForGarden = (friendId: string) => {
+    console.log("Selecting friend garden for ID:", friendId);
+    setSelectedFriendIdForGarden(friendId);
+    setIsFriendsPanelOpen(false); // Close the friends panel when selecting a friend garden
+  };
+
+  // Function to close the friend's garden view
+  const handleCloseFriendGarden = () => {
+    setSelectedFriendIdForGarden(null);
+    // Optional: Reopen friends panel
+    // setIsFriendsPanelOpen(true);
+  };
 
   // Fetch the user's profile image URL when the component mounts or user changes
   useEffect(() => {
@@ -75,7 +111,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onV
         },
         (payload) => {
           console.log('ProfilePanel: User profile updated:', payload);
-          fetchProfileImage();
+          fetchProfileImage(); // Re-fetch on update
         }
       )
       .subscribe();
@@ -115,13 +151,16 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onV
 
   // Handler for image updates from the ProfileAvatar component
   const handleImageUpdate = (newImageUrl: string) => {
-    setProfileImgUrl(newImageUrl);
+    // Add timestamp to prevent caching issues
+    const timestamp = new Date().getTime();
+    const urlWithTimestamp = `${newImageUrl.split('?')[0]}?t=${timestamp}`;
+    setProfileImgUrl(urlWithTimestamp);
   };
 
   return (
     <>
-      {/* Backdrop */}
-      {isOpen && (
+      {/* Backdrop for Profile Panel */}
+      {isOpen && !isFriendsPanelOpen && !selectedFriendIdForGarden && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -132,14 +171,16 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onV
         />
       )}
 
-      {/* Panel */}
+      {/* Main Profile Panel */}
       <motion.div
         initial={{ x: '100%' }}
-        animate={{ x: isOpen ? 0 : '100%' }}
+        // Only animate closed if the profile panel itself AND the friends panel AND friend garden are closed
+        animate={{ x: isOpen && !isFriendsPanelOpen && !selectedFriendIdForGarden ? 0 : '100%' }}
         transition={{ duration: 0.4, type: 'spring', damping: 30 }}
         className="fixed top-0 right-0 h-full w-4/5 max-w-[400px] bg-ritual-paper shadow-xl rounded-l-3xl z-50 flex flex-col"
+        style={{ display: isOpen ? 'flex' : 'none' }} // Use style to ensure it's removed from layout when not open
       >
-        {/* Close Button */}
+        {/* Close Button for main panel */}
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full z-10"
@@ -171,12 +212,30 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ isOpen, onClose, stats, onV
 
           {/* Action Buttons and Logout */}
           <ProfileActions 
-            onAddFriend={onAddFriend}
+            onOpenFriends={openFriendsPanel}
             onViewGarden={onViewGarden}
             onSignOut={signOut}
           />
         </div>
       </motion.div>
+      
+      {/* Friends Panel (conditionally rendered) */}
+      {isOpen && (
+          <FriendsPanel 
+            isOpen={isFriendsPanelOpen}
+            onClose={closeFriendsPanel}
+            onAddFriend={onAddFriend} 
+            onSelectFriend={handleSelectFriendForGarden}
+          />
+      )}
+
+      {/* Friend Garden View (conditionally rendered) */}
+      {isOpen && selectedFriendIdForGarden && (
+        <FriendGardenView 
+          friendId={selectedFriendIdForGarden}
+          onClose={handleCloseFriendGarden}
+        />
+      )}
     </>
   );
 };
