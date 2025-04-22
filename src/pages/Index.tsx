@@ -36,17 +36,19 @@ const Index = () => {
     chains: rituals.filter(ritual => ritual.status === 'chained').length
   };
 
-  // Find first active ritual for focus mode
+  // Find first active ritual for focus mode when rituals load
   useEffect(() => {
-    if (rituals.length > 0 && !currentRitual) {
-      const activeRitual = rituals.find(r => r.status === 'active');
+    // Only set the initial ritual if rituals are loaded and we haven't set one yet
+    if (!loading && rituals.length > 0 && !currentRitual) {
+      const activeRitual = rituals.find(r => r.status === 'active') || rituals[0]; // Fallback to first ritual if no active one
       if (activeRitual) {
+        console.log('Setting initial currentRitual:', activeRitual);
         setCurrentRitual(activeRitual);
       }
     }
-  }, [rituals, currentRitual]);
+  }, [rituals, loading]); // Depend on rituals and loading state
 
-  // Update currentRitual when rituals array changes (e.g. after completion)
+  // Update currentRitual state if its data changes in the main rituals list
   useEffect(() => {
     if (currentRitual) {
       const updatedRitualData = rituals.find(r => r.id === currentRitual.id);

@@ -24,6 +24,21 @@ const affirmations = [
   "Time nurtures all things."
 ];
 
+// Define this helper function outside or make it static if inside a class
+const isCompletedToday = (lastCompletedStr?: string | null): boolean => {
+  if (!lastCompletedStr) return false;
+  
+  // Convert both dates to YYYY-MM-DD format for comparison
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    const lastCompleted = new Date(lastCompletedStr).toISOString().split('T')[0];
+    return today === lastCompleted;
+  } catch (e) {
+    console.error("Error parsing lastCompleted date:", lastCompletedStr, e);
+    return false; // Treat invalid dates as not completed today
+  }
+};
+
 const FocusMode: React.FC<FocusModeProps> = ({
   onOpenLibrary,
   currentRitual,
@@ -33,42 +48,30 @@ const FocusMode: React.FC<FocusModeProps> = ({
   const [affirmation, setAffirmation] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
   const [testMode, setTestMode] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+  
+  // Initialize isCompleted state directly using the prop
+  const [isCompleted, setIsCompleted] = useState(() => 
+    isCompletedToday(currentRitual.last_completed)
+  );
 
-  // Function to check if a ritual has been completed today
-  const isCompletedToday = (lastCompletedStr?: string | null): boolean => {
-    if (!lastCompletedStr) return false;
-    
-    // Convert both dates to YYYY-MM-DD format for comparison
-    const today = new Date().toISOString().split('T')[0];
-    const lastCompleted = new Date(lastCompletedStr).toISOString().split('T')[0];
-    
-    return today === lastCompleted;
-  };
-
+  // Effect to handle random affirmation setting on mount and ritual change
   useEffect(() => {
-    // Set a random affirmation when component mounts
     const randomIndex = Math.floor(Math.random() * affirmations.length);
     setAffirmation(affirmations[randomIndex]);
-    
-    // Check if the ritual has already been completed today
-    const completedToday = isCompletedToday(currentRitual.last_completed);
-    setIsCompleted(completedToday);
-    setShowAffirmation(completedToday);
-  }, [currentRitual.last_completed]);
+  }, [currentRitual.id]); // Run only when ritual ID changes
 
-  // Reset state when currentRitual changes
+  // Effect to update isCompleted state if the prop changes *after* mount
   useEffect(() => {
-    // Check if the ritual has already been completed today
     const completedToday = isCompletedToday(currentRitual.last_completed);
-    setIsCompleted(completedToday);
-    setShowAffirmation(completedToday);
-    setIsAnimating(false);
-
-    // Set a random affirmation when ritual changes
-    const randomIndex = Math.floor(Math.random() * affirmations.length);
-    setAffirmation(affirmations[randomIndex]);
-  }, [currentRitual.id]);
+    if (completedToday !== isCompleted) {
+      setIsCompleted(completedToday);
+      setShowAffirmation(completedToday); // Also update affirmation visibility based on completion
+    }
+    // We might also need to reset animation if the ritual changes and is already completed
+    if (completedToday) {
+      setIsAnimating(false);
+    }
+  }, [currentRitual.last_completed, currentRitual.id]); // Re-run if last_completed or id changes
 
   const handleRitualCompletion = async () => {
     setIsAnimating(true);
