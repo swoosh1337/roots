@@ -79,7 +79,12 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
           return;
         }
 
-        setFoundUser(userData);
+        // Transform the user data to match our expected format
+        setFoundUser({
+          id: userData.id,
+          email: userData.email,
+          name: userData.full_name || 'Unknown'
+        });
         setSearchStatus('found');
       } catch (error) {
         console.error('Error searching for user:', error);

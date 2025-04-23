@@ -209,7 +209,6 @@ const Index = () => {
       <AddFriendModal
         isOpen={showAddFriendModal}
         onClose={handleCloseAddFriendModal}
-        onSendRequest={handleSendFriendRequest}
       />
 
       {/* Profile Panel */}

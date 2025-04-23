@@ -95,19 +95,26 @@ export function useFriendships() {
       if (sentError) throw sentError;
 
       // Transform the data to match our Friend interface
-      const friendsList = acceptedFriendships.map(friendship => ({
-        id: friendship.users.id,
-        name: friendship.users.full_name || 'Unknown',
-        avatar: friendship.users.profile_img_url || '/avatars/default.png',
-        habits: [] // We'll populate this later
-      }));
+      const friendsList = acceptedFriendships.map(friendship => {
+        // Determine which user object to use based on whether the current user is the sender or receiver
+        const friendUser = friendship.sender_id === user.id ? 
+          { id: friendship.receiver_id } : // Need to get user data for receiver
+          friendship.users; // Use sender data that we already fetched
+        
+        return {
+          id: friendUser.id,
+          name: friendUser.full_name || 'Unknown',
+          avatar: friendUser.profile_img_url || '/avatars/default.png',
+          habits: [] // We'll populate this later
+        };
+      });
 
       // Transform requests data
       const incomingList = incoming.map(request => ({
         id: request.id,
         sender_id: request.sender_id,
         receiver_id: request.receiver_id,
-        status: request.status,
+        status: request.status as 'pending' | 'accepted' | 'rejected',
         created_at: request.created_at,
         name: request.users.full_name || 'Unknown',
         avatar: request.users.profile_img_url || '/avatars/default.png'
@@ -117,7 +124,7 @@ export function useFriendships() {
         id: request.id,
         sender_id: request.sender_id,
         receiver_id: request.receiver_id,
-        status: request.status,
+        status: request.status as 'pending' | 'accepted' | 'rejected',
         created_at: request.created_at,
         name: request.users.full_name || 'Unknown',
         avatar: request.users.profile_img_url || '/avatars/default.png'
