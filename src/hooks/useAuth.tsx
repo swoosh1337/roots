@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -24,8 +23,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // First set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
-        console.log("Auth state changed", _event);
+      (event, newSession) => {
+        console.log("Auth state changed", event);
+        if (event === 'SIGNED_IN') {
+          toast({
+            title: "Welcome back! 🌿",
+            description: "You've been successfully logged in.",
+          });
+        }
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
@@ -47,7 +52,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   const signOut = async () => {
     try {
