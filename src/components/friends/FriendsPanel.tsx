@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -43,7 +43,8 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
             <X size={24} />
           </button>
           
-          <h2 className="text-4xl font-serif text-[#2F7A32] text-center">
+          <h2 className="text-4xl font-serif text-[#2F7A32] text-center flex items-center justify-center gap-2">
+            <Users className="h-8 w-8" />
             Friends
           </h2>
         </div>

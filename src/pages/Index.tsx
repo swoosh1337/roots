@@ -38,7 +38,6 @@ const Index = () => {
     chains: rituals.filter(ritual => ritual.status === 'chained').length
   };
 
-  // Find first active ritual for focus mode when rituals load
   useEffect(() => {
     // Only set the initial ritual if rituals are loaded and we haven't set one yet
     if (!loading && rituals.length > 0 && !currentRitual) {
@@ -73,11 +72,13 @@ const Index = () => {
   // Handlers for opening modals
   const handleOpenAddRitualModal = () => setShowAddModal(true);
   const handleOpenChainModal = () => setShowChainModal(true);
+
+  // Handler for opening AddFriendModal
   const handleOpenAddFriendModal = () => {
     setShowAddFriendModal(true);
   };
 
-  // Handlers for closing modals
+  // Handler for closing AddFriendModal
   const handleCloseAddFriendModal = () => {
     setShowAddFriendModal(false);
   };
@@ -122,12 +123,6 @@ const Index = () => {
   const handleChainRituals = (ritualIds: string[]) => {
     chainRituals(ritualIds);
     setShowChainModal(false);
-  };
-  
-  // Handler for sending friend requests
-  const handleSendFriendRequest = (identifier: string) => {
-    console.log("Sending friend request to:", identifier);
-    // Actual implementation will be added in the future
   };
 
   // Handler for closing the ritual library
