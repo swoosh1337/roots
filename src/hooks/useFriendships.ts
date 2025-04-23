@@ -34,101 +34,149 @@ export function useFriendships() {
     if (!user) return;
 
     try {
-      // Fetch accepted friendships (friends)
-      const { data: acceptedFriendships, error: friendsError } = await supabase
+      // Fetch accepted friendships where the current user is the sender
+      const { data: friendsAsSender, error: senderError } = await supabase
         .from('friendships')
         .select(`
           id,
           sender_id,
           receiver_id,
           status,
-          created_at,
-          users:sender_id (
-            id,
-            full_name,
-            profile_img_url
-          )
+          created_at
         `)
         .eq('status', 'accepted')
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+        .eq('sender_id', user.id);
 
-      if (friendsError) throw friendsError;
+      if (senderError) throw senderError;
 
-      // Fetch incoming requests
-      const { data: incoming, error: incomingError } = await supabase
+      // Fetch accepted friendships where the current user is the receiver
+      const { data: friendsAsReceiver, error: receiverError } = await supabase
         .from('friendships')
         .select(`
           id,
           sender_id,
           receiver_id,
           status,
-          created_at,
-          users:sender_id (
-            id,
-            full_name,
-            profile_img_url
-          )
+          created_at
+        `)
+        .eq('status', 'accepted')
+        .eq('receiver_id', user.id);
+
+      if (receiverError) throw receiverError;
+
+      // Combine both result sets
+      const acceptedFriendships = [...friendsAsSender, ...friendsAsReceiver];
+
+      // Fetch user details for friends
+      const friendsList: Friend[] = [];
+      
+      for (const friendship of acceptedFriendships) {
+        // Determine which user is the friend (not the current user)
+        const friendId = friendship.sender_id === user.id ? friendship.receiver_id : friendship.sender_id;
+        
+        // Fetch friend details
+        const { data: friendData, error: friendError } = await supabase
+          .from('users')
+          .select('id, full_name, profile_img_url')
+          .eq('id', friendId)
+          .single();
+          
+        if (friendError) {
+          console.error('Error fetching friend details:', friendError);
+          continue; // Skip this friend but continue with the rest
+        }
+        
+        if (friendData) {
+          friendsList.push({
+            id: friendData.id,
+            name: friendData.full_name || 'Unknown',
+            avatar: friendData.profile_img_url || '/avatars/default.png',
+            habits: [] // We'll populate this later
+          });
+        }
+      }
+
+      // Fetch incoming requests with user details
+      const { data: incomingReqs, error: incomingError } = await supabase
+        .from('friendships')
+        .select(`
+          id,
+          sender_id,
+          receiver_id,
+          status,
+          created_at
         `)
         .eq('receiver_id', user.id)
         .eq('status', 'pending');
 
       if (incomingError) throw incomingError;
+      
+      // Transform incoming requests with sender details
+      const incomingList: FriendRequest[] = [];
+      
+      for (const request of incomingReqs) {
+        const { data: senderData, error: senderError } = await supabase
+          .from('users')
+          .select('full_name, profile_img_url')
+          .eq('id', request.sender_id)
+          .single();
+          
+        if (senderError) {
+          console.error('Error fetching sender details:', senderError);
+          continue;
+        }
+        
+        incomingList.push({
+          id: request.id,
+          sender_id: request.sender_id,
+          receiver_id: request.receiver_id,
+          status: request.status as 'pending' | 'accepted' | 'rejected',
+          created_at: request.created_at,
+          name: senderData?.full_name || 'Unknown',
+          avatar: senderData?.profile_img_url || '/avatars/default.png'
+        });
+      }
 
-      // Fetch sent requests
-      const { data: sent, error: sentError } = await supabase
+      // Fetch sent requests with receiver details
+      const { data: sentReqs, error: sentError } = await supabase
         .from('friendships')
         .select(`
           id,
           sender_id,
           receiver_id,
           status,
-          created_at,
-          users:receiver_id (
-            id,
-            full_name,
-            profile_img_url
-          )
+          created_at
         `)
         .eq('sender_id', user.id)
         .eq('status', 'pending');
 
       if (sentError) throw sentError;
-
-      // Transform the data to match our Friend interface
-      const friendsList = acceptedFriendships.map(friendship => {
-        // Determine which user object to use based on whether the current user is the sender or receiver
-        const friendUser = friendship.sender_id === user.id ? 
-          { id: friendship.receiver_id } : // Need to get user data for receiver
-          friendship.users; // Use sender data that we already fetched
+      
+      // Transform sent requests with receiver details
+      const sentList: FriendRequest[] = [];
+      
+      for (const request of sentReqs) {
+        const { data: receiverData, error: receiverError } = await supabase
+          .from('users')
+          .select('full_name, profile_img_url')
+          .eq('id', request.receiver_id)
+          .single();
+          
+        if (receiverError) {
+          console.error('Error fetching receiver details:', receiverError);
+          continue;
+        }
         
-        return {
-          id: friendUser.id,
-          name: friendUser.full_name || 'Unknown',
-          avatar: friendUser.profile_img_url || '/avatars/default.png',
-          habits: [] // We'll populate this later
-        };
-      });
-
-      // Transform requests data
-      const incomingList = incoming.map(request => ({
-        id: request.id,
-        sender_id: request.sender_id,
-        receiver_id: request.receiver_id,
-        status: request.status as 'pending' | 'accepted' | 'rejected',
-        created_at: request.created_at,
-        name: request.users.full_name || 'Unknown',
-        avatar: request.users.profile_img_url || '/avatars/default.png'
-      }));
-
-      const sentList = sent.map(request => ({
-        id: request.id,
-        sender_id: request.sender_id,
-        receiver_id: request.receiver_id,
-        status: request.status as 'pending' | 'accepted' | 'rejected',
-        created_at: request.created_at,
-        name: request.users.full_name || 'Unknown',
-        avatar: request.users.profile_img_url || '/avatars/default.png'
-      }));
+        sentList.push({
+          id: request.id,
+          sender_id: request.sender_id,
+          receiver_id: request.receiver_id,
+          status: request.status as 'pending' | 'accepted' | 'rejected',
+          created_at: request.created_at,
+          name: receiverData?.full_name || 'Unknown',
+          avatar: receiverData?.profile_img_url || '/avatars/default.png'
+        });
+      }
 
       setFriends(friendsList);
       setIncomingRequests(incomingList);
