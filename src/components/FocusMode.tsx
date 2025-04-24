@@ -27,12 +27,17 @@ const affirmations = [
 // Define this helper function outside or make it static if inside a class
 const isCompletedToday = (lastCompletedStr?: string | null): boolean => {
   if (!lastCompletedStr) return false;
-  
-  // Convert both dates to YYYY-MM-DD format for comparison
-  const today = new Date().toISOString().split('T')[0];
+
+  // Use the user's local date for comparison
+  const todayLocalStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
   try {
-    const lastCompleted = new Date(lastCompletedStr).toISOString().split('T')[0];
-    return today === lastCompleted;
+    // Parse lastCompletedStr as local date string (assume it's in YYYY-MM-DD)
+    // If lastCompletedStr is an ISO string, extract the date part
+    let lastCompletedDateStr = lastCompletedStr;
+    if (lastCompletedStr.includes('T')) {
+      lastCompletedDateStr = new Date(lastCompletedStr).toLocaleDateString('en-CA');
+    }
+    return todayLocalStr === lastCompletedDateStr;
   } catch (e) {
     console.error("Error parsing lastCompleted date:", lastCompletedStr, e);
     return false; // Treat invalid dates as not completed today

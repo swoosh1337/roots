@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronDown, ChevronUp, Users } from 'lucide-react';
@@ -52,7 +51,10 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
         {/* Add Friend button */}
         <div className="px-8 py-3">
           <Button 
-            onClick={onAddFriend}
+            onClick={() => {
+              onClose();
+              onAddFriend();
+            }}
             className="w-full bg-[#4CAF50] hover:bg-[#3e9142] text-white rounded-full py-5 shadow-sm transition-colors"
           >
             Add Friend

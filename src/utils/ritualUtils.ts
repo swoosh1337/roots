@@ -75,16 +75,16 @@ export const updateUserRitual = async (
 export const completeUserRitual = async (id: string, userId: string, currentStreak: number): Promise<{ streak_count: number, last_completed: string }> => {
   console.log('Attempting to complete ritual:', { id, userId, currentStreak });
   
-  // Use UTC date consistently to avoid timezone issues
+  // Use the user's local date (YYYY-MM-DD) to avoid timezone issues
   const today = new Date();
-  const utcTodayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format in UTC
-  
+  const todayLocalStr = today.toLocaleDateString('en-CA'); // YYYY-MM-DD format in local time
+
   // Also store the full ISO timestamp for potential future analytics
   const fullTimestamp = today.toISOString();
   
   console.log('Update values:', { 
     streak_count: currentStreak + 1,
-    last_completed: utcTodayStr,
+    last_completed: todayLocalStr,
     fullTimestamp,
   });
   
@@ -105,7 +105,7 @@ export const completeUserRitual = async (id: string, userId: string, currentStre
   // Prepare update object based on available columns
   const updateObject = {
     streak_count: currentStreak + 1,
-    last_completed: utcTodayStr
+    last_completed: todayLocalStr
   };
   
   // Only add last_completed_timestamp if the column exists in the database
@@ -130,8 +130,9 @@ export const completeUserRitual = async (id: string, userId: string, currentStre
   
   return {
     streak_count: currentStreak + 1,
-    last_completed: utcTodayStr
+    last_completed: todayLocalStr
   };
+
 };
 
 // Chain rituals

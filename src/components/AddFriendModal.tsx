@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -100,9 +99,12 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
 
   const handleSendRequest = async () => {
     if (foundUser) {
-      await sendRequest(foundUser.id);
-      resetState();
-      onClose();
+      try {
+        await sendRequest(foundUser.id);
+        resetState();
+      } finally {
+        onClose();
+      }
     }
   };
 

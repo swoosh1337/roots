@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
@@ -21,23 +21,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log("Auth provider initializing");
     
-    // First set up the auth state listener
+    // Create a unique key for this browser session
+    const browserSessionKey = 'auth_session_' + Date.now();
+    
+    // Store this key in localStorage if it doesn't exist yet
+    if (!localStorage.getItem('current_browser_session')) {
+      localStorage.setItem('current_browser_session', browserSessionKey);
+    }
+    
+    // Set up the auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         console.log("Auth state changed", event);
+        
+        // Only handle SIGNED_IN event for toast
         if (event === 'SIGNED_IN') {
-          toast({
-            title: "Welcome back! 🌿",
-            description: "You've been successfully logged in.",
-          });
+          // Check if we've shown a welcome toast in this browser session
+          const hasShownWelcomeToast = localStorage.getItem('welcome_toast_shown');
+          
+          // If we haven't shown it yet in this browser session, show it
+          if (!hasShownWelcomeToast) {
+            toast({
+              title: "Welcome back! 🌿",
+              description: "You've been successfully logged in.",
+            });
+            
+            // Mark that we've shown the toast in this browser session
+            localStorage.setItem('welcome_toast_shown', 'true');
+          }
         }
+        
+        // Update state
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
       }
     );
 
-    // Then check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       console.log("Get session completed", currentSession ? "session exists" : "no session");
       setSession(currentSession);
