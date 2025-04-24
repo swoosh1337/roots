@@ -36,6 +36,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   
   // State for the Friends panel visibility
   const [isFriendsPanelOpen, setIsFriendsPanelOpen] = useState(false);
@@ -157,6 +158,12 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
     setProfileImgUrl(urlWithTimestamp);
   };
 
+  // Handle name update
+  const handleNameUpdate = (newName: string) => {
+    setUserName(newName);
+    // Optionally refresh other components that might use the name
+  };
+
   return (
     <>
       {/* Backdrop for Profile Panel */}
@@ -193,7 +200,8 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
         <UserProfileHeader 
           user={user} 
           avatarSrc={avatarSrc} 
-          onImageUpdate={handleImageUpdate} 
+          onImageUpdate={handleImageUpdate}
+          onNameUpdate={handleNameUpdate} 
         />
 
         {/* Content section - Make it flex column with grow */}

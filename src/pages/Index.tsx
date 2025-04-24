@@ -21,14 +21,21 @@ interface UIRitual {
   last_completed?: string | null;
 }
 
-const Index = () => {
-  const { rituals, loading, createRitual, completeRitual, chainRituals } = useRituals();
+interface IndexProps {
+  userId?: string;
+}
+
+const Index: React.FC<IndexProps> = ({ userId }) => {
+  const { rituals, loading, createRitual, completeRitual, chainRituals } = useRituals(userId);
   const [displayMode, setDisplayMode] = useState<DisplayMode>('focus');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showChainModal, setShowChainModal] = useState(false);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const [currentRitual, setCurrentRitual] = useState<Ritual | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  // Determine if we are viewing the logged-in user's garden
+  const isOwnGarden = !userId;
 
   // Profile stats derived from ritual data
   const profileStats = {
@@ -47,7 +54,7 @@ const Index = () => {
         setCurrentRitual(activeRitual);
       }
     }
-  }, [rituals, loading]); // Depend on rituals and loading state
+  }, [rituals, loading, currentRitual]); // Depend on rituals, loading state, and currentRitual
 
   // Update currentRitual state if its data changes in the main rituals list
   useEffect(() => {
@@ -67,11 +74,17 @@ const Index = () => {
         setCurrentRitual(null);
       }
     }
-  }, [rituals]);
+  }, [rituals, currentRitual]); // Depend on rituals and currentRitual
 
   // Handlers for opening modals
-  const handleOpenAddRitualModal = () => setShowAddModal(true);
-  const handleOpenChainModal = () => setShowChainModal(true);
+  const handleOpenAddRitualModal = () => {
+    if (!isOwnGarden) return; // Disable if not own garden
+    setShowAddModal(true);
+  }
+  const handleOpenChainModal = () => {
+    if (!isOwnGarden) return; // Disable if not own garden
+    setShowChainModal(true);
+  }
 
   // Handler for opening AddFriendModal
   const handleOpenAddFriendModal = () => {
@@ -174,27 +187,28 @@ const Index = () => {
         isOpen={displayMode === 'library'}
         onClose={handleCloseLibrary}
         onSelectRitual={handleSelectRitual}
-        onAddRitual={handleOpenAddRitualModal}
-        onChainRituals={handleOpenChainModal}
+        onAddRitual={isOwnGarden ? handleOpenAddRitualModal : undefined} // Conditionally disable
+        onChainRituals={isOwnGarden ? handleOpenChainModal : undefined} // Conditionally disable
       />
 
-      {/* Garden View */}
+      {/* Garden View - Pass isViewOnly prop */}
       {displayMode === 'garden' && (
         <Garden 
           rituals={rituals} 
           onClose={handleCloseGarden} 
+          isViewOnly={!isOwnGarden} // Pass view only status
         />
       )}
 
-      {/* Modals */}
+      {/* Modals - Conditionally control isOpen */}
       <AddRitualModal
-        isOpen={showAddModal}
+        isOpen={showAddModal && isOwnGarden}
         onClose={() => setShowAddModal(false)}
         onAddRitual={handleAddRitual}
       />
       
       <ChainRitualsModal
-        isOpen={showChainModal}
+        isOpen={showChainModal && isOwnGarden}
         onClose={() => setShowChainModal(false)}
         rituals={rituals.map(ritual => mapRitualForUI(ritual))}
         onChainRituals={handleChainRituals}

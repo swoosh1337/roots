@@ -7,13 +7,15 @@ interface RitualPopupProps {
   ritualName: string;
   streakCount: number;
   onClose: () => void;
+  isViewOnly?: boolean;
 }
 
 const RitualPopup: React.FC<RitualPopupProps> = ({ 
   isOpen, 
   ritualName, 
   streakCount, 
-  onClose
+  onClose,
+  isViewOnly = false
 }) => {
   return (
     <AnimatePresence>

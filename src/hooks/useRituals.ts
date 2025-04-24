@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import type { Ritual } from '@/types/ritual';
@@ -12,19 +12,29 @@ import {
 
 export type { Ritual };
 
-export const useRituals = () => {
+export const useRituals = (targetUserId?: string) => {
   const [rituals, setRituals] = useState<Ritual[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const fetchRituals = async () => {
-    if (!user) return;
+  const isOwnRituals = !targetUserId || (user && user.id === targetUserId);
+
+  const fetchRituals = useCallback(async () => {
+    const userIdToFetch = targetUserId || user?.id;
+
+    if (!userIdToFetch) {
+      setRituals([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
     
     try {
       setLoading(true);
-      const fetchedRituals = await fetchUserRituals(user.id);
+      setError(null);
+      const fetchedRituals = await fetchUserRituals(userIdToFetch);
       setRituals(fetchedRituals);
     } catch (err) {
       console.error('Error fetching rituals:', err);
@@ -37,16 +47,16 @@ export const useRituals = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, targetUserId, toast]);
 
   const createRitual = async (name: string) => {
-    if (!user) {
+    if (!isOwnRituals || !user) {
       toast({
-        title: "Authentication Required",
-        description: "You must be logged in to create rituals.",
+        title: "Action Not Allowed",
+        description: "You can only create rituals for your own garden.",
         variant: "destructive"
       });
-      throw new Error("Authentication required");
+      throw new Error("Action not allowed");
     }
     
     try {
@@ -65,7 +75,14 @@ export const useRituals = () => {
   };
 
   const updateRitual = async (id: string, updates: Partial<Ritual>) => {
-    if (!user) return;
+    if (!isOwnRituals || !user) {
+      toast({
+        title: "Action Not Allowed",
+        description: "You can only update rituals in your own garden.",
+        variant: "destructive"
+      });
+      throw new Error("Action not allowed");
+    }
     
     try {
       await updateUserRitual(id, updates, user.id);
@@ -86,7 +103,14 @@ export const useRituals = () => {
   };
 
   const completeRitual = async (id: string) => {
-    if (!user) return;
+    if (!isOwnRituals || !user) {
+      toast({
+        title: "Action Not Allowed",
+        description: "You can only complete rituals in your own garden.",
+        variant: "destructive"
+      });
+      throw new Error("Action not allowed");
+    }
     
     try {
       const ritual = rituals.find(r => r.id === id);
@@ -124,7 +148,14 @@ export const useRituals = () => {
   };
 
   const chainRituals = async (ritualIds: string[]) => {
-    if (!user) return;
+    if (!isOwnRituals || !user) {
+      toast({
+        title: "Action Not Allowed",
+        description: "You can only chain rituals in your own garden.",
+        variant: "destructive"
+      });
+      throw new Error("Action not allowed");
+    }
     
     try {
       await chainUserRituals(ritualIds, user.id);
@@ -152,10 +183,8 @@ export const useRituals = () => {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchRituals();
-    }
-  }, [user]);
+    fetchRituals();
+  }, [fetchRituals]);
 
   return {
     rituals,

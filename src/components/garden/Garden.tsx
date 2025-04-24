@@ -26,6 +26,7 @@ interface TreeData {
 interface GardenProps {
   rituals: Ritual[];
   onClose: () => void;
+  isViewOnly?: boolean;
 }
 
 // Helper to determine tree stage based on streak count
@@ -52,7 +53,7 @@ const calculateGridLayout = (count: number) => {
   return { rows, columns, totalPlots: columns * rows };
 };
 
-const Garden: React.FC<GardenProps> = ({ rituals, onClose }) => {
+const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false }) => {
   const [trees, setTrees] = useState<TreeData[]>([]);
   const [gridLayout, setGridLayout] = useState({ rows: 3, columns: 4 });
   const [activePopupId, setActivePopupId] = useState<string | null>(null);
@@ -141,7 +142,7 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose }) => {
       onClick={handleGardenClick}
     >
       <div className="garden-header">
-        <h1 className="garden-title">My Garden</h1>
+        <h1 className="garden-title">{isViewOnly ? "Viewing Friend's Garden" : "My Garden"}</h1>
         <button 
           onClick={onClose}
           className="garden-close-button"
@@ -183,6 +184,7 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose }) => {
                 ritualName={tree.name}
                 streakCount={tree.streak_count}
                 onClose={handleClosePopup}
+                isViewOnly={isViewOnly}
               />
             )}
           </motion.div>

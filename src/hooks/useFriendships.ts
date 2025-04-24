@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,7 +7,7 @@ export interface Friend {
   id: string;
   name: string;
   avatar: string;
-  habits: any[]; // We'll type this properly later when we implement habits
+  habits: unknown[]; // TODO: Define a proper type for habits later
 }
 
 export interface FriendRequest {
@@ -30,7 +29,7 @@ export function useFriendships() {
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchFriendships = async () => {
+  const fetchFriendships = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -76,19 +75,41 @@ export function useFriendships() {
         // Determine which user is the friend (not the current user)
         const friendId = friendship.sender_id === user.id ? friendship.receiver_id : friendship.sender_id;
         
-        // Fetch friend details directly to avoid type errors with joined tables
-        const { data: friendData } = await supabase
-          .from('users')
-          .select('id, full_name, profile_img_url')
+        // Fetch friend details from users table
+        const { data: friendDetails, error: userError } = await supabase
+          .from('users') // Use users table
+          .select('id, full_name, profile_img_url, email')
           .eq('id', friendId)
           .single();
-          
-        if (friendData) {
+
+        if (userError) {
+          console.error(`Error fetching details for user ${friendId}:`, userError);
           friendsList.push({
-            id: friendData.id,
-            name: friendData.full_name || 'Unknown',
-            avatar: friendData.profile_img_url || '/avatars/default.png',
-            habits: [] // We'll populate this later
+            id: friendId,
+            name: 'Error loading name',
+            avatar: '/avatars/default.png',
+            habits: []
+          });
+          continue;
+        }
+          
+        if (friendDetails) {
+          // Extract username from email as fallback if no full_name exists
+          const emailUsername = friendDetails.email ? friendDetails.email.split('@')[0] : null;
+          
+          friendsList.push({
+            id: friendDetails.id,
+            name: friendDetails.full_name || emailUsername || 'Unknown',
+            avatar: friendDetails.profile_img_url || '/avatars/default.png',
+            habits: []
+          });
+        } else {
+          console.warn(`No details found for user ${friendId}`);
+          friendsList.push({
+            id: friendId,
+            name: 'Unknown',
+            avatar: '/avatars/default.png',
+            habits: []
           });
         }
       }
@@ -111,20 +132,29 @@ export function useFriendships() {
       
       if (incomingReqs) {
         for (const request of incomingReqs) {
-          const { data: senderData } = await supabase
-            .from('users')
-            .select('full_name, profile_img_url')
+          // Fetch sender details from users table
+          const { data: senderData, error: senderError } = await supabase
+            .from('users') // Use users table
+            .select('full_name, profile_img_url, email')
             .eq('id', request.sender_id)
             .single();
             
+          // Handle potential error fetching user details
+          if (senderError) {
+            console.error(`Error fetching details for sender ${request.sender_id}:`, senderError);
+          }
+
           if (senderData) {
+            // Extract username from email as fallback if no full_name exists
+            const emailUsername = senderData.email ? senderData.email.split('@')[0] : null;
+            
             incomingList.push({
               id: request.id,
               sender_id: request.sender_id,
               receiver_id: request.receiver_id,
               status: request.status as 'pending' | 'accepted' | 'rejected',
               created_at: request.created_at,
-              name: senderData.full_name || 'Unknown',
+              name: senderData.full_name || emailUsername || 'Unknown',
               avatar: senderData.profile_img_url || '/avatars/default.png'
             });
           }
@@ -149,20 +179,29 @@ export function useFriendships() {
       
       if (sentReqs) {
         for (const request of sentReqs) {
-          const { data: receiverData } = await supabase
-            .from('users')
-            .select('full_name, profile_img_url')
+          // Fetch receiver details from users table
+          const { data: receiverData, error: receiverError } = await supabase
+            .from('users') // Use users table
+            .select('full_name, profile_img_url, email')
             .eq('id', request.receiver_id)
             .single();
             
+          // Handle potential error fetching user details
+          if (receiverError) {
+            console.error(`Error fetching details for receiver ${request.receiver_id}:`, receiverError);
+          }
+
           if (receiverData) {
+            // Extract username from email as fallback if no full_name exists
+            const emailUsername = receiverData.email ? receiverData.email.split('@')[0] : null;
+            
             sentList.push({
               id: request.id,
               sender_id: request.sender_id,
               receiver_id: request.receiver_id,
               status: request.status as 'pending' | 'accepted' | 'rejected',
               created_at: request.created_at,
-              name: receiverData.full_name || 'Unknown',
+              name: receiverData.full_name || emailUsername || 'Unknown',
               avatar: receiverData.profile_img_url || '/avatars/default.png'
             });
           }
@@ -182,9 +221,9 @@ export function useFriendships() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
-  const sendRequest = async (targetUserId: string) => {
+  const sendRequest = useCallback(async (targetUserId: string) => {
     if (!user) return;
     
     try {
@@ -213,9 +252,9 @@ export function useFriendships() {
         variant: "destructive",
       });
     }
-  };
+  }, [user, toast, fetchFriendships]);
 
-  const acceptRequest = async (requestId: string) => {
+  const acceptRequest = useCallback(async (requestId: string) => {
     try {
       const { error } = await supabase
         .from('friendships')
@@ -240,9 +279,9 @@ export function useFriendships() {
         variant: "destructive",
       });
     }
-  };
+  }, [user, toast, fetchFriendships]);
 
-  const rejectRequest = async (requestId: string) => {
+  const rejectRequest = useCallback(async (requestId: string) => {
     try {
       const { error } = await supabase
         .from('friendships')
@@ -267,7 +306,7 @@ export function useFriendships() {
         variant: "destructive",
       });
     }
-  };
+  }, [user, toast, fetchFriendships]);
 
   // Set up real-time subscription for friendship changes
   useEffect(() => {
@@ -303,7 +342,12 @@ export function useFriendships() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user, fetchFriendships]);
+
+  // Fetch initial data
+  useEffect(() => {
+    fetchFriendships();
+  }, [fetchFriendships, user]);
 
   return {
     friends,
