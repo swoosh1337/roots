@@ -16,7 +16,7 @@ interface IndexProps {
 
 const Index: React.FC<IndexProps> = ({ userId }) => {
   const { rituals, loading, createRitual, completeRitual, chainRituals, updateRitual } = useRituals(userId);
-  const { displayMode, handleViewGarden, handleCloseGarden, handleOpenLibrary, handleCloseLibrary } = useDisplayMode(userId ? 'garden' : 'focus');
+  const { displayMode, setDisplayMode, handleViewGarden, handleCloseGarden, handleOpenLibrary, handleCloseLibrary } = useDisplayMode(userId ? 'garden' : 'focus');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showChainModal, setShowChainModal] = useState(false);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);

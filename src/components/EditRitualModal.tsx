@@ -5,20 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-
-interface UIRitual {
-  id: string;
-  name: string;
-  streak: number;
-  status: 'active' | 'paused' | 'chained';
-  last_completed?: string | null;
-}
+import { Ritual } from '@/types/ritual';
 
 interface EditRitualModalProps {
-  ritual: UIRitual;
+  ritual: Ritual;
   isOpen: boolean;
   onClose: () => void;
-  onUpdateRitual: (id: string, updates: Partial<UIRitual>) => void;
+  onUpdateRitual: (id: string, updates: Partial<Ritual>) => void;
 }
 
 const EditRitualModal: React.FC<EditRitualModalProps> = ({

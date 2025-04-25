@@ -4,24 +4,16 @@ import { motion } from 'framer-motion';
 import { X, Edit, Link, CheckCircle, Pause } from 'lucide-react';
 import StreakTracker from './StreakTracker';
 import EditRitualModal from './EditRitualModal';
-
-// Update to use UIRitual interface instead of importing Ritual from useRituals
-interface UIRitual {
-  id: string;
-  name: string;
-  streak: number;
-  status: 'active' | 'paused' | 'chained';
-  last_completed?: string | null;
-}
+import { Ritual } from '@/types/ritual';
 
 interface RitualLibraryProps {
-  rituals: UIRitual[];
+  rituals: Ritual[];
   isOpen: boolean;
   onClose: () => void;
-  onSelectRitual: (ritual: UIRitual) => void;
+  onSelectRitual: (ritual: Ritual) => void;
   onAddRitual: () => void;
   onChainRituals: () => void;
-  onUpdateRitual?: (id: string, updates: Partial<UIRitual>) => void;
+  onUpdateRitual?: (id: string, updates: Partial<Ritual>) => void;
 }
 
 const RitualLibrary: React.FC<RitualLibraryProps> = ({
@@ -33,7 +25,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
   onChainRituals,
   onUpdateRitual
 }) => {
-  const [editingRitual, setEditingRitual] = useState<UIRitual | null>(null);
+  const [editingRitual, setEditingRitual] = useState<Ritual | null>(null);
 
   const getStatusIcon = (status: 'active' | 'paused' | 'chained') => {
     switch (status) {
@@ -46,7 +38,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
     }
   };
 
-  const handleEditClick = (e: React.MouseEvent, ritual: UIRitual) => {
+  const handleEditClick = (e: React.MouseEvent, ritual: Ritual) => {
     e.stopPropagation(); // Stop the event from bubbling up to the parent card
     setEditingRitual(ritual);
   };
@@ -55,7 +47,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
     setEditingRitual(null);
   };
 
-  const handleUpdateRitual = (id: string, updates: Partial<UIRitual>) => {
+  const handleUpdateRitual = (id: string, updates: Partial<Ritual>) => {
     if (onUpdateRitual) {
       onUpdateRitual(id, updates);
       setEditingRitual(null);
@@ -117,11 +109,11 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
               {/* Add Streak Tracker component */}
               <StreakTracker 
                 lastCompletedDate={ritual.last_completed} 
-                streakCount={ritual.streak} 
+                streakCount={ritual.streak_count} 
               />
               
               <div className="flex justify-between items-center mt-4">
-                <span className="text-sm text-gray-500">Day {ritual.streak}</span>
+                <span className="text-sm text-gray-500">Day {ritual.streak_count}</span>
                 <span className={`status-badge status-${ritual.status} flex items-center gap-1`}>
                   {getStatusIcon(ritual.status)}
                   <span className="capitalize">{ritual.status}</span>

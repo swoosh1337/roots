@@ -13,6 +13,7 @@ export const useDisplayMode = (initialMode: DisplayMode = 'focus') => {
 
   return {
     displayMode,
+    setDisplayMode,
     handleViewGarden,
     handleCloseGarden,
     handleOpenLibrary,
