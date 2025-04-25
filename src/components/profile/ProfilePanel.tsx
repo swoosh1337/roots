@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserData } from '@/hooks/useUserData';
 import ProfileStats from './ProfileStats';
 import StreakCalendar from './StreakCalendar';
-import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
-import { supabase } from '@/integrations/supabase/client';
 import UserProfileHeader from './UserProfileHeader';
 import ProfileActions from './ProfileActions';
 import FriendsPanel from '../friends/FriendsPanel';
-import AddFriendModal from '../AddFriendModal';
 import FriendGardenView from '../friends/FriendGardenView';
 
 interface ProfilePanelProps {
@@ -26,28 +24,27 @@ interface ProfilePanelProps {
   onAddFriend: () => void; // Opens the AddFriendModal
 }
 
-const ProfilePanel: React.FC<ProfilePanelProps> = ({ 
-  isOpen, 
-  onClose, 
-  stats, 
+const ProfilePanel: React.FC<ProfilePanelProps> = ({
+  isOpen,
+  onClose,
+  stats,
   onViewGarden,
-  onAddFriend 
+  onAddFriend
 }) => {
   const { user, signOut } = useAuth();
-  const { toast } = useToast();
+  const { profile } = useUserData();
   const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
-  
+
   // State for the Friends panel visibility
   const [isFriendsPanelOpen, setIsFriendsPanelOpen] = useState(false);
   // State to track which friend's garden to view
   const [selectedFriendIdForGarden, setSelectedFriendIdForGarden] = useState<string | null>(null);
-  
+
   // Open/close functions for the Friends panel
   const openFriendsPanel = () => {
     setIsFriendsPanelOpen(true);
     // Reset friend garden view when opening friends panel
-    setSelectedFriendIdForGarden(null); 
+    setSelectedFriendIdForGarden(null);
   };
   const closeFriendsPanel = () => setIsFriendsPanelOpen(false);
 
@@ -65,62 +62,16 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
     // setIsFriendsPanelOpen(true);
   };
 
-  // Fetch the user's profile image URL when the component mounts or user changes
+  // Use the profile data from useUserData hook
   useEffect(() => {
-    const fetchProfileImage = async () => {
-      if (!user) return;
-      
-      try {
-        console.log("ProfilePanel: Fetching profile image for user ID:", user.id);
-        const { data, error } = await supabase
-          .from('users')
-          .select('profile_img_url')
-          .eq('id', user.id)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching profile image:', error);
-          return;
-        }
-        
-        console.log("ProfilePanel: Profile image data from database:", data);
-        
-        if (data && data.profile_img_url) {
-          // Add cache-busting parameter
-          const timestamp = new Date().getTime();
-          const urlWithTimestamp = `${data.profile_img_url.split('?')[0]}?t=${timestamp}`;
-          console.log("ProfilePanel: Setting profile URL with timestamp:", urlWithTimestamp);
-          setProfileImgUrl(urlWithTimestamp);
-        }
-      } catch (error) {
-        console.error('Exception fetching profile image:', error);
-      }
-    };
-    
-    fetchProfileImage();
-    
-    // Set up a listener for user profile updates
-    const channel = supabase
-      .channel('profile-panel-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'users',
-          filter: `id=eq.${user?.id}`
-        },
-        (payload) => {
-          console.log('ProfilePanel: User profile updated:', payload);
-          fetchProfileImage(); // Re-fetch on update
-        }
-      )
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+    if (profile?.profile_img_url) {
+      // Add cache-busting parameter
+      const timestamp = new Date().getTime();
+      const urlWithTimestamp = `${profile.profile_img_url.split('?')[0]}?t=${timestamp}`;
+      console.log("ProfilePanel: Setting profile URL with timestamp:", urlWithTimestamp);
+      setProfileImgUrl(urlWithTimestamp);
+    }
+  }, [profile]);
 
   // Get profile image with correct priority logic
   const getProfileImage = () => {
@@ -129,19 +80,19 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
       console.log("ProfilePanel: Using profile_img_url from state:", profileImgUrl);
       return profileImgUrl;
     }
-    
+
     // Step 2: Fall back to Google avatar if available
     if (user?.user_metadata?.avatar_url) {
       console.log("ProfilePanel: Using avatar_url from user metadata:", user.user_metadata.avatar_url);
       return user.user_metadata.avatar_url;
     }
-    
+
     // Step 3: Check if user has picture in metadata
     if (user?.user_metadata?.picture) {
       console.log("ProfilePanel: Using picture from user metadata:", user.user_metadata.picture);
       return user.user_metadata.picture;
     }
-    
+
     // Step 4: Default to placeholder
     console.log("ProfilePanel: Using default placeholder image");
     return "/placeholder.svg";
@@ -188,7 +139,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
         style={{ display: isOpen ? 'flex' : 'none' }} // Use style to ensure it's removed from layout when not open
       >
         {/* Close Button for main panel */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full z-10"
           aria-label="Close profile panel"
@@ -197,11 +148,11 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
         </button>
 
         {/* User Profile Header with Avatar */}
-        <UserProfileHeader 
-          user={user} 
-          avatarSrc={avatarSrc} 
+        <UserProfileHeader
+          user={user}
+          avatarSrc={avatarSrc}
           onImageUpdate={handleImageUpdate}
-          onNameUpdate={handleNameUpdate} 
+          onNameUpdate={handleNameUpdate}
         />
 
         {/* Content section - Make it flex column with grow */}
@@ -219,27 +170,27 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
           <Separator className="my-2 bg-ritual-moss/30" />
 
           {/* Action Buttons and Logout */}
-          <ProfileActions 
+          <ProfileActions
             onOpenFriends={openFriendsPanel}
             onViewGarden={onViewGarden}
             onSignOut={signOut}
           />
         </div>
       </motion.div>
-      
+
       {/* Friends Panel (conditionally rendered) */}
       {isOpen && (
-          <FriendsPanel 
+          <FriendsPanel
             isOpen={isFriendsPanelOpen}
             onClose={closeFriendsPanel}
-            onAddFriend={onAddFriend} 
+            onAddFriend={onAddFriend}
             onSelectFriend={handleSelectFriendForGarden}
           />
       )}
 
       {/* Friend Garden View (conditionally rendered) */}
       {isOpen && selectedFriendIdForGarden && (
-        <FriendGardenView 
+        <FriendGardenView
           friendId={selectedFriendIdForGarden}
           onClose={handleCloseFriendGarden}
         />

@@ -34,7 +34,9 @@ const Auth = () => {
 
   // Redirect if already logged in
   useEffect(() => {
+    console.log("Auth page - user state changed:", user ? "logged in" : "not logged in");
     if (user) {
+      console.log("User is logged in, redirecting to home page");
       navigate('/');
     }
   }, [user, navigate]);
@@ -44,8 +46,12 @@ const Auth = () => {
     try {
       setLoginLoading(true);
       await signInWithEmail(loginEmail, loginPassword);
+
+      // Force navigation to home page after successful login
+      console.log("Login successful, forcing navigation to home page");
+      navigate('/');
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error);
     } finally {
       setLoginLoading(false);
     }
@@ -79,8 +85,17 @@ const Auth = () => {
     try {
       setGoogleLoading(true);
       await signInWithGoogle();
+
+      // Google sign-in is handled via redirect, so we don't need to navigate
+      // But we'll add a fallback in case the redirect doesn't happen
+      setTimeout(() => {
+        if (user) {
+          console.log("Google sign-in successful, forcing navigation to home page");
+          navigate('/');
+        }
+      }, 2000);
     } catch (error) {
-      console.error(error);
+      console.error("Google sign-in error:", error);
       setGoogleLoading(false);
     }
   };

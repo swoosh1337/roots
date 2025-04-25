@@ -25,43 +25,57 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
   // Fetch friend's basic info for the header
   useEffect(() => {
     const fetchFriendData = async () => {
+      console.log("Fetching friend data for ID:", friendId);
+
       const { data, error } = await supabase
         .from('users')
         .select('id, full_name, profile_img_url, email')
         .eq('id', friendId)
         .single();
-      
-      if (data && !error) {
+
+      if (error) {
+        console.error("Error fetching friend data:", error);
+        // Set a fallback friend object even if there's an error
+        setFriend({
+          id: friendId,
+          name: 'Friend',
+          avatar: '/avatars/default.png'
+        });
+        return;
+      }
+
+      if (data) {
+        console.log("Friend data retrieved:", data);
         // Extract username from email as fallback if no full_name exists
         const emailUsername = data.email ? data.email.split('@')[0] : null;
-        
+
         setFriend({
           id: data.id,
-          name: data.full_name || emailUsername || 'Unknown',
+          name: data.full_name || emailUsername || 'Friend',
           avatar: data.profile_img_url || '/avatars/default.png'
         });
       }
     };
-    
+
     fetchFriendData();
   }, [friendId]);
 
   return (
-    <motion.div 
+    <motion.div
       className="fixed inset-0 bg-ritual-paper z-50 flex flex-col"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <button 
+      <button
         onClick={onClose}
         className="absolute top-4 right-4 text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full transition-colors z-50"
         aria-label="Close"
       >
         <X size={24} />
       </button>
-      
+
       {/* Friend info header */}
       {friend && (
         <div className="flex items-center gap-3 p-4 pb-0">
@@ -74,7 +88,7 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
           </h2>
         </div>
       )}
-      
+
       {/* Directly render the Garden component */}
       <div className="flex-1">
         {loading ? (
@@ -82,10 +96,10 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
             <p className="text-ritual-forest text-lg">Loading garden...</p>
           </div>
         ) : (
-          <Garden 
-            rituals={rituals} 
-            onClose={onClose} 
-            isViewOnly={true} 
+          <Garden
+            rituals={rituals}
+            onClose={onClose}
+            isViewOnly={true}
           />
         )}
       </div>

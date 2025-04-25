@@ -43,13 +43,13 @@ const getTreeStageIndex = (streakCount: number): number => {
 const calculateGridLayout = (count: number) => {
   // Use a fixed 4-column layout like in the image
   const columns = 4;
-  
+
   // Calculate how many rows we need
   let rows = Math.ceil(count / columns);
-  
+
   // Ensure we have at least one row
   rows = Math.max(1, rows);
-  
+
   return { rows, columns, totalPlots: columns * rows };
 };
 
@@ -67,22 +67,22 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
       stage: getTreeStageIndex(ritual.streak_count),
       streak_count: ritual.streak_count
     }));
-    
+
     // Calculate the grid layout
     const layout = calculateGridLayout(gardenTrees.length);
     setGridLayout(layout);
-    
+
     // Add empty plots to fill the grid
     const totalPlots = layout.rows * layout.columns;
     const allTrees = [...gardenTrees];
-    
+
     if (allTrees.length < totalPlots) {
       const emptyPlotsNeeded = totalPlots - allTrees.length;
       for (let i = 0; i < emptyPlotsNeeded; i++) {
         allTrees.push({ id: `empty-${i}`, stage: -1, name: "", streak_count: 0 });
       }
     }
-    
+
     setTrees(allTrees);
   }, [rituals]);
 
@@ -90,7 +90,7 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
   const handleTreeClick = (tree: TreeData, event: React.MouseEvent<HTMLDivElement>) => {
     // Stop propagation to prevent issues with nested clicks
     event.stopPropagation();
-    
+
     if (tree.stage >= 0) {
       // Toggle popup - if the same tile is clicked again, close it; otherwise open new popup
       setActivePopupId(activePopupId === tree.id ? null : tree.id);
@@ -117,8 +117,8 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
     const handleClickOutside = (event: MouseEvent) => {
       // Check if the click target is outside the popup itself
       const popupElement = document.querySelector('.ritual-popup-container');
-      if (activePopupId && 
-          gardenContainerRef.current && 
+      if (activePopupId &&
+          gardenContainerRef.current &&
           !gardenContainerRef.current.contains(event.target as Node) &&
           (!popupElement || !popupElement.contains(event.target as Node)))
       {
@@ -133,7 +133,7 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
   }, [activePopupId]); // Re-run when popup ID changes
 
   return (
-    <motion.div 
+    <motion.div
       className="garden-container"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -142,8 +142,8 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
       onClick={handleGardenClick}
     >
       <div className="garden-header">
-        <h1 className="garden-title">{isViewOnly ? "Viewing Friend's Garden" : "My Garden"}</h1>
-        <button 
+        <h1 className="garden-title">{isViewOnly ? "Friend's Garden" : "My Garden"}</h1>
+        <button
           onClick={onClose}
           className="garden-close-button"
           aria-label="Close garden view"
@@ -151,18 +151,18 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
           &times;
         </button>
       </div>
-      
-      <div 
-        className="garden-grid" 
-        style={{ 
+
+      <div
+        className="garden-grid"
+        style={{
           gridTemplateColumns: `repeat(${gridLayout.columns}, 1fr)`,
         }}
       >
         {trees.map(tree => (
-          <motion.div 
-            key={tree.id} 
-            className={`garden-plot 
-              ${tree.stage < 0 ? 'garden-plot-empty' : ''} 
+          <motion.div
+            key={tree.id}
+            className={`garden-plot
+              ${tree.stage < 0 ? 'garden-plot-empty' : ''}
               ${activePopupId === tree.id ? 'garden-plot-active' : ''}
             `}
             onClick={(e) => handleTreeClick(tree, e)}
@@ -172,9 +172,9 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
             whileHover={tree.stage >= 0 ? { scale: 1.05 } : {}}
           >
             {tree.stage >= 0 && (
-              <img 
-                src={treeStages[tree.stage]} 
-                alt={`Tree for ritual: ${tree.name}`} 
+              <img
+                src={treeStages[tree.stage]}
+                alt={`Tree for ritual: ${tree.name}`}
                 className="tree-image"
               />
             )}
@@ -194,4 +194,4 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
   );
 };
 
-export default Garden; 
+export default Garden;

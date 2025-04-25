@@ -30,27 +30,38 @@ export const useRituals = (targetUserId?: string) => {
       setError(null);
       return;
     }
-    
+
     try {
+      console.log(`Fetching rituals for user ID: ${userIdToFetch}, isOwnRituals: ${isOwnRituals}`);
       setLoading(true);
       setError(null);
       const fetchedRituals = await fetchUserRituals(userIdToFetch);
+      console.log(`Fetched ${fetchedRituals.length} rituals:`, fetchedRituals);
       setRituals(fetchedRituals);
     } catch (err) {
       console.error('Error fetching rituals:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch rituals');
-      toast({
-        title: "Error Fetching Rituals",
-        description: "There was a problem loading your rituals.",
-        variant: "destructive"
-      });
+
+      // Only show toast for own rituals to avoid confusion when viewing friends
+      if (isOwnRituals) {
+        toast({
+          title: "Error Fetching Rituals",
+          description: "There was a problem loading your rituals.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
-  }, [user, targetUserId, toast]);
+  }, [user, targetUserId, toast, isOwnRituals]);
 
   const createRitual = async (name: string) => {
+    console.log("createRitual called with name:", name);
+    console.log("Current user:", user);
+    console.log("isOwnRituals:", isOwnRituals);
+
     if (!isOwnRituals || !user) {
+      console.error("Cannot create ritual: Not own garden or no user");
       toast({
         title: "Action Not Allowed",
         description: "You can only create rituals for your own garden.",
@@ -58,10 +69,22 @@ export const useRituals = (targetUserId?: string) => {
       });
       throw new Error("Action not allowed");
     }
-    
+
     try {
+      console.log("Creating ritual with name:", name, "for user:", user.id);
       const newRitual = await createUserRitual(name, user.id);
+      console.log("Ritual created successfully:", newRitual);
+
+      // Update the local state with the new ritual
       setRituals(prev => [newRitual, ...prev]);
+
+      // Show success toast
+      toast({
+        title: "Ritual Created",
+        description: `Your new ritual "${name}" has been created.`,
+        variant: "default"
+      });
+
       return newRitual;
     } catch (err) {
       console.error('Error creating ritual:', err);
@@ -83,11 +106,11 @@ export const useRituals = (targetUserId?: string) => {
       });
       throw new Error("Action not allowed");
     }
-    
+
     try {
       await updateUserRitual(id, updates, user.id);
-      setRituals(prev => 
-        prev.map(ritual => 
+      setRituals(prev =>
+        prev.map(ritual =>
           ritual.id === id ? { ...ritual, ...updates } : ritual
         )
       );
@@ -111,25 +134,25 @@ export const useRituals = (targetUserId?: string) => {
       });
       throw new Error("Action not allowed");
     }
-    
+
     try {
       const ritual = rituals.find(r => r.id === id);
       if (!ritual) return;
-      
+
       const update = await completeUserRitual(id, user.id, ritual.streak_count);
-      
-      setRituals(prev => 
-        prev.map(r => 
-          r.id === id 
-            ? { 
-                ...r, 
+
+      setRituals(prev =>
+        prev.map(r =>
+          r.id === id
+            ? {
+                ...r,
                 streak_count: update.streak_count,
                 last_completed: update.last_completed
-              } 
+              }
             : r
         )
       );
-      
+
       toast({
         title: "Ritual Completed!",
         description: "Your tree is growing stronger each day.",
@@ -156,18 +179,18 @@ export const useRituals = (targetUserId?: string) => {
       });
       throw new Error("Action not allowed");
     }
-    
+
     try {
       await chainUserRituals(ritualIds, user.id);
-      
-      setRituals(prev => 
-        prev.map(ritual => 
-          ritualIds.includes(ritual.id) 
-            ? { ...ritual, status: 'chained' } 
+
+      setRituals(prev =>
+        prev.map(ritual =>
+          ritualIds.includes(ritual.id)
+            ? { ...ritual, status: 'chained' }
             : ritual
         )
       );
-      
+
       toast({
         title: "Rituals Chained",
         description: "Your selected rituals are now linked together.",
