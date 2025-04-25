@@ -32,7 +32,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
   onAddFriend
 }) => {
   const { user, signOut } = useAuth();
-  const { profile } = useUserData();
+  const { profile, updateProfile } = useUserData();
   const [profileImgUrl, setProfileImgUrl] = useState<string | null>(null);
 
   // State for the Friends panel visibility
@@ -109,10 +109,10 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
     setProfileImgUrl(urlWithTimestamp);
   };
 
-  // Handle name update
+  // Handler for name updates
   const handleNameUpdate = (newName: string) => {
-    setUserName(newName);
-    // Optionally refresh other components that might use the name
+    // Use updateProfile method from useUserData hook
+    updateProfile({ full_name: newName });
   };
 
   return (
