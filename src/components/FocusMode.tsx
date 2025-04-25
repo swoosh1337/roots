@@ -76,9 +76,15 @@ const FocusMode: React.FC<FocusModeProps> = ({
     if (completedToday) {
       setIsAnimating(false);
     }
-  }, [currentRitual.last_completed, currentRitual.id]); // Re-run if last_completed or id changes
+  }, [currentRitual.last_completed, currentRitual.id, isCompleted]); // Re-run if last_completed, id, or isCompleted changes
 
   const handleRitualCompletion = async () => {
+    // Check if ritual is active before allowing completion
+    if (currentRitual.status !== 'active') {
+      console.error('Cannot complete a non-active ritual:', currentRitual.status);
+      return;
+    }
+    
     setIsAnimating(true);
     
     try {

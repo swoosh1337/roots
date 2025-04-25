@@ -92,11 +92,16 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
           {rituals.map(ritual => (
             <div 
               key={ritual.id}
-              className="ritual-card cursor-pointer"
+              className={`ritual-card cursor-pointer ${ritual.status === 'paused' ? 'opacity-70 bg-gray-50' : ''}`}
               onClick={() => onSelectRitual(ritual)}
             >
               <div className="flex justify-between items-start mb-2">
-                <h3 className="text-lg font-medium text-ritual-forest">{ritual.name}</h3>
+                <h3 className={`text-lg font-medium ${ritual.status === 'paused' ? 'text-gray-500' : 'text-ritual-forest'}`}>
+                  {ritual.name}
+                  {ritual.status === 'paused' && 
+                    <span className="text-xs ml-2 text-gray-500">(Paused)</span>
+                  }
+                </h3>
                 <button 
                   className="p-1 rounded-full hover:bg-gray-100"
                   onClick={(e) => handleEditClick(e, ritual)}

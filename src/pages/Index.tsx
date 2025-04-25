@@ -28,10 +28,13 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
 
   useEffect(() => {
     if (!loading && rituals.length > 0 && !currentRitual) {
-      const activeRitual = rituals.find(r => r.status === 'active') || rituals[0];
+      // First try to find an active ritual, if none exists, don't default to any ritual
+      const activeRitual = rituals.find(r => r.status === 'active');
       if (activeRitual) {
         console.log('Setting initial currentRitual:', activeRitual);
         setCurrentRitual(activeRitual);
+      } else {
+        console.log('No active rituals found for Focus Mode');
       }
     }
   }, [rituals, loading, currentRitual]);

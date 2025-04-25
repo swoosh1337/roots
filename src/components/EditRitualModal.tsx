@@ -1,11 +1,9 @@
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Ritual } from '@/types/ritual';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { X } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import type { Ritual } from '@/types/ritual';
 
 interface EditRitualModalProps {
   ritual: Ritual;
@@ -20,75 +18,153 @@ const EditRitualModal: React.FC<EditRitualModalProps> = ({
   onClose,
   onUpdateRitual
 }) => {
+  const { toast } = useToast();
   const [name, setName] = useState(ritual.name);
   const [status, setStatus] = useState(ritual.status);
+  
+  // Reset form when ritual changes or modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setName(ritual.name);
+      setStatus(ritual.status);
+    }
+  }, [ritual, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateRitual(ritual.id, {
-      name,
-      status
-    });
+    
+    // Only submit if there are actual changes
+    if (name !== ritual.name || status !== ritual.status) {
+      onUpdateRitual(ritual.id, {
+        name,
+        status
+      });
+      
+      // Show success toast
+      toast({
+        title: "Ritual updated",
+        description: "Your changes have been saved successfully.",
+        className: "bg-ritual-green/20 border-ritual-green text-ritual-forest",
+      });
+    }
+    
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-ritual-paper">
-        <DialogHeader>
-          <DialogTitle className="text-ritual-forest font-serif text-xl">Edit Ritual</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <motion.div
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+    >
+      {/* Backdrop */}
+      <motion.div 
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isOpen ? 1 : 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
+      />
+      
+      {/* Modal */}
+      <motion.div
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md relative z-10"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: isOpen ? 1 : 0, scale: isOpen ? 1 : 0.95 }}
+        transition={{ duration: 0.2 }}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-ritual-moss/30">
+          <h2 className="text-2xl font-serif text-ritual-forest">Edit Ritual</h2>
+          <button 
+            onClick={onClose}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+        
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="ritual-name">Ritual Name</Label>
-            <Input 
-              id="ritual-name"
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              className="bg-white border-ritual-moss/30"
+            <label htmlFor="ritualName" className="block text-sm font-medium text-gray-700">
+              Ritual Name
+            </label>
+            <input
+              type="text"
+              id="ritualName"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Enter ritual name"
+              className="w-full px-4 py-3 rounded-lg border border-ritual-moss/50 focus:border-ritual-green
+                         focus:outline-none focus:ring-1 focus:ring-ritual-green"
               required
             />
           </div>
-
-          <div className="space-y-3">
-            <Label>Status</Label>
-            <RadioGroup value={status} onValueChange={(value: 'active' | 'paused' | 'chained') => setStatus(value)} className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="active" id="active" />
-                <Label htmlFor="active">Active</Label>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <div className="space-y-2">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="status-active"
+                  name="status"
+                  value="active"
+                  checked={status === 'active'}
+                  onChange={() => setStatus('active')}
+                  className="mr-2 h-4 w-4 text-ritual-green focus:ring-ritual-green"
+                />
+                <label htmlFor="status-active" className="text-sm text-gray-700">
+                  Active (appears in Focus Mode and Garden)
+                </label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="paused" id="paused" />
-                <Label htmlFor="paused">Paused</Label>
+              
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="status-paused"
+                  name="status"
+                  value="paused"
+                  checked={status === 'paused'}
+                  onChange={() => setStatus('paused')}
+                  className="mr-2 h-4 w-4 text-ritual-green focus:ring-ritual-green"
+                />
+                <label htmlFor="status-paused" className="text-sm text-gray-700">
+                  Paused (hidden from Focus Mode and Garden)
+                </label>
               </div>
+              
               {status === 'chained' && (
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="chained" id="chained" />
-                  <Label htmlFor="chained">Chained</Label>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    id="status-chained"
+                    name="status"
+                    value="chained"
+                    checked={status === 'chained'}
+                    onChange={() => setStatus('chained')}
+                    className="mr-2 h-4 w-4 text-ritual-green focus:ring-ritual-green"
+                  />
+                  <label htmlFor="status-chained" className="text-sm text-gray-700">
+                    Chained (part of a ritual chain)
+                  </label>
                 </div>
               )}
-            </RadioGroup>
+            </div>
           </div>
-
-          <DialogFooter className="sm:justify-between">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose}
-              className="border-ritual-forest text-ritual-forest hover:bg-ritual-moss/10"
-            >
-              Cancel
-            </Button>
-            <Button 
+          
+          <div className="pt-4">
+            <button
               type="submit"
-              className="bg-ritual-green hover:bg-ritual-green/90 text-white"
+              className="w-full ritual-button"
             >
               Save Changes
-            </Button>
-          </DialogFooter>
+            </button>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </motion.div>
+    </motion.div>
   );
 };
 

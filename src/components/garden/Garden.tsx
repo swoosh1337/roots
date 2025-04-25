@@ -59,9 +59,12 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
   const [activePopupId, setActivePopupId] = useState<string | null>(null);
   const gardenContainerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize garden with rituals
+  // Initialize garden with rituals - filter out paused rituals
   useEffect(() => {
-    const gardenTrees: TreeData[] = rituals.map(ritual => ({
+    // Only include active rituals in the garden (status === 'active' or 'chained')
+    const activeRituals = rituals.filter(ritual => ritual.status !== 'paused');
+    
+    const gardenTrees: TreeData[] = activeRituals.map(ritual => ({
       id: ritual.id,
       name: ritual.name,
       stage: getTreeStageIndex(ritual.streak_count),
