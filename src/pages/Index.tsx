@@ -1,25 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
-import { useRituals, Ritual } from '@/hooks/useRituals';
+import { useRituals } from '@/hooks/useRituals';
+import { useDisplayMode } from '@/hooks/useDisplayMode';
 import FocusMode from '@/components/FocusMode';
-import AddRitualModal from '@/components/AddRitualModal';
-import ChainRitualsModal from '@/components/ChainRitualsModal';
-import AddFriendModal from '@/components/AddFriendModal';
 import RitualLibrary from '@/components/RitualLibrary';
-import ProfileButton from '@/components/profile/ProfileButton';
-import ProfilePanel from '@/components/profile/ProfilePanel';
 import Garden from '@/components/garden/Garden';
-
-// Update displayMode to include 'garden'
-type DisplayMode = 'focus' | 'library' | 'garden';
-
-// Define a UI Ritual type that matches what our components expect
-interface UIRitual {
-  id: string;
-  name: string;
-  streak: number;
-  status: 'active' | 'paused' | 'chained';
-  last_completed?: string | null;
-}
+import ProfileButton from '@/components/profile/ProfileButton';
+import RitualModals from '@/components/RitualModals';
+import RitualProfilePanel from '@/components/RitualProfilePanel';
+import type { Ritual } from '@/types/ritual';
 
 interface IndexProps {
   userId?: string;
@@ -27,8 +16,7 @@ interface IndexProps {
 
 const Index: React.FC<IndexProps> = ({ userId }) => {
   const { rituals, loading, createRitual, completeRitual, chainRituals, updateRitual } = useRituals(userId);
-  // If userId is provided (viewing a friend's garden), default to garden view
-  const [displayMode, setDisplayMode] = useState<DisplayMode>(userId ? 'garden' : 'focus');
+  const { displayMode, handleViewGarden, handleCloseGarden, handleOpenLibrary, handleCloseLibrary } = useDisplayMode(userId ? 'garden' : 'focus');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showChainModal, setShowChainModal] = useState(false);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
@@ -37,35 +25,22 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
 
   // Determine if we are viewing the logged-in user's garden
   const isOwnGarden = !userId;
-  
-  console.log("Index rendering, isOwnGarden:", isOwnGarden, "userId:", userId, "rituals:", rituals);
-
-  // Profile stats derived from ritual data
-  const profileStats = {
-    totalStreaks: rituals.reduce((total, ritual) => total + ritual.streak_count, 0),
-    longestStreak: rituals.reduce((max, ritual) => Math.max(max, ritual.streak_count), 0),
-    ritualsCreated: rituals.length,
-    chains: rituals.filter(ritual => ritual.status === 'chained').length
-  };
 
   useEffect(() => {
-    // Only set the initial ritual if rituals are loaded and we haven't set one yet
     if (!loading && rituals.length > 0 && !currentRitual) {
-      const activeRitual = rituals.find(r => r.status === 'active') || rituals[0]; // Fallback to first ritual if no active one
+      const activeRitual = rituals.find(r => r.status === 'active') || rituals[0];
       if (activeRitual) {
         console.log('Setting initial currentRitual:', activeRitual);
         setCurrentRitual(activeRitual);
       }
     }
-  }, [rituals, loading, currentRitual]); // Depend on rituals, loading state, and currentRitual
+  }, [rituals, loading, currentRitual]);
 
-  // Update currentRitual state if its data changes in the main rituals list
+  // Update currentRitual if its data changes
   useEffect(() => {
     if (currentRitual) {
       const updatedRitualData = rituals.find(r => r.id === currentRitual.id);
-      
       if (updatedRitualData) {
-        // Check if streak count or last_completed has changed
         if (
           updatedRitualData.streak_count !== currentRitual.streak_count ||
           updatedRitualData.last_completed !== currentRitual.last_completed
@@ -73,106 +48,28 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
           setCurrentRitual(updatedRitualData);
         }
       } else {
-        // If ritual no longer exists in the array, reset currentRitual
         setCurrentRitual(null);
       }
     }
-  }, [rituals, currentRitual]); // Depend on rituals and currentRitual
+  }, [rituals, currentRitual]);
 
-  // Handlers for opening modals
-  const handleOpenAddRitualModal = () => {
-    if (!isOwnGarden) return; // Disable if not own garden
-    setShowAddModal(true);
-  }
-  
-  const handleOpenChainModal = () => {
-    if (!isOwnGarden) return; // Disable if not own garden
-    setShowChainModal(true);
-  }
-
-  // Handler for opening AddFriendModal
-  const handleOpenAddFriendModal = () => {
-    setShowAddFriendModal(true);
-  };
-
-  // Handler for closing AddFriendModal
-  const handleCloseAddFriendModal = () => {
-    setShowAddFriendModal(false);
-  };
-
-  const toggleProfilePanel = () => {
-    setProfileOpen(!profileOpen);
-  };
-
-  // Handler for updating a ritual
-  const handleUpdateRitual = (id: string, updates: Partial<UIRitual>) => {
-    if (!isOwnGarden || !updateRitual) return; // Only allow updates for own garden
-    
-    // Convert UI updates to backend ritual format
-    const backendUpdates: Partial<Ritual> = {
-      ...(updates.name && { name: updates.name }),
-      ...(updates.status && { status: updates.status })
-    };
-    
-    updateRitual(id, backendUpdates);
-  };
-  
-  // Handler for when user completes a ritual
-  const handleCompletedRitual = (ritualId: string) => {
-    return completeRitual(ritualId);
-  };
-
-  // Handler for when user selects a different ritual
-  const handleSelectRitual = (ritual: UIRitual) => {
-    // Find the corresponding backend Ritual from the UIRitual
-    const selectedRitual = rituals.find(r => r.id === ritual.id);
-    if (selectedRitual) {
-      setCurrentRitual(selectedRitual);
-      setDisplayMode('focus');
-    }
-  };
-
-  // Handler for adding a new ritual
-  const handleAddRitual = (name: string) => {
-    createRitual(name);
+  // Handlers
+  const handleAddRitual = async (name: string) => {
+    const newRitual = await createRitual(name);
     setShowAddModal(false);
+    return newRitual;
   };
 
-  // Handler for chaining rituals
   const handleChainRituals = (ritualIds: string[]) => {
     chainRituals(ritualIds);
     setShowChainModal(false);
   };
 
-  // Handler for closing the ritual library
-  const handleCloseLibrary = () => {
+  const handleSelectRitual = (ritual: Ritual) => {
+    setCurrentRitual(ritual);
     setDisplayMode('focus');
   };
 
-  // Handler for opening the garden view
-  const handleViewGarden = () => {
-    setDisplayMode('garden');
-    // Close the profile panel when opening garden
-    setProfileOpen(false);
-  };
-
-  // Handler for closing the garden view
-  const handleCloseGarden = () => {
-    setDisplayMode('focus');
-  };
-
-  // Map Supabase ritual to UI ritual format
-  const mapRitualForUI = (ritual: Ritual): UIRitual => {
-    return {
-      id: ritual.id,
-      name: ritual.name,
-      streak: ritual.streak_count,
-      status: ritual.status,
-      last_completed: ritual.last_completed
-    };
-  };
-
-  // Check if we have data to display
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -181,70 +78,63 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     );
   }
 
-  // Render the appropriate mode
   return (
     <div className="min-h-screen bg-ritual-paper relative">
       {/* Profile Button */}
       <div className="absolute top-6 right-6 z-10">
-        <ProfileButton onClick={toggleProfilePanel} />
+        <ProfileButton onClick={() => setProfileOpen(true)} />
       </div>
 
-      {/* Always render FocusMode */}
+      {/* Focus Mode */}
       {currentRitual && (
         <FocusMode
-          onOpenLibrary={() => setDisplayMode('library')}
+          onOpenLibrary={handleOpenLibrary}
           currentRitual={currentRitual}
-          onCompletedRitual={handleCompletedRitual}
+          onCompletedRitual={completeRitual}
         />
       )}
 
-      {/* Always render RitualLibrary, controlling visibility with isOpen prop */}
+      {/* Ritual Library */}
       <RitualLibrary
-        rituals={rituals.map(ritual => mapRitualForUI(ritual))}
+        rituals={rituals}
         isOpen={displayMode === 'library'}
         onClose={handleCloseLibrary}
         onSelectRitual={handleSelectRitual}
-        onAddRitual={isOwnGarden ? handleOpenAddRitualModal : undefined}
-        onChainRituals={isOwnGarden ? handleOpenChainModal : undefined}
-        onUpdateRitual={isOwnGarden ? handleUpdateRitual : undefined}
+        onAddRitual={isOwnGarden ? () => setShowAddModal(true) : undefined}
+        onChainRituals={isOwnGarden ? () => setShowChainModal(true) : undefined}
+        onUpdateRitual={isOwnGarden ? updateRitual : undefined}
       />
 
-      {/* Garden View - Pass isViewOnly prop */}
+      {/* Garden View */}
       {displayMode === 'garden' && (
         <Garden 
           rituals={rituals} 
           onClose={handleCloseGarden} 
-          isViewOnly={!isOwnGarden} // Pass view only status
+          isViewOnly={!isOwnGarden}
         />
       )}
 
-      {/* Modals - Conditionally control isOpen */}
-      <AddRitualModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+      {/* Modals */}
+      <RitualModals
+        showAddModal={showAddModal}
+        showChainModal={showChainModal}
+        showAddFriendModal={showAddFriendModal}
+        isOwnGarden={isOwnGarden}
+        rituals={rituals}
+        onCloseAddModal={() => setShowAddModal(false)}
+        onCloseChainModal={() => setShowChainModal(false)}
+        onCloseAddFriendModal={() => setShowAddFriendModal(false)}
         onAddRitual={handleAddRitual}
-      />
-      
-      <ChainRitualsModal
-        isOpen={showChainModal}
-        onClose={() => setShowChainModal(false)}
-        rituals={rituals.map(ritual => mapRitualForUI(ritual))}
         onChainRituals={handleChainRituals}
-      />
-      
-      {/* AddFriendModal for both direct access and via FriendsPanel */}
-      <AddFriendModal
-        isOpen={showAddFriendModal}
-        onClose={handleCloseAddFriendModal}
       />
 
       {/* Profile Panel */}
-      <ProfilePanel 
-        isOpen={profileOpen}
-        onClose={() => setProfileOpen(false)}
-        stats={profileStats}
+      <RitualProfilePanel
+        profileOpen={profileOpen}
+        rituals={rituals}
+        onCloseProfile={() => setProfileOpen(false)}
         onViewGarden={handleViewGarden}
-        onAddFriend={handleOpenAddFriendModal}
+        onAddFriend={() => setShowAddFriendModal(true)}
       />
     </div>
   );
