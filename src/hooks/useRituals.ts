@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,11 +21,20 @@ export const useRituals = (targetUserId?: string) => {
 
   // Check if we're viewing our own rituals or someone else's
   const isOwnRituals = !targetUserId || (user && user.id === targetUserId);
+  
+  // For debugging
+  useEffect(() => {
+    console.log(`useRituals hook initialized with targetUserId: ${targetUserId}, isOwnRituals: ${isOwnRituals}`);
+  }, [targetUserId, isOwnRituals]);
 
   const fetchRituals = useCallback(async () => {
+    // Use either the target user ID (for viewing friends) or the current user's ID
     const userIdToFetch = targetUserId || user?.id;
+    
+    console.log(`fetchRituals called with userIdToFetch: ${userIdToFetch}`);
 
     if (!userIdToFetch) {
+      console.log('No userId to fetch, setting empty rituals array');
       setRituals([]);
       setLoading(false);
       setError(null);
@@ -207,9 +215,11 @@ export const useRituals = (targetUserId?: string) => {
     }
   };
 
+  // Fetch initial data and set up effect to refetch when user or targetUserId changes
   useEffect(() => {
+    console.log('useRituals effect running, fetching rituals...');
     fetchRituals();
-  }, [fetchRituals]);
+  }, [fetchRituals, user, targetUserId]);
 
   return {
     rituals,

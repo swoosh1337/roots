@@ -20,24 +20,9 @@ export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
   console.log(`fetchUserRituals called for userId: ${userId}`);
 
   try {
-    // First check if the user exists in the users table
-    const { error: userError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('id', userId)
-      .single();
-
-    if (userError) {
-      console.error(`Error checking if user ${userId} exists:`, userError);
-      // If the user doesn't exist, return an empty array instead of throwing
-      if (userError.code === 'PGRST116') { // Not found
-        console.log(`User ${userId} not found in users table, returning empty array`);
-        return [];
-      }
-      throw userError;
-    }
-
-    // Now fetch the rituals
+    // Skip checking if user exists as this might be causing permission issues for friend's gardens
+    // Just try to fetch habits directly - if the user doesn't exist, we'll get an empty array
+    
     const { data, error } = await supabase
       .from('habits')
       .select('*')

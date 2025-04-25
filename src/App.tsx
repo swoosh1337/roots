@@ -26,6 +26,12 @@ const App = () => (
                 <Index />
               </ProtectedRoute>
             } />
+            {/* Add route for viewing friend's gardens */}
+            <Route path="/garden/:userId" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -29,38 +29,47 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
     const fetchFriendData = async () => {
       console.log("Fetching friend data for ID:", friendId);
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, full_name, profile_img_url, email')
-        .eq('id', friendId)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, full_name, profile_img_url, email')
+          .eq('id', friendId)
+          .single();
 
-      if (error) {
-        console.error("Error fetching friend data:", error);
-        toast({
-          title: "Error Loading Friend",
-          description: "Could not load friend information.",
-          variant: "destructive"
-        });
-        
-        // Set a fallback friend object even if there's an error
+        if (error) {
+          console.error("Error fetching friend data:", error);
+          toast({
+            title: "Error Loading Friend",
+            description: "Could not load friend information.",
+            variant: "destructive"
+          });
+          
+          // Set a fallback friend object even if there's an error
+          setFriend({
+            id: friendId,
+            name: 'Friend',
+            avatar: '/avatars/default.png'
+          });
+          return;
+        }
+
+        if (data) {
+          console.log("Friend data retrieved:", data);
+          // Extract username from email as fallback if no full_name exists
+          const emailUsername = data.email ? data.email.split('@')[0] : null;
+
+          setFriend({
+            id: data.id,
+            name: data.full_name || emailUsername || 'Friend',
+            avatar: data.profile_img_url || '/avatars/default.png'
+          });
+        }
+      } catch (err) {
+        console.error("Exception fetching friend data:", err);
         setFriend({
           id: friendId,
           name: 'Friend',
           avatar: '/avatars/default.png'
-        });
-        return;
-      }
-
-      if (data) {
-        console.log("Friend data retrieved:", data);
-        // Extract username from email as fallback if no full_name exists
-        const emailUsername = data.email ? data.email.split('@')[0] : null;
-
-        setFriend({
-          id: data.id,
-          name: data.full_name || emailUsername || 'Friend',
-          avatar: data.profile_img_url || '/avatars/default.png'
         });
       }
     };

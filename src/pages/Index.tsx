@@ -38,6 +38,8 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
 
   // Determine if we are viewing the logged-in user's garden
   const isOwnGarden = !userId;
+  
+  console.log("Index rendering, isOwnGarden:", isOwnGarden, "userId:", userId, "rituals:", rituals);
 
   // Profile stats derived from ritual data
   const profileStats = {
@@ -83,6 +85,7 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     if (!isOwnGarden) return; // Disable if not own garden
     setShowAddModal(true);
   }
+  
   const handleOpenChainModal = () => {
     if (!isOwnGarden) return; // Disable if not own garden
     setShowChainModal(true);
@@ -189,8 +192,8 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
         isOpen={displayMode === 'library'}
         onClose={handleCloseLibrary}
         onSelectRitual={handleSelectRitual}
-        onAddRitual={isOwnGarden ? handleOpenAddRitualModal : undefined} // Conditionally disable
-        onChainRituals={isOwnGarden ? handleOpenChainModal : undefined} // Conditionally disable
+        onAddRitual={isOwnGarden ? handleOpenAddRitualModal : undefined}
+        onChainRituals={isOwnGarden ? handleOpenChainModal : undefined}
       />
 
       {/* Garden View - Pass isViewOnly prop */}
@@ -204,13 +207,13 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
 
       {/* Modals - Conditionally control isOpen */}
       <AddRitualModal
-        isOpen={showAddModal && isOwnGarden}
+        isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAddRitual={handleAddRitual}
       />
       
       <ChainRitualsModal
-        isOpen={showChainModal && isOwnGarden}
+        isOpen={showChainModal}
         onClose={() => setShowChainModal(false)}
         rituals={rituals.map(ritual => mapRitualForUI(ritual))}
         onChainRituals={handleChainRituals}
