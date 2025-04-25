@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +20,7 @@ export const useRituals = (targetUserId?: string) => {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Check if we're viewing our own rituals or someone else's
   const isOwnRituals = !targetUserId || (user && user.id === targetUserId);
 
   const fetchRituals = useCallback(async () => {

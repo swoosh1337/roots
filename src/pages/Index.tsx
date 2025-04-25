@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useRituals, Ritual } from '@/hooks/useRituals';
 import FocusMode from '@/components/FocusMode';

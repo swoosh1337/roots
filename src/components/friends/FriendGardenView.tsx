@@ -6,6 +6,7 @@ import { useRituals } from '@/hooks/useRituals';
 import Garden from '@/components/garden/Garden';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useToast } from '@/components/ui/use-toast';
 
 interface FriendGardenViewProps {
   friendId: string;
@@ -19,8 +20,9 @@ interface FriendData {
 }
 
 const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }) => {
-  const { rituals, loading } = useRituals(friendId);
+  const { rituals, loading, error } = useRituals(friendId);
   const [friend, setFriend] = useState<FriendData | null>(null);
+  const { toast } = useToast();
 
   // Fetch friend's basic info for the header
   useEffect(() => {
@@ -35,6 +37,12 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
 
       if (error) {
         console.error("Error fetching friend data:", error);
+        toast({
+          title: "Error Loading Friend",
+          description: "Could not load friend information.",
+          variant: "destructive"
+        });
+        
         // Set a fallback friend object even if there's an error
         setFriend({
           id: friendId,
@@ -58,8 +66,13 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
     };
 
     fetchFriendData();
-  }, [friendId]);
+  }, [friendId, toast]);
 
+  // Log the rituals data whenever it changes
+  useEffect(() => {
+    console.log("Friend garden rituals:", rituals);
+  }, [rituals]);
+  
   return (
     <motion.div
       className="fixed inset-0 bg-ritual-paper z-50 flex flex-col"
@@ -94,6 +107,14 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-ritual-forest text-lg">Loading garden...</p>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-ritual-forest text-lg">Error loading garden. Please try again later.</p>
+          </div>
+        ) : rituals.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-ritual-forest text-lg">This garden is empty. No rituals found.</p>
           </div>
         ) : (
           <Garden
