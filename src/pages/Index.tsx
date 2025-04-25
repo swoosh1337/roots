@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRituals, Ritual } from '@/hooks/useRituals';
 import FocusMode from '@/components/FocusMode';
@@ -27,7 +26,7 @@ interface IndexProps {
 }
 
 const Index: React.FC<IndexProps> = ({ userId }) => {
-  const { rituals, loading, createRitual, completeRitual, chainRituals } = useRituals(userId);
+  const { rituals, loading, createRitual, completeRitual, chainRituals, updateRitual } = useRituals(userId);
   // If userId is provided (viewing a friend's garden), default to garden view
   const [displayMode, setDisplayMode] = useState<DisplayMode>(userId ? 'garden' : 'focus');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -105,17 +104,19 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     setProfileOpen(!profileOpen);
   };
 
-  // Map Supabase ritual to UI ritual format
-  const mapRitualForUI = (ritual: Ritual): UIRitual => {
-    return {
-      id: ritual.id,
-      name: ritual.name,
-      streak: ritual.streak_count,
-      status: ritual.status,
-      last_completed: ritual.last_completed
+  // Handler for updating a ritual
+  const handleUpdateRitual = (id: string, updates: Partial<UIRitual>) => {
+    if (!isOwnGarden || !updateRitual) return; // Only allow updates for own garden
+    
+    // Convert UI updates to backend ritual format
+    const backendUpdates: Partial<Ritual> = {
+      ...(updates.name && { name: updates.name }),
+      ...(updates.status && { status: updates.status })
     };
+    
+    updateRitual(id, backendUpdates);
   };
-
+  
   // Handler for when user completes a ritual
   const handleCompletedRitual = (ritualId: string) => {
     return completeRitual(ritualId);
@@ -160,6 +161,17 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     setDisplayMode('focus');
   };
 
+  // Map Supabase ritual to UI ritual format
+  const mapRitualForUI = (ritual: Ritual): UIRitual => {
+    return {
+      id: ritual.id,
+      name: ritual.name,
+      streak: ritual.streak_count,
+      status: ritual.status,
+      last_completed: ritual.last_completed
+    };
+  };
+
   // Check if we have data to display
   if (loading) {
     return (
@@ -194,6 +206,7 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
         onSelectRitual={handleSelectRitual}
         onAddRitual={isOwnGarden ? handleOpenAddRitualModal : undefined}
         onChainRituals={isOwnGarden ? handleOpenChainModal : undefined}
+        onUpdateRitual={isOwnGarden ? handleUpdateRitual : undefined}
       />
 
       {/* Garden View - Pass isViewOnly prop */}

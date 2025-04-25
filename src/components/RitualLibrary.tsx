@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Edit, Link, CheckCircle, Pause } from 'lucide-react';
 import StreakTracker from './StreakTracker';
+import EditRitualModal from './EditRitualModal';
 
 // Update to use UIRitual interface instead of importing Ritual from useRituals
 interface UIRitual {
@@ -20,6 +21,7 @@ interface RitualLibraryProps {
   onSelectRitual: (ritual: UIRitual) => void;
   onAddRitual: () => void;
   onChainRituals: () => void;
+  onUpdateRitual?: (id: string, updates: Partial<UIRitual>) => void;
 }
 
 const RitualLibrary: React.FC<RitualLibraryProps> = ({
@@ -28,8 +30,11 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
   onClose,
   onSelectRitual,
   onAddRitual,
-  onChainRituals
+  onChainRituals,
+  onUpdateRitual
 }) => {
+  const [editingRitual, setEditingRitual] = useState<UIRitual | null>(null);
+
   const getStatusIcon = (status: 'active' | 'paused' | 'chained') => {
     switch (status) {
       case 'active':
@@ -38,6 +43,22 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
         return <Pause className="w-4 h-4" />;
       case 'chained':
         return <Link className="w-4 h-4" />;
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent, ritual: UIRitual) => {
+    e.stopPropagation(); // Stop the event from bubbling up to the parent card
+    setEditingRitual(ritual);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingRitual(null);
+  };
+
+  const handleUpdateRitual = (id: string, updates: Partial<UIRitual>) => {
+    if (onUpdateRitual) {
+      onUpdateRitual(id, updates);
+      setEditingRitual(null);
     }
   };
 
@@ -84,7 +105,11 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
             >
               <div className="flex justify-between items-start mb-2">
                 <h3 className="text-lg font-medium text-ritual-forest">{ritual.name}</h3>
-                <button className="p-1 rounded-full hover:bg-gray-100">
+                <button 
+                  className="p-1 rounded-full hover:bg-gray-100"
+                  onClick={(e) => handleEditClick(e, ritual)}
+                  aria-label={`Edit ${ritual.name}`}
+                >
                   <Edit className="w-4 h-4 text-gray-500" />
                 </button>
               </div>
@@ -127,6 +152,16 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
           </button>
         </div>
       </motion.div>
+
+      {/* Edit Ritual Modal */}
+      {editingRitual && onUpdateRitual && (
+        <EditRitualModal
+          ritual={editingRitual}
+          isOpen={!!editingRitual}
+          onClose={handleCloseEditModal}
+          onUpdateRitual={handleUpdateRitual}
+        />
+      )}
     </>
   );
 };
