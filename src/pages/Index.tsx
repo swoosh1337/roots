@@ -27,7 +27,8 @@ interface IndexProps {
 
 const Index: React.FC<IndexProps> = ({ userId }) => {
   const { rituals, loading, createRitual, completeRitual, chainRituals } = useRituals(userId);
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('focus');
+  // If userId is provided (viewing a friend's garden), default to garden view
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(userId ? 'garden' : 'focus');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showChainModal, setShowChainModal] = useState(false);
   const [showAddFriendModal, setShowAddFriendModal] = useState(false);
