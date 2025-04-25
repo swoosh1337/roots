@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+
+import { useCallback, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useRitualState } from '@/hooks/useRitualState';
 import type { Ritual } from '@/types/ritual';
 import {
   fetchUserRituals,
@@ -8,141 +9,88 @@ import {
   updateUserRitual,
   completeUserRitual,
   chainUserRituals
-} from '@/utils/ritualUtils';
+} from '@/utils/ritualOperations';
 
 export type { Ritual };
 
 export const useRituals = (targetUserId?: string) => {
-  const [rituals, setRituals] = useState<Ritual[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
   const { user } = useAuth();
+  const {
+    rituals,
+    loading,
+    error,
+    setLoading,
+    updateRituals,
+    addRitual,
+    updateRitual,
+    showError
+  } = useRitualState();
 
   // Check if we're viewing our own rituals or someone else's
   const isOwnRituals = !targetUserId || (user && user.id === targetUserId);
-  
-  // For debugging
-  useEffect(() => {
-    console.log(`useRituals hook initialized with targetUserId: ${targetUserId}, isOwnRituals: ${isOwnRituals}`);
-  }, [targetUserId, isOwnRituals]);
 
   const fetchRituals = useCallback(async () => {
-    // Use either the target user ID (for viewing friends) or the current user's ID
     const userIdToFetch = targetUserId || user?.id;
-    
     console.log(`fetchRituals called with userIdToFetch: ${userIdToFetch}`);
 
     if (!userIdToFetch) {
       console.log('No userId to fetch, setting empty rituals array');
-      setRituals([]);
+      updateRituals([]);
       setLoading(false);
-      setError(null);
+      showError(null);
       return;
     }
 
     try {
-      console.log(`Fetching rituals for user ID: ${userIdToFetch}, isOwnRituals: ${isOwnRituals}`);
+      console.log(`Fetching rituals for user ID: ${userIdToFetch}`);
       setLoading(true);
-      setError(null);
+      showError(null);
       const fetchedRituals = await fetchUserRituals(userIdToFetch);
       console.log(`Fetched ${fetchedRituals.length} rituals:`, fetchedRituals);
-      setRituals(fetchedRituals);
+      updateRituals(fetchedRituals);
     } catch (err) {
       console.error('Error fetching rituals:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch rituals');
-
-      // Only show toast for own rituals to avoid confusion when viewing friends
-      if (isOwnRituals) {
-        toast({
-          title: "Error Fetching Rituals",
-          description: "There was a problem loading your rituals.",
-          variant: "destructive"
-        });
-      }
+      showError(err instanceof Error ? err.message : 'Failed to fetch rituals');
     } finally {
       setLoading(false);
     }
-  }, [user, targetUserId, toast, isOwnRituals]);
+  }, [user, targetUserId, setLoading, updateRituals, showError]);
 
   const createRitual = async (name: string) => {
-    console.log("createRitual called with name:", name);
-    console.log("Current user:", user);
-    console.log("isOwnRituals:", isOwnRituals);
-
     if (!isOwnRituals || !user) {
-      console.error("Cannot create ritual: Not own garden or no user");
-      toast({
-        title: "Action Not Allowed",
-        description: "You can only create rituals for your own garden.",
-        variant: "destructive"
-      });
-      throw new Error("Action not allowed");
+      showError("Cannot create ritual: Not own garden or no user");
+      return;
     }
 
     try {
-      console.log("Creating ritual with name:", name, "for user:", user.id);
       const newRitual = await createUserRitual(name, user.id);
-      console.log("Ritual created successfully:", newRitual);
-
-      // Update the local state with the new ritual
-      setRituals(prev => [newRitual, ...prev]);
-
-      // Show success toast
-      toast({
-        title: "Ritual Created",
-        description: `Your new ritual "${name}" has been created.`,
-        variant: "default"
-      });
-
+      addRitual(newRitual);
       return newRitual;
     } catch (err) {
-      console.error('Error creating ritual:', err);
-      toast({
-        title: "Error Creating Ritual",
-        description: "There was a problem creating your ritual.",
-        variant: "destructive"
-      });
+      showError("There was a problem creating your ritual.");
       throw err;
     }
   };
 
-  const updateRitual = async (id: string, updates: Partial<Ritual>) => {
+  const handleUpdateRitual = async (id: string, updates: Partial<Ritual>) => {
     if (!isOwnRituals || !user) {
-      toast({
-        title: "Action Not Allowed",
-        description: "You can only update rituals in your own garden.",
-        variant: "destructive"
-      });
-      throw new Error("Action not allowed");
+      showError("Cannot update ritual: Not own garden or no user");
+      return;
     }
 
     try {
       await updateUserRitual(id, updates, user.id);
-      setRituals(prev =>
-        prev.map(ritual =>
-          ritual.id === id ? { ...ritual, ...updates } : ritual
-        )
-      );
+      updateRitual(id, updates);
     } catch (err) {
-      console.error('Error updating ritual:', err);
-      toast({
-        title: "Error Updating Ritual",
-        description: "There was a problem updating your ritual.",
-        variant: "destructive"
-      });
+      showError("There was a problem updating your ritual.");
       throw err;
     }
   };
 
-  const completeRitual = async (id: string) => {
+  const handleCompleteRitual = async (id: string) => {
     if (!isOwnRituals || !user) {
-      toast({
-        title: "Action Not Allowed",
-        description: "You can only complete rituals in your own garden.",
-        variant: "destructive"
-      });
-      throw new Error("Action not allowed");
+      showError("Cannot complete ritual: Not own garden or no user");
+      return;
     }
 
     try {
@@ -150,68 +98,28 @@ export const useRituals = (targetUserId?: string) => {
       if (!ritual) return;
 
       const update = await completeUserRitual(id, user.id, ritual.streak_count);
-
-      setRituals(prev =>
-        prev.map(r =>
-          r.id === id
-            ? {
-                ...r,
-                streak_count: update.streak_count,
-                last_completed: update.last_completed
-              }
-            : r
-        )
-      );
-
-      toast({
-        title: "Ritual Completed!",
-        description: "Your tree is growing stronger each day.",
-      });
-
+      updateRitual(id, update);
       return update;
     } catch (err) {
-      console.error('Error completing ritual:', err);
-      toast({
-        title: "Error Completing Ritual",
-        description: "There was a problem completing your ritual.",
-        variant: "destructive"
-      });
+      showError("There was a problem completing your ritual.");
       throw err;
     }
   };
 
-  const chainRituals = async (ritualIds: string[]) => {
+  const handleChainRituals = async (ritualIds: string[]) => {
     if (!isOwnRituals || !user) {
-      toast({
-        title: "Action Not Allowed",
-        description: "You can only chain rituals in your own garden.",
-        variant: "destructive"
-      });
-      throw new Error("Action not allowed");
+      showError("Cannot chain rituals: Not own garden or no user");
+      return;
     }
 
     try {
       await chainUserRituals(ritualIds, user.id);
-
-      setRituals(prev =>
-        prev.map(ritual =>
-          ritualIds.includes(ritual.id)
-            ? { ...ritual, status: 'chained' }
-            : ritual
-        )
-      );
-
-      toast({
-        title: "Rituals Chained",
-        description: "Your selected rituals are now linked together.",
+      ritualIds.forEach(id => {
+        updateRitual(id, { status: 'chained' });
       });
     } catch (err) {
-      console.error('Error chaining rituals:', err);
-      toast({
-        title: "Error Chaining Rituals",
-        description: "There was a problem linking your rituals.",
-        variant: "destructive"
-      });
+      showError("There was a problem linking your rituals.");
+      throw err;
     }
   };
 
@@ -219,16 +127,16 @@ export const useRituals = (targetUserId?: string) => {
   useEffect(() => {
     console.log('useRituals effect running, fetching rituals...');
     fetchRituals();
-  }, [fetchRituals, user, targetUserId]);
+  }, [fetchRituals]);
 
   return {
     rituals,
     loading,
     error,
     fetchRituals,
-    createRitual,
-    updateRitual,
-    completeRitual,
-    chainRituals
+    createRitual: isOwnRituals ? createRitual : undefined,
+    updateRitual: isOwnRituals ? handleUpdateRitual : undefined,
+    completeRitual: isOwnRituals ? handleCompleteRitual : undefined,
+    chainRituals: isOwnRituals ? handleChainRituals : undefined,
   };
 };
