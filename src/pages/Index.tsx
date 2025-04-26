@@ -10,6 +10,7 @@ import RitualModals from '@/components/RitualModals';
 import RitualProfilePanel from '@/components/RitualProfilePanel';
 import type { Ritual } from '@/types/ritual';
 import { Menu } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 interface IndexProps {
   userId?: string;
@@ -82,7 +83,7 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     );
   }
 
-    return (
+  return (
     <div className="min-h-screen bg-ritual-paper relative">
       
       {/* Profile Button */}
@@ -100,22 +101,25 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
         <Menu className="w-6 h-6 text-ritual-forest" />
       </button>
 
-      {/* Focus Mode */}
-      {currentRitual && (
-        <FocusMode
-          onOpenLibrary={handleOpenLibrary}
-          currentRitual={currentRitual}
-          onCompletedRitual={completeRitual}
-        />
-      )}
+      <AnimatePresence mode="wait">
+        {/* Focus Mode */}
+        {currentRitual && displayMode === 'focus' && (
+          <FocusMode
+            onOpenLibrary={handleOpenLibrary}
+            currentRitual={currentRitual}
+            onCompletedRitual={completeRitual}
+          />
+        )}
 
-      {/* Empty state message when no rituals */}
-      {!currentRitual && !loading && rituals.length === 0 && isOwnGarden && (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-          <h2 className="text-2xl font-semibold text-ritual-forest mb-4">Welcome to Your Ritual Garden</h2>
-          <p className="text-ritual-forest/80 mb-6">You don't have any rituals yet. Click the menu button in the top left to add your first ritual.</p>
-        </div>
-      )}
+        {/* Garden View */}
+        {displayMode === 'garden' && (
+          <Garden 
+            rituals={rituals} 
+            onClose={handleCloseGarden} 
+            isViewOnly={!isOwnGarden}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Ritual Library */}
       <RitualLibrary
@@ -127,15 +131,6 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
         onChainRituals={isOwnGarden ? () => setShowChainModal(true) : undefined}
         onUpdateRitual={isOwnGarden ? updateRitual : undefined}
       />
-
-      {/* Garden View */}
-      {displayMode === 'garden' && (
-        <Garden 
-          rituals={rituals} 
-          onClose={handleCloseGarden} 
-          isViewOnly={!isOwnGarden}
-        />
-      )}
 
       {/* Modals */}
       <RitualModals

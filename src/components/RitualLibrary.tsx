@@ -72,7 +72,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
       <motion.div
         initial={{ x: "-100%" }}
         animate={{ x: isOpen ? 0 : "-100%" }}
-        transition={{ duration: 0.4, type: 'spring', damping: 30 }}
+        transition={{ duration: 0.4, type: 'spring', damping: 30, stiffness: 120 }}
         className="fixed top-0 left-0 h-full w-4/5 max-w-[400px] bg-ritual-paper shadow-xl rounded-r-3xl z-50 flex flex-col"
       >
         {/* Header */}

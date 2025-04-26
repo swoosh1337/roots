@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import '../ui/Garden.css';
 import { stageToStreakMap, getTreeStage } from '../tree/TreeStages';
 import type { Ritual } from '@/hooks/useRituals';
@@ -136,64 +136,67 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
   }, [activePopupId]); // Re-run when popup ID changes
 
   return (
-    <motion.div
-      className="garden-container"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      ref={gardenContainerRef}
-      onClick={handleGardenClick}
-    >
-      <div className="garden-header">
-        <h1 className="garden-title">{isViewOnly ? "Friend's Garden" : "My Garden"}</h1>
-        <button
-          onClick={onClose}
-          className="garden-close-button"
-          aria-label="Close garden view"
-        >
-          &times;
-        </button>
-      </div>
-
-      <div
-        className="garden-grid"
-        style={{
-          gridTemplateColumns: `repeat(${gridLayout.columns}, 1fr)`,
-        }}
+    <AnimatePresence mode="wait">
+      <motion.div
+        className="garden-container fixed inset-0 bg-ritual-paper z-40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+        ref={gardenContainerRef}
+        onClick={handleGardenClick}
       >
-        {trees.map(tree => (
-          <motion.div
-            key={tree.id}
-            className={`garden-plot
-              ${tree.stage < 0 ? 'garden-plot-empty' : ''}
-              ${activePopupId === tree.id ? 'garden-plot-active' : ''}
-            `}
-            onClick={(e) => handleTreeClick(tree, e)}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            whileHover={tree.stage >= 0 ? { scale: 1.05 } : {}}
+        <div className="garden-header">
+          <h1 className="garden-title">{isViewOnly ? "Friend's Garden" : "My Garden"}</h1>
+          <button
+            onClick={onClose}
+            className="garden-close-button"
+            aria-label="Close garden view"
           >
-            {tree.stage >= 0 && (
-              <img
-                src={treeStages[tree.stage]}
-                alt={`Tree for ritual: ${tree.name}`}
-                className="tree-image"
-              />
-            )}
-            {tree.stage >= 0 && (
-              <RitualPopup
-                isOpen={activePopupId === tree.id}
-                ritualName={tree.name}
-                streakCount={tree.streak_count}
-                onClose={handleClosePopup}
-                isViewOnly={isViewOnly}
-              />
-            )}
-          </motion.div>
-        ))}
-      </div>
-    </motion.div>
+            &times;
+          </button>
+        </div>
+
+        <div
+          className="garden-grid"
+          style={{
+            gridTemplateColumns: `repeat(${gridLayout.columns}, 1fr)`,
+          }}
+        >
+          {trees.map(tree => (
+            <motion.div
+              key={tree.id}
+              className={`garden-plot
+                ${tree.stage < 0 ? 'garden-plot-empty' : ''}
+                ${activePopupId === tree.id ? 'garden-plot-active' : ''}
+              `}
+              onClick={(e) => handleTreeClick(tree, e)}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              whileHover={tree.stage >= 0 ? { scale: 1.05 } : {}}
+            >
+              {tree.stage >= 0 && (
+                <img
+                  src={treeStages[tree.stage]}
+                  alt={`Tree for ritual: ${tree.name}`}
+                  className="tree-image"
+                />
+              )}
+              {tree.stage >= 0 && (
+                <RitualPopup
+                  isOpen={activePopupId === tree.id}
+                  ritualName={tree.name}
+                  streakCount={tree.streak_count}
+                  onClose={handleClosePopup}
+                  isViewOnly={isViewOnly}
+                />
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

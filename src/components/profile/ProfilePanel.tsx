@@ -140,50 +140,45 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
       </AnimatePresence>
 
       {/* Main Profile Panel */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial="closed"
-            animate={isOpen && !isFriendsPanelOpen && !selectedFriendIdForGarden ? "open" : "closed"}
-            exit="closed"
-            variants={sidebarVariants}
-            className="fixed top-0 right-0 h-full w-4/5 max-w-[400px] bg-ritual-paper shadow-xl rounded-l-3xl z-50 flex flex-col"
-          >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full z-10"
-              aria-label="Close profile panel"
-            >
-              <X size={24} />
-            </button>
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: isOpen && !isFriendsPanelOpen && !selectedFriendIdForGarden ? 0 : '100%' }}
+        transition={{ duration: 0.4, type: 'spring', damping: 30, stiffness: 120 }}
+        className="fixed top-0 right-0 h-full w-4/5 max-w-[400px] bg-ritual-paper shadow-xl rounded-l-3xl z-50 flex flex-col"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full z-10"
+          aria-label="Close profile panel"
+        >
+          <X size={24} />
+        </button>
 
-            <UserProfileHeader
-              user={user}
-              avatarSrc={getProfileImage()}
-              onImageUpdate={handleImageUpdate}
-              onNameUpdate={handleNameUpdate}
-            />
+        <UserProfileHeader
+          user={user}
+          avatarSrc={getProfileImage()}
+          onImageUpdate={handleImageUpdate}
+          onNameUpdate={handleNameUpdate}
+        />
 
-            {/* Content section */}
-            <div className="flex flex-col flex-grow p-6 gap-6 overflow-y-auto">
-              <ProfileStats stats={stats} />
+        {/* Content section */}
+        <div className="flex flex-col flex-grow p-6 gap-6 overflow-y-auto">
+          <ProfileStats stats={stats} />
 
-              <div className="w-full mt-2">
-                <h3 className="text-[#6F8D6A] text-sm mb-3">Recent Activity</h3>
-                <StreakCalendar />
-              </div>
+          <div className="w-full mt-2">
+            <h3 className="text-[#6F8D6A] text-sm mb-3">Recent Activity</h3>
+            <StreakCalendar />
+          </div>
 
-              <Separator className="my-2 bg-ritual-moss/30" />
+          <Separator className="my-2 bg-ritual-moss/30" />
 
-              <ProfileActions
-                onOpenFriends={openFriendsPanel}
-                onViewGarden={handleViewGardenClick}
-                onSignOut={signOut}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <ProfileActions
+            onOpenFriends={openFriendsPanel}
+            onViewGarden={handleViewGardenClick}
+            onSignOut={signOut}
+          />
+        </div>
+      </motion.div>
 
       {/* Friends Panel */}
       {isOpen && (
