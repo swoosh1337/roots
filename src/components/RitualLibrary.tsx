@@ -26,6 +26,13 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
   onUpdateRitual
 }) => {
   const [editingRitual, setEditingRitual] = useState<Ritual | null>(null);
+  
+  // Add this function to check if chaining is possible
+  const canChainRituals = () => {
+    // Count rituals that are not already chained
+    const availableRituals = rituals.filter(ritual => ritual.status !== 'chained');
+    return availableRituals.length >= 2;
+  };
 
   const getStatusIcon = (status: 'active' | 'paused' | 'chained') => {
     switch (status) {
@@ -141,9 +148,12 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
           
           <button 
             onClick={onChainRituals}
-            className="w-full py-3 px-4 bg-white border border-ritual-forest text-ritual-forest 
-                     rounded-full hover:bg-ritual-moss/10 transition-colors flex items-center
-                     justify-center gap-2"
+            disabled={!canChainRituals()}
+            className={`w-full py-3 px-4 rounded-full flex items-center
+                     justify-center gap-2 transition-colors
+                     ${canChainRituals() 
+                       ? 'bg-white border border-ritual-forest text-ritual-forest hover:bg-ritual-moss/10' 
+                       : 'bg-gray-100 border border-gray-300 text-gray-400 cursor-not-allowed'}`}
           >
             <Link className="w-4 h-4" /> Chain Rituals
           </button>
