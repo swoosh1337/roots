@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { X, Edit, Link, CheckCircle, Pause } from 'lucide-react';
 import StreakTracker from './StreakTracker';
@@ -27,14 +27,14 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
 }) => {
   const [editingRitual, setEditingRitual] = useState<Ritual | null>(null);
   
-  // Add this function to check if chaining is possible
-  const canChainRituals = () => {
+  // Memoize this function to avoid recreating on each render
+  const canChainRituals = useCallback(() => {
     // Count rituals that are not already chained
     const availableRituals = rituals.filter(ritual => ritual.status !== 'chained');
     return availableRituals.length >= 2;
-  };
+  }, [rituals]);
 
-  const getStatusIcon = (status: 'active' | 'paused' | 'chained') => {
+  const getStatusIcon = useCallback((status: 'active' | 'paused' | 'chained') => {
     switch (status) {
       case 'active':
         return <CheckCircle className="w-4 h-4" />;
@@ -43,23 +43,26 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
       case 'chained':
         return <Link className="w-4 h-4" />;
     }
-  };
+  }, []);
 
-  const handleEditClick = (e: React.MouseEvent, ritual: Ritual) => {
+  const handleEditClick = useCallback((e: React.MouseEvent, ritual: Ritual) => {
     e.stopPropagation(); // Stop the event from bubbling up to the parent card
     setEditingRitual(ritual);
-  };
+  }, []);
 
-  const handleCloseEditModal = () => {
+  const handleCloseEditModal = useCallback(() => {
     setEditingRitual(null);
-  };
+  }, []);
 
-  const handleUpdateRitual = (id: string, updates: Partial<Ritual>) => {
+  const handleUpdateRitual = useCallback((id: string, updates: Partial<Ritual>) => {
     if (onUpdateRitual) {
       onUpdateRitual(id, updates);
       setEditingRitual(null);
     }
-  };
+  }, [onUpdateRitual]);
+
+  // Check if chaining is possible on mount and when rituals change, not on every render
+  const canChain = canChainRituals();
 
   return (
     <>
@@ -148,10 +151,10 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
           
           <button 
             onClick={onChainRituals}
-            disabled={!canChainRituals()}
+            disabled={!canChain}
             className={`w-full py-3 px-4 rounded-full flex items-center
                      justify-center gap-2 transition-colors
-                     ${canChainRituals() 
+                     ${canChain 
                        ? 'bg-white border border-ritual-forest text-ritual-forest hover:bg-ritual-moss/10' 
                        : 'bg-gray-100 border border-gray-300 text-gray-400 cursor-not-allowed'}`}
           >

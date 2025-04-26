@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRitualState } from '@/hooks/useRitualState';
 import type { Ritual } from '@/types/ritual';
@@ -25,13 +25,21 @@ export const useRituals = (targetUserId?: string) => {
     updateRitual,
     showError
   } = useRitualState();
+  const [hasFetched, setHasFetched] = useState(false);
 
   // Check if we're viewing our own rituals or someone else's
   const isOwnRituals = !targetUserId || (user && user.id === targetUserId);
 
-  const fetchRituals = useCallback(async () => {
+  // Memoize the fetchRituals function to prevent recreations
+  const fetchRituals = useCallback(async (forceRefresh = false) => {
     const userIdToFetch = targetUserId || user?.id;
-    console.log(`fetchRituals called with userIdToFetch: ${userIdToFetch}`);
+    console.log(`fetchRituals called with userIdToFetch: ${userIdToFetch}, forceRefresh: ${forceRefresh}`);
+
+    // If we've already fetched and no force refresh is requested, don't fetch again
+    if (hasFetched && !forceRefresh) {
+      console.log('Skipping fetch - already loaded rituals');
+      return;
+    }
 
     if (!userIdToFetch) {
       console.log('No userId to fetch, setting empty rituals array');
@@ -48,15 +56,16 @@ export const useRituals = (targetUserId?: string) => {
       const fetchedRituals = await fetchUserRituals(userIdToFetch);
       console.log(`Fetched ${fetchedRituals.length} rituals:`, fetchedRituals);
       updateRituals(fetchedRituals);
+      setHasFetched(true);
     } catch (err) {
       console.error('Error fetching rituals:', err);
       showError(err instanceof Error ? err.message : 'Failed to fetch rituals');
     } finally {
       setLoading(false);
     }
-  }, [user, targetUserId, setLoading, updateRituals, showError]);
+  }, [user, targetUserId, setLoading, updateRituals, showError, hasFetched]);
 
-  const createRitual = async (name: string) => {
+  const createRitual = useCallback(async (name: string) => {
     if (!isOwnRituals || !user) {
       showError("Cannot create ritual: Not own garden or no user");
       return;
@@ -70,9 +79,9 @@ export const useRituals = (targetUserId?: string) => {
       showError("There was a problem creating your ritual.");
       throw err;
     }
-  };
+  }, [isOwnRituals, user, addRitual, showError]);
 
-  const handleUpdateRitual = async (id: string, updates: Partial<Ritual>) => {
+  const handleUpdateRitual = useCallback(async (id: string, updates: Partial<Ritual>) => {
     if (!isOwnRituals || !user) {
       showError("Cannot update ritual: Not own garden or no user");
       return;
@@ -85,9 +94,9 @@ export const useRituals = (targetUserId?: string) => {
       showError("There was a problem updating your ritual.");
       throw err;
     }
-  };
+  }, [isOwnRituals, user, updateRitual, showError]);
 
-  const handleCompleteRitual = async (id: string) => {
+  const handleCompleteRitual = useCallback(async (id: string) => {
     if (!isOwnRituals || !user) {
       showError("Cannot complete ritual: Not own garden or no user");
       return;
@@ -104,9 +113,9 @@ export const useRituals = (targetUserId?: string) => {
       showError("There was a problem completing your ritual.");
       throw err;
     }
-  };
+  }, [isOwnRituals, user, rituals, updateRitual, showError]);
 
-  const handleChainRituals = async (ritualIds: string[]) => {
+  const handleChainRituals = useCallback(async (ritualIds: string[]) => {
     if (!isOwnRituals || !user) {
       showError("Cannot chain rituals: Not own garden or no user");
       return;
@@ -121,19 +130,19 @@ export const useRituals = (targetUserId?: string) => {
       showError("There was a problem linking your rituals.");
       throw err;
     }
-  };
+  }, [isOwnRituals, user, updateRitual, showError]);
 
-  // Fetch initial data and set up effect to refetch when user or targetUserId changes
+  // Fetch initial data only once when user or targetUserId changes
   useEffect(() => {
-    console.log('useRituals effect running, fetching rituals...');
-    fetchRituals();
+    console.log('useRituals effect running, checking if fetch is needed...');
+    fetchRituals(false); // Don't force refresh on initial mount
   }, [fetchRituals]);
 
   return {
     rituals,
     loading,
     error,
-    fetchRituals,
+    fetchRituals: (forceRefresh = true) => fetchRituals(forceRefresh), // Allow forcing refresh when explicitly called
     createRitual: isOwnRituals ? createRitual : undefined,
     updateRitual: isOwnRituals ? handleUpdateRitual : undefined,
     completeRitual: isOwnRituals ? handleCompleteRitual : undefined,

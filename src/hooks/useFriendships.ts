@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,11 +29,20 @@ export function useFriendships() {
   const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
-  const fetchFriendships = useCallback(async () => {
+  const fetchFriendships = useCallback(async (forceRefresh = false) => {
     if (!user) return;
+    
+    // Skip fetching if we've already fetched and no force refresh requested
+    if (hasFetched && !forceRefresh) {
+      console.log('useFriendships: Skipping fetch - already loaded friendships');
+      return;
+    }
 
     try {
+      console.log('useFriendships: Fetching friendships data...');
       setLoading(true);
       
       // Fetch accepted friendships where the current user is the sender
@@ -211,6 +221,7 @@ export function useFriendships() {
       setFriends(friendsList);
       setIncomingRequests(incomingList);
       setSentRequests(sentList);
+      setHasFetched(true);
     } catch (error) {
       console.error('Error fetching friendships:', error);
       toast({
@@ -221,7 +232,7 @@ export function useFriendships() {
     } finally {
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [user, toast, hasFetched]);
 
   const sendRequest = useCallback(async (targetUserId: string) => {
     if (!user) return;
@@ -242,8 +253,26 @@ export function useFriendships() {
         description: "Your friend request has been sent successfully!",
       });
 
-      // Refresh the lists
-      fetchFriendships();
+      // Add to local state instead of refetching everything
+      const { data: receiverData } = await supabase
+        .from('users')
+        .select('full_name, profile_img_url, email')
+        .eq('id', targetUserId)
+        .single();
+      
+      if (receiverData) {
+        const emailUsername = receiverData.email ? receiverData.email.split('@')[0] : null;
+        
+        setSentRequests(prev => [...prev, {
+          id: crypto.randomUUID(), // Temporary ID until we refresh
+          sender_id: user.id,
+          receiver_id: targetUserId,
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          name: receiverData.full_name || emailUsername || 'Unknown',
+          avatar: receiverData.profile_img_url || '/avatars/default.png'
+        }]);
+      }
     } catch (error) {
       console.error('Error sending friend request:', error);
       toast({
@@ -252,7 +281,7 @@ export function useFriendships() {
         variant: "destructive",
       });
     }
-  }, [user, toast, fetchFriendships]);
+  }, [user, toast]);
 
   const acceptRequest = useCallback(async (requestId: string) => {
     try {
@@ -269,8 +298,20 @@ export function useFriendships() {
         description: "You are now friends!",
       });
 
-      // Refresh the lists
-      fetchFriendships();
+      // Update local state directly instead of refetching
+      const acceptedRequest = incomingRequests.find(req => req.id === requestId);
+      if (acceptedRequest) {
+        // Add to friends list
+        setFriends(prev => [...prev, {
+          id: acceptedRequest.sender_id,
+          name: acceptedRequest.name,
+          avatar: acceptedRequest.avatar,
+          habits: []
+        }]);
+        
+        // Remove from incoming requests
+        setIncomingRequests(prev => prev.filter(req => req.id !== requestId));
+      }
     } catch (error) {
       console.error('Error accepting friend request:', error);
       toast({
@@ -279,7 +320,7 @@ export function useFriendships() {
         variant: "destructive",
       });
     }
-  }, [user, toast, fetchFriendships]);
+  }, [user, toast, incomingRequests]);
 
   const rejectRequest = useCallback(async (requestId: string) => {
     try {
@@ -296,8 +337,8 @@ export function useFriendships() {
         description: "The friend request has been rejected.",
       });
 
-      // Refresh the lists
-      fetchFriendships();
+      // Update local state directly
+      setIncomingRequests(prev => prev.filter(req => req.id !== requestId));
     } catch (error) {
       console.error('Error rejecting friend request:', error);
       toast({
@@ -306,48 +347,61 @@ export function useFriendships() {
         variant: "destructive",
       });
     }
-  }, [user, toast, fetchFriendships]);
+  }, [user, toast]);
 
-  // Set up real-time subscription for friendship changes
+  // Set up real-time subscription for friendship changes - only once when component mounts
   useEffect(() => {
     if (!user) return;
 
-    fetchFriendships();
+    // Initial fetch
+    fetchFriendships(false);
 
-    // Subscribe to changes
-    const channel = supabase
-      .channel('friendship-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'friendships',
-          filter: `sender_id=eq.${user.id}`,
-        },
-        () => fetchFriendships()
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'friendships',
-          filter: `receiver_id=eq.${user.id}`,
-        },
-        () => fetchFriendships()
-      )
-      .subscribe();
+    // Set up subscription only once
+    if (!channelRef.current) {
+      console.log('Setting up real-time subscription for friendship changes');
+      
+      const channel = supabase
+        .channel('friendship-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'friendships',
+            filter: `sender_id=eq.${user.id}`,
+          },
+          () => {
+            console.log('Real-time update detected (sender)');
+            fetchFriendships(true);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'friendships',
+            filter: `receiver_id=eq.${user.id}`,
+          },
+          () => {
+            console.log('Real-time update detected (receiver)');
+            fetchFriendships(true);
+          }
+        )
+        .subscribe();
 
+      channelRef.current = channel;
+    }
+
+    // Cleanup subscription on unmount
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        console.log('Cleaning up friendship subscription');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [user, fetchFriendships]);
-
-  // Fetch initial data
-  useEffect(() => {
-    fetchFriendships();
-  }, [fetchFriendships, user]);
 
   return {
     friends,
@@ -357,6 +411,6 @@ export function useFriendships() {
     sendRequest,
     acceptRequest,
     rejectRequest,
-    refresh: fetchFriendships
+    refresh: () => fetchFriendships(true) // Force refresh when explicitly called
   };
 }
