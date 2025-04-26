@@ -76,11 +76,6 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
 
     fetchFriendData();
   }, [friendId, toast]);
-
-  // Log the rituals data whenever it changes
-  useEffect(() => {
-    console.log("Friend garden rituals:", rituals);
-  }, [rituals]);
   
   return (
     <motion.div
@@ -90,24 +85,25 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full transition-colors z-50"
-        aria-label="Close"
-      >
-        <X size={24} />
-      </button>
-
       {/* Friend info header */}
       {friend && (
-        <div className="flex items-center gap-3 p-4 pb-0">
-          <Avatar className="h-10 w-10 bg-[#E3F2E1] border border-[#D5E6C5]">
-            <AvatarImage src={friend.avatar} alt={friend.name} />
-            <AvatarFallback className="text-sm">{friend.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <h2 className="text-xl font-serif text-[#2F7A32]">
-            {friend.name}'s Garden
-          </h2>
+        <div className="flex items-center justify-between gap-3 p-4 pb-0">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10 bg-[#E3F2E1] border border-[#D5E6C5]">
+              <AvatarImage src={friend.avatar} alt={friend.name} />
+              <AvatarFallback className="text-sm">{friend.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <h2 className="text-xl font-serif text-[#2F7A32]">
+              {friend.name}'s Garden
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-ritual-forest hover:bg-ritual-moss/20 p-2 rounded-full transition-colors z-50"
+            aria-label="Close"
+          >
+            <X size={24} />
+          </button>
         </div>
       )}
 
