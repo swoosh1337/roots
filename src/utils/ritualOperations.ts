@@ -1,4 +1,3 @@
-
 import { Ritual } from '@/types/ritual';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -174,6 +173,21 @@ export const chainUserRituals = async (ritualIds: string[], userId: string): Pro
     if (error) throw error;
   } catch (err) {
     console.error('Error chaining rituals:', err);
+    throw err;
+  }
+};
+
+export const deleteUserRitual = async (id: string, userId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('habits')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+  } catch (err) {
+    console.error('Error deleting ritual:', err);
     throw err;
   }
 };

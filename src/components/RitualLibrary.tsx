@@ -14,6 +14,7 @@ interface RitualLibraryProps {
   onAddRitual: () => void;
   onChainRituals: () => void;
   onUpdateRitual?: (id: string, updates: Partial<Ritual>) => void;
+  onDeleteRitual?: (id: string) => void;
 }
 
 const RitualLibrary: React.FC<RitualLibraryProps> = ({
@@ -23,7 +24,8 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
   onSelectRitual,
   onAddRitual,
   onChainRituals,
-  onUpdateRitual
+  onUpdateRitual,
+  onDeleteRitual
 }) => {
   const [editingRitual, setEditingRitual] = useState<Ritual | null>(null);
   
@@ -46,7 +48,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
   }, []);
 
   const handleEditClick = useCallback((e: React.MouseEvent, ritual: Ritual) => {
-    e.stopPropagation(); // Stop the event from bubbling up to the parent card
+    e.stopPropagation();
     setEditingRitual(ritual);
   }, []);
 
@@ -170,6 +172,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
           isOpen={!!editingRitual}
           onClose={handleCloseEditModal}
           onUpdateRitual={handleUpdateRitual}
+          onDeleteRitual={onDeleteRitual}
         />
       )}
     </>

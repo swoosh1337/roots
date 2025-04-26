@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRitualState } from '@/hooks/useRitualState';
@@ -8,7 +7,8 @@ import {
   createUserRitual,
   updateUserRitual,
   completeUserRitual,
-  chainUserRituals
+  chainUserRituals,
+  deleteUserRitual
 } from '@/utils/ritualOperations';
 
 export type { Ritual };
@@ -132,6 +132,23 @@ export const useRituals = (targetUserId?: string) => {
     }
   }, [isOwnRituals, user, updateRitual, showError]);
 
+  const handleDeleteRitual = useCallback(async (id: string) => {
+    if (!isOwnRituals || !user) {
+      showError("Cannot delete ritual: Not own garden or no user");
+      return;
+    }
+
+    try {
+      await deleteUserRitual(id, user.id);
+      // Remove from local state
+      const updatedRituals = rituals.filter(r => r.id !== id);
+      updateRituals(updatedRituals);
+    } catch (err) {
+      showError("There was a problem deleting your ritual.");
+      throw err;
+    }
+  }, [isOwnRituals, user, rituals, updateRituals, showError]);
+
   // Fetch initial data only once when user or targetUserId changes
   useEffect(() => {
     console.log('useRituals effect running, checking if fetch is needed...');
@@ -147,5 +164,6 @@ export const useRituals = (targetUserId?: string) => {
     updateRitual: isOwnRituals ? handleUpdateRitual : undefined,
     completeRitual: isOwnRituals ? handleCompleteRitual : undefined,
     chainRituals: isOwnRituals ? handleChainRituals : undefined,
+    deleteRitual: isOwnRituals ? handleDeleteRitual : undefined,
   };
 };

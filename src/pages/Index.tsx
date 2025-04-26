@@ -23,7 +23,7 @@ const animationProps = {
 };
 
 const Index: React.FC<IndexProps> = ({ userId }) => {
-  const { rituals, loading, createRitual, completeRitual, chainRituals, updateRitual } = useRituals(userId);
+  const { rituals, loading, createRitual, completeRitual, chainRituals, updateRitual, deleteRitual } = useRituals(userId);
   const { displayMode, setDisplayMode, handleViewGarden, handleCloseGarden, handleOpenLibrary, handleCloseLibrary } = useDisplayMode(userId ? 'garden' : 'focus');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showChainModal, setShowChainModal] = useState(false);
@@ -140,6 +140,7 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
         onAddRitual={isOwnGarden ? () => setShowAddModal(true) : undefined}
         onChainRituals={isOwnGarden ? () => setShowChainModal(true) : undefined}
         onUpdateRitual={isOwnGarden ? updateRitual : undefined}
+        onDeleteRitual={isOwnGarden ? deleteRitual : undefined}
       />
 
       {/* Modals */}
