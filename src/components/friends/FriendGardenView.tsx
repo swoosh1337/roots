@@ -130,6 +130,7 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
             rituals={rituals}
             onClose={onClose}
             isViewOnly={true}
+            hideCloseButton={true}
           />
         )}
       </div>

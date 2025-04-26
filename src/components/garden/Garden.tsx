@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../ui/Garden.css';
-import type { Ritual } from '@/types/ritual';
+import { stageToStreakMap, getTreeStage } from '../tree/TreeStages';
+import type { Ritual } from '@/hooks/useRituals';
 import RitualPopup from '../popups/RitualPopup';
 
 // Tree stage images from Supabase
@@ -26,6 +27,7 @@ interface GardenProps {
   rituals: Ritual[];
   onClose: () => void;
   isViewOnly?: boolean;
+  hideCloseButton?: boolean; // Add this new prop
 }
 
 // Helper to determine tree stage based on streak count
@@ -52,7 +54,12 @@ const calculateGridLayout = (count: number) => {
   return { rows, columns, totalPlots: columns * rows };
 };
 
-const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false }) => {
+const Garden: React.FC<GardenProps> = ({ 
+  rituals, 
+  onClose, 
+  isViewOnly = false,
+  hideCloseButton = false // Default to false
+}) => {
   const [trees, setTrees] = useState<TreeData[]>([]);
   const [gridLayout, setGridLayout] = useState({ rows: 3, columns: 4 });
   const [activePopupId, setActivePopupId] = useState<string | null>(null);
@@ -137,22 +144,24 @@ const Garden: React.FC<GardenProps> = ({ rituals, onClose, isViewOnly = false })
   return (
     <motion.div
       className="garden-container fixed inset-0 bg-ritual-paper z-40"
-      initial={{ opacity: 0, x: '100%' }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: '-100%' }}
-      transition={{ type: "spring", stiffness: 100, damping: 20 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
       ref={gardenContainerRef}
       onClick={handleGardenClick}
     >
       <div className="garden-header">
         <h1 className="garden-title">{isViewOnly ? "Friend's Garden" : "My Garden"}</h1>
-        <button
-          onClick={onClose}
-          className="garden-close-button"
-          aria-label="Close garden view"
-        >
-          &times;
-        </button>
+        {!hideCloseButton && (
+          <button
+            onClick={onClose}
+            className="garden-close-button"
+            aria-label="Close garden view"
+          >
+            &times;
+          </button>
+        )}
       </div>
 
       <div

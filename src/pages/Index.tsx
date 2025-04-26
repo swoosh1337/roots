@@ -75,6 +75,17 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     setDisplayMode('focus');
   };
 
+  // Update the handleCloseGarden function to delay the state change
+  const handleCloseGardenWithDelay = () => {
+    // First trigger the exit animation
+    setDisplayMode('exiting-garden');
+    
+    // Then change to focus mode after animation completes
+    setTimeout(() => {
+      handleCloseGarden();
+    }, 500); // Match this with the duration in the Garden component
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -105,6 +116,7 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
         {/* Focus Mode */}
         {currentRitual && displayMode === 'focus' && (
           <FocusMode
+            key="focus-mode"
             onOpenLibrary={handleOpenLibrary}
             currentRitual={currentRitual}
             onCompletedRitual={completeRitual}
@@ -112,10 +124,11 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
         )}
 
         {/* Garden View */}
-        {displayMode === 'garden' && (
+        {(displayMode === 'garden' || displayMode === 'exiting-garden') && (
           <Garden 
+            key="garden-view"
             rituals={rituals} 
-            onClose={handleCloseGarden} 
+            onClose={handleCloseGardenWithDelay} 
             isViewOnly={!isOwnGarden}
           />
         )}
