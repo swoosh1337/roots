@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useRituals } from '@/hooks/useRituals';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
@@ -6,6 +7,7 @@ import RitualLibrary from '@/components/RitualLibrary';
 import Garden from '@/components/garden/Garden';
 import ProfileButton from '@/components/profile/ProfileButton';
 import RitualModals from '@/components/RitualModals';
+import RitualProfilePanel from '@/components/RitualProfilePanel';
 import type { Ritual } from '@/types/ritual';
 import { Menu } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';

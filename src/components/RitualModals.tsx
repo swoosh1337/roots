@@ -3,7 +3,7 @@ import React from 'react';
 import AddRitualModal from './AddRitualModal';
 import ChainRitualsModal from './ChainRitualsModal';
 import AddFriendModal from './AddFriendModal';
-import type { Ritual } from '@/types/ritual';
+import { Ritual } from '@/types/ritual';
 
 interface RitualModalsProps {
   showAddModal: boolean;
