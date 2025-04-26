@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Ritual } from '@/types/ritual';
 import AddRitualModal from './AddRitualModal';
 import ChainRitualsModal from './ChainRitualsModal';
 import AddFriendModal from './AddFriendModal';
+import type { Ritual } from '@/types/ritual';
 
 interface RitualModalsProps {
   showAddModal: boolean;
@@ -14,7 +14,7 @@ interface RitualModalsProps {
   onCloseAddModal: () => void;
   onCloseChainModal: () => void;
   onCloseAddFriendModal: () => void;
-  onAddRitual: (name: string) => void;
+  onAddRitual: (name: string) => Promise<Ritual | undefined>;
   onChainRituals: (ritualIds: string[]) => void;
 }
 
@@ -28,25 +28,28 @@ const RitualModals: React.FC<RitualModalsProps> = ({
   onCloseChainModal,
   onCloseAddFriendModal,
   onAddRitual,
-  onChainRituals
+  onChainRituals,
 }) => {
-  if (!isOwnGarden) return null;
-
   return (
     <>
+      {/* Add Ritual Modal */}
       <AddRitualModal
         isOpen={showAddModal}
         onClose={onCloseAddModal}
         onAddRitual={onAddRitual}
       />
-      
-      <ChainRitualsModal
-        isOpen={showChainModal}
-        onClose={onCloseChainModal}
-        rituals={rituals}
-        onChainRituals={onChainRituals}
-      />
-      
+
+      {/* Chain Rituals Modal */}
+      {isOwnGarden && (
+        <ChainRitualsModal
+          isOpen={showChainModal}
+          onClose={onCloseChainModal}
+          onChainRituals={onChainRituals}
+          rituals={rituals}
+        />
+      )}
+
+      {/* Add Friend Modal */}
       <AddFriendModal
         isOpen={showAddFriendModal}
         onClose={onCloseAddFriendModal}
