@@ -9,6 +9,7 @@ import ProfileButton from '@/components/profile/ProfileButton';
 import RitualModals from '@/components/RitualModals';
 import RitualProfilePanel from '@/components/RitualProfilePanel';
 import type { Ritual } from '@/types/ritual';
+import { Menu } from 'lucide-react';
 
 interface IndexProps {
   userId?: string;
@@ -81,12 +82,23 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     );
   }
 
-  return (
+    return (
     <div className="min-h-screen bg-ritual-paper relative">
+      
       {/* Profile Button */}
       <div className="absolute top-6 right-6 z-10">
         <ProfileButton onClick={() => setProfileOpen(true)} />
       </div>
+
+      {/* ALWAYS show menu button for all users */}
+      <button 
+        onClick={handleOpenLibrary}
+        className="absolute top-6 left-6 w-12 h-12 rounded-full bg-white shadow-md
+                  flex items-center justify-center hover:shadow-lg
+                  transition-all duration-300 z-10"
+      >
+        <Menu className="w-6 h-6 text-ritual-forest" />
+      </button>
 
       {/* Focus Mode */}
       {currentRitual && (
@@ -95,6 +107,14 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
           currentRitual={currentRitual}
           onCompletedRitual={completeRitual}
         />
+      )}
+
+      {/* Empty state message when no rituals */}
+      {!currentRitual && !loading && rituals.length === 0 && isOwnGarden && (
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+          <h2 className="text-2xl font-semibold text-ritual-forest mb-4">Welcome to Your Ritual Garden</h2>
+          <p className="text-ritual-forest/80 mb-6">You don't have any rituals yet. Click the menu button in the top left to add your first ritual.</p>
+        </div>
       )}
 
       {/* Ritual Library */}
