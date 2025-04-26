@@ -1,20 +1,26 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRituals } from '@/hooks/useRituals';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
 import FocusMode from '@/components/FocusMode';
-import RitualLibrary from '@/components/RitualLibrary';
 import Garden from '@/components/garden/Garden';
-import ProfileButton from '@/components/profile/ProfileButton';
+import RitualLibrary from '@/components/RitualLibrary';
 import RitualModals from '@/components/RitualModals';
 import RitualProfilePanel from '@/components/RitualProfilePanel';
-import type { Ritual } from '@/types/ritual';
+import ProfileButton from '@/components/profile/ProfileButton';
+import { motion, AnimatePresence } from 'framer-motion'; // Ensure motion is imported
 import { Menu } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import type { Ritual } from '@/types/ritual'; // Correct import path
 
 interface IndexProps {
   userId?: string;
 }
+
+const animationProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.2 } // Fast transition
+};
 
 const Index: React.FC<IndexProps> = ({ userId }) => {
   const { rituals, loading, createRitual, completeRitual, chainRituals, updateRitual } = useRituals(userId);
@@ -75,17 +81,6 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     setDisplayMode('focus');
   };
 
-  // Update the handleCloseGarden function to delay the state change
-  const handleCloseGardenWithDelay = () => {
-    // First trigger the exit animation
-    setDisplayMode('exiting-garden');
-    
-    // Then change to focus mode after animation completes
-    setTimeout(() => {
-      handleCloseGarden();
-    }, 500); // Match this with the duration in the Garden component
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -115,22 +110,24 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
       <AnimatePresence mode="wait">
         {/* Focus Mode */}
         {currentRitual && displayMode === 'focus' && (
-          <FocusMode
-            key="focus-mode"
-            onOpenLibrary={handleOpenLibrary}
-            currentRitual={currentRitual}
-            onCompletedRitual={completeRitual}
-          />
+          <motion.div key="focus-mode" {...animationProps} className="w-full h-full">
+            <FocusMode
+              onOpenLibrary={handleOpenLibrary}
+              currentRitual={currentRitual}
+              onCompletedRitual={completeRitual}
+            />
+          </motion.div>
         )}
 
         {/* Garden View */}
-        {(displayMode === 'garden' || displayMode === 'exiting-garden') && (
-          <Garden 
-            key="garden-view"
-            rituals={rituals} 
-            onClose={handleCloseGardenWithDelay} 
-            isViewOnly={!isOwnGarden}
-          />
+        {displayMode === 'garden' && (
+          <motion.div key="garden-view" {...animationProps} className="w-full h-full">
+            <Garden 
+              rituals={rituals} 
+              onClose={handleCloseGarden} 
+              isViewOnly={!isOwnGarden}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
 
