@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useRituals } from '@/hooks/useRituals';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
@@ -7,9 +8,9 @@ import RitualLibrary from '@/components/RitualLibrary';
 import RitualModals from '@/components/RitualModals';
 import RitualProfilePanel from '@/components/RitualProfilePanel';
 import ProfileButton from '@/components/profile/ProfileButton';
-import { motion, AnimatePresence } from 'framer-motion'; // Ensure motion is imported
-import { Menu } from 'lucide-react';
-import type { Ritual } from '@/types/ritual'; // Correct import path
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, Leaf } from 'lucide-react';
+import type { Ritual } from '@/types/ritual';
 
 interface IndexProps {
   userId?: string;
@@ -85,6 +86,54 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-ritual-forest">Loading your rituals...</div>
+      </div>
+    );
+  }
+
+  // Add an empty state when there are no rituals
+  if (!loading && rituals.length === 0) {
+    return (
+      <div className="min-h-screen bg-ritual-paper flex flex-col items-center justify-center p-6">
+        <div className="absolute top-6 right-6 z-10">
+          <ProfileButton onClick={() => setProfileOpen(true)} />
+        </div>
+        
+        <Leaf className="w-16 h-16 text-ritual-green mb-4 animate-bounce" />
+        <h1 className="text-2xl font-serif text-ritual-forest mb-4 text-center">Welcome to Your Garden</h1>
+        <p className="text-center text-gray-600 max-w-md mb-8">
+          You don't have any rituals yet. Start by creating your first ritual to build a healthy habit.
+        </p>
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="px-6 py-3 bg-ritual-green text-white rounded-full 
+                  flex items-center justify-center hover:bg-ritual-green/90
+                  transition-colors shadow-md"
+        >
+          <span className="text-xl mr-2">+</span> Create Your First Ritual
+        </button>
+        
+        {/* Include modals so user can add rituals */}
+        <RitualModals
+          showAddModal={showAddModal}
+          showChainModal={false}
+          showAddFriendModal={false}
+          isOwnGarden={true}
+          rituals={[]}
+          onCloseAddModal={() => setShowAddModal(false)}
+          onCloseChainModal={() => {}}
+          onCloseAddFriendModal={() => {}}
+          onAddRitual={handleAddRitual}
+          onChainRituals={() => {}}
+        />
+        
+        {/* Profile Panel */}
+        <RitualProfilePanel
+          profileOpen={profileOpen}
+          rituals={rituals}
+          onCloseProfile={() => setProfileOpen(false)}
+          onViewGarden={handleViewGarden}
+          onAddFriend={() => setShowAddFriendModal(true)}
+        />
       </div>
     );
   }

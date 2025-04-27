@@ -322,7 +322,8 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
       const chainId = habitData.chain_id;
 
       // Count how many habits are in this chain
-      const { count, error: countError } = await supabase
+      // Use the correct count approach to get the total number
+      const { data, count, error: countError } = await supabase
         .from('habits')
         .select('*', { count: 'exact', head: true })
         .eq('chain_id', chainId)
@@ -333,7 +334,8 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
         throw countError;
       }
 
-      const totalInChain = count || 0;
+      // Make sure we're using the count number returned from Supabase
+      const totalInChain = count ?? 0;
       
       // If there are exactly 2 habits in the chain (including the one being deleted)
       // We need to unchain the remaining habit
