@@ -82,6 +82,7 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     setDisplayMode('focus');
   };
 
+  // Show loading spinner while data is loading
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -90,8 +91,10 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     );
   }
 
-  // Add an empty state when there are no rituals
+  // Add an empty state when there are no rituals (rituals.length must be exactly 0)
   if (!loading && rituals.length === 0) {
+    console.log("Showing empty state view - no rituals found");
+    
     return (
       <div className="min-h-screen bg-ritual-paper flex flex-col items-center justify-center p-6">
         <div className="absolute top-6 right-6 z-10">
@@ -138,6 +141,7 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
     );
   }
 
+  // Main interface when rituals are available
   return (
     <div className="min-h-screen bg-ritual-paper relative">
       

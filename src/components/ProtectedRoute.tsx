@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -24,7 +25,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  // If no user is found after loading completes, show retry UI
+  // If no user is found after loading completes, redirect to auth page
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-ritual-paper">

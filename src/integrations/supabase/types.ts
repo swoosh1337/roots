@@ -67,15 +67,7 @@ export type Database = {
           streak_count?: number
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "habits_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       users: {
         Row: {

@@ -47,6 +47,7 @@ export const useRituals = (targetUserId?: string) => {
       updateRituals([]);
       setLoading(false);
       showError(null);
+      setHasFetched(true); // Mark as fetched even if there's no user ID
       return;
     }
 
@@ -61,6 +62,8 @@ export const useRituals = (targetUserId?: string) => {
     } catch (err) {
       console.error('Error fetching rituals:', err);
       showError(err instanceof Error ? err.message : 'Failed to fetch rituals');
+      // Still mark as fetched even if there was an error
+      setHasFetched(true);
     } finally {
       setLoading(false);
     }
