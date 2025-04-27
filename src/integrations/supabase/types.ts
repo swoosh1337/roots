@@ -35,6 +35,7 @@ export type Database = {
       }
       habits: {
         Row: {
+          chain_id: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -45,6 +46,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          chain_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -55,6 +57,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          chain_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean

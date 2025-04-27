@@ -1,5 +1,6 @@
-import { Ritual } from '@/types/ritual';
+import { Ritual, RitualStatus } from '@/types/ritual';
 import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 // Fetch rituals from Supabase
 export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
@@ -8,7 +9,7 @@ export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
   try {
     const { data, error } = await supabase
       .from('habits')
-      .select('*')
+      .select('*') // Select all columns explicitly includes chain_id if it exists
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -24,8 +25,8 @@ export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
       return [];
     }
 
-    return data.map((habit) => {
-      let status: 'active' | 'paused' | 'chained';
+    return data.map((habit: any) => { // Use any temporarily if types mismatch
+      let status: RitualStatus;
       if (habit.is_chained) {
         status = 'chained';
       } else if (habit.is_active) {
@@ -36,10 +37,15 @@ export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
 
       return {
         id: habit.id,
+        user_id: habit.user_id,
         name: habit.name,
+        created_at: habit.created_at,
         streak_count: habit.streak_count ?? 0,
         status: status,
-        last_completed: habit.last_completed
+        last_completed: habit.last_completed,
+        is_active: habit.is_active,
+        is_chained: habit.is_chained,
+        chain_id: habit.chain_id ?? null // Access chain_id
       };
     });
   } catch (err) {
@@ -81,29 +87,81 @@ export const createUserRitual = async (name: string, userId: string): Promise<Ri
   }
 };
 
+const mapStatusToDb = (status: RitualStatus): { is_active: boolean; is_chained: boolean } => {
+  return {
+    is_active: status === 'active',
+    is_chained: status === 'chained',
+  };
+};
+
 export const updateUserRitual = async (
   id: string,
   updates: Partial<Ritual>,
   userId: string
 ): Promise<void> => {
   try {
-    const dbUpdates: Record<string, unknown> = {};
+    let chainToBreak: string | null = null;
 
-    if (updates.name) dbUpdates.name = updates.name;
-    if (updates.streak_count !== undefined) dbUpdates.streak_count = updates.streak_count;
+    if (updates.status && updates.status !== 'chained') {
+      // Fetch the current state to check old status and chain_id
+      const { data: currentHabitData, error: fetchError } = await supabase
+        .from('habits')
+        .select('is_chained, chain_id')
+        .eq('id', id)
+        .eq('user_id', userId)
+        .single();
+        
+      // Explicitly cast if necessary, or ideally rely on generated types
+      const currentHabit = currentHabitData as { is_chained: boolean; chain_id: string | null } | null;
 
-    if (updates.status !== undefined) {
-      dbUpdates.is_active = updates.status === 'active';
-      dbUpdates.is_chained = updates.status === 'chained';
+      if (fetchError) {
+        console.error('Error fetching current habit state before update:', fetchError);
+        throw fetchError;
+      }
+
+      if (currentHabit && currentHabit.is_chained && currentHabit.chain_id) {
+        // If it was chained and had a chain_id, we need to break the chain
+        chainToBreak = currentHabit.chain_id;
+      }
     }
 
-    const { error } = await supabase
+    if (chainToBreak) {
+      console.log(`Breaking chain for chain_id: ${chainToBreak}`);
+      const { error: breakChainError } = await supabase
+        .from('habits')
+        .update({ 
+            is_chained: false, 
+            is_active: true, 
+            chain_id: null 
+        })
+        .eq('chain_id', chainToBreak)
+        .eq('user_id', userId);
+
+      if (breakChainError) {
+        console.error('Error breaking chain:', breakChainError);
+        throw breakChainError; 
+      }
+    }
+
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.status !== undefined) {
+      const statusBooleans = mapStatusToDb(updates.status);
+      dbUpdates.is_active = statusBooleans.is_active;
+      dbUpdates.is_chained = statusBooleans.is_chained;
+      if (updates.status !== 'chained') {
+        dbUpdates.chain_id = null;
+      }
+    }
+
+    const { error: updateError } = await supabase
       .from('habits')
       .update(dbUpdates)
       .eq('id', id)
       .eq('user_id', userId);
 
-    if (error) throw error;
+    if (updateError) throw updateError;
+
   } catch (err) {
     console.error('Error updating ritual:', err);
     throw err;
@@ -120,7 +178,6 @@ export const completeUserRitual = async (
     const todayLocalStr = today.toLocaleDateString('en-CA');
     const fullTimestamp = today.toISOString();
 
-    // First check if last_completed_timestamp column exists
     const { data: columnsData, error: columnsError } = await supabase
       .from('habits')
       .select('*')
@@ -164,9 +221,16 @@ export const completeUserRitual = async (
 
 export const chainUserRituals = async (ritualIds: string[], userId: string): Promise<void> => {
   try {
+    const newChainId = uuidv4(); 
+    console.log(`Chaining rituals ${ritualIds.join(', ')} with chain_id: ${newChainId}`);
+
     const { error } = await supabase
       .from('habits')
-      .update({ is_chained: true })
+      .update({ 
+          is_chained: true, 
+          is_active: false, 
+          chain_id: newChainId 
+       })
       .in('id', ritualIds)
       .eq('user_id', userId);
 

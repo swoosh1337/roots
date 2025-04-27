@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { X, Edit, Link, CheckCircle, Pause } from 'lucide-react';
@@ -29,10 +28,13 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
 }) => {
   const [editingRitual, setEditingRitual] = useState<Ritual | null>(null);
   
+  console.log('RitualLibrary - Received rituals:', rituals); // Log received rituals
+
   // Memoize this function to avoid recreating on each render
   const canChainRituals = useCallback(() => {
     // Count rituals that are not already chained
     const availableRituals = rituals.filter(ritual => ritual.status !== 'chained');
+    console.log('RitualLibrary - Available for chaining:', availableRituals);
     return availableRituals.length >= 2;
   }, [rituals]);
 

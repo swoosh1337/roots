@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Trash2 } from 'lucide-react';
@@ -70,7 +69,6 @@ const EditRitualModal: React.FC<EditRitualModalProps> = ({
       toast({
         title: "Ritual deleted",
         description: "Your ritual has been removed.",
-        className: "bg-ritual-peach/20 border-ritual-peach text-ritual-forest",
       });
     }
   };
@@ -161,18 +159,18 @@ const EditRitualModal: React.FC<EditRitualModalProps> = ({
                 </div>
                 
                 {status === 'chained' && (
-                  <div className="flex items-center">
+                  <div className="flex items-center opacity-70 pointer-events-none">
                     <input
                       type="radio"
                       id="status-chained"
                       name="status"
                       value="chained"
-                      checked={status === 'chained'}
-                      onChange={() => setStatus('chained')}
-                      className="mr-2 h-4 w-4 text-ritual-green focus:ring-ritual-green"
+                      checked={true}
+                      readOnly
+                      className="mr-2 h-4 w-4 text-gray-400 focus:ring-gray-400"
                     />
-                    <label htmlFor="status-chained" className="text-sm text-gray-700">
-                      Chained (part of a ritual chain)
+                    <label htmlFor="status-chained" className="text-sm text-gray-500">
+                      Chained (Managed via Chain Rituals button)
                     </label>
                   </div>
                 )}
@@ -191,8 +189,8 @@ const EditRitualModal: React.FC<EditRitualModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowDeleteDialog(true)}
-                  className="w-full px-4 py-3 rounded-full border border-ritual-peach text-ritual-peach
-                           hover:bg-ritual-peach/10 transition-colors flex items-center justify-center gap-2"
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full px-4 py-3 rounded-full border border-ritual-peach text-ritual-peach
+                           transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete Ritual
@@ -214,12 +212,12 @@ const EditRitualModal: React.FC<EditRitualModalProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-ritual-moss text-ritual-forest hover:bg-ritual-moss/10">
+            <AlertDialogCancel className="bg-ritual-moss text-ritual-forest hover:bg-ritual-moss/10">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-ritual-peach text-white hover:bg-ritual-peach/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
