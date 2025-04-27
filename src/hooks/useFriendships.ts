@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -235,10 +234,46 @@ export function useFriendships() {
   }, [user, toast, hasFetched]);
 
   const sendRequest = useCallback(async (targetUserId: string) => {
-    if (!user) return;
-    
+    if (!user) {
+      toast({ title: "Error", description: "You must be logged in.", variant: "destructive" });
+      return; // Early return if no user
+    }
+
+    // 1. Prevent adding self
+    if (user && targetUserId === user.id) {
+      throw new Error("Cannot add yourself"); 
+    }
+
     try {
-      const { error } = await supabase
+      // 2. Check for existing friendship or pending request
+      const { data: existingFriendship, error: checkError } = await supabase
+        .from('friendships')
+        .select('status, sender_id') // Select sender_id to check who sent pending request
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${targetUserId}),and(sender_id.eq.${targetUserId},receiver_id.eq.${user.id})`)
+        .maybeSingle(); // Expect 0 or 1 result
+
+      if (checkError) {
+        console.error('Error checking existing friendship:', checkError);
+        throw new Error("Database error checking friendship status."); // Throw generic DB error
+      }
+
+      // 3. Handle existing relationship
+      if (existingFriendship) {
+        if (existingFriendship.status === 'accepted') {
+          throw new Error("Already friends"); // Specific error for catch block
+        } else if (existingFriendship.status === 'pending') {
+           // Check who sent the pending request
+           if (existingFriendship.sender_id === user.id) {
+             throw new Error("Request pending (sent)"); // You already sent one
+           } else {
+             throw new Error("Request pending (received)"); // They sent you one
+           }
+        }
+         // Potentially handle 'rejected' status if needed, currently ignored
+      }
+
+      // 4. No existing relationship, proceed with insert
+      const { error: insertError } = await supabase
         .from('friendships')
         .insert({
           sender_id: user.id,
@@ -246,14 +281,26 @@ export function useFriendships() {
           status: 'pending'
         });
 
-      if (error) throw error;
+      if (insertError) {
+         console.error('Error inserting friend request:', insertError);
+         // Check for specific DB errors if necessary (e.g., constraints like unique index)
+         // Example: Check for unique violation code (e.g., '23505' in PostgreSQL)
+         if (insertError.code === '23505') {
+             // This might happen in a race condition if the initial check passed but another request inserted meanwhile
+             // Or if the DB constraint logic is slightly different from the initial check
+             throw new Error("Request pending or already friends"); // More generic for race condition
+         }
+         throw new Error("Failed to send friend request."); // More specific than generic catch
+      }
 
       toast({
         title: "Friend Request Sent",
         description: "Your friend request has been sent successfully!",
+         variant: "default", // Use default or success variant
       });
 
-      // Add to local state instead of refetching everything
+      // OPTIONAL: Update local state optimistically (kept from previous version)
+      // This avoids waiting for the real-time update or a manual refresh
       const { data: receiverData } = await supabase
         .from('users')
         .select('full_name, profile_img_url, email')
@@ -263,27 +310,58 @@ export function useFriendships() {
       if (receiverData) {
         const emailUsername = receiverData.email ? receiverData.email.split('@')[0] : null;
         
-        setSentRequests(prev => [...prev, {
-          id: crypto.randomUUID(), // Temporary ID until we refresh
+        // Create a new request object mirroring the FriendRequest interface
+        const newSentRequest: FriendRequest = {
+          // Generate a temporary client-side ID. The real-time update should replace this.
+          id: `temp_${crypto.randomUUID()}`,
           sender_id: user.id,
           receiver_id: targetUserId,
           status: 'pending',
           created_at: new Date().toISOString(),
           name: receiverData.full_name || emailUsername || 'Unknown',
           avatar: receiverData.profile_img_url || '/avatars/default.png'
-        }]);
+        };
+
+        setSentRequests(prev => [...prev, newSentRequest]);
       }
-    } catch (error) {
-      console.error('Error sending friend request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send friend request. Please try again.",
-        variant: "destructive",
-      });
+
+    } catch (error: unknown) {
+      console.error('Error in sendRequest hook:', error);
+      
+      let shouldShowToast = true; // Flag to control generic toast
+
+      // Use specific messages from thrown errors
+      if (error instanceof Error) {
+         if (error.message === "Already friends") {
+           shouldShowToast = false; // Handled inline by modal
+         } else if (error.message === "Request pending (sent)") {
+           shouldShowToast = false; // Handled inline by modal
+         } else if (error.message === "Request pending (received)") {
+           shouldShowToast = false; // Handled inline by modal
+         } else if (error.message === "Cannot add yourself") {
+           shouldShowToast = false; // Handled inline by modal
+         } else if (error.message === "Request pending or already friends") { 
+           shouldShowToast = false; // Treat race condition as a specific error handled inline
+         }
+      }
+
+      // Show toast only for generic/unhandled errors
+      if (shouldShowToast) {
+        toast({
+          title: "Error",
+          description: (error instanceof Error) ? error.message : "Failed to send friend request. Please try again.",
+          variant: "destructive",
+        });
+      }
+
+      // Re-throw the error so AddFriendModal's catch block can potentially react
+      // (though AddFriendModal currently doesn't differentiate based on these errors)
+      throw error; 
     }
   }, [user, toast]);
 
   const acceptRequest = useCallback(async (requestId: string) => {
+    if (!user) return; // Add check for user
     try {
       const { error } = await supabase
         .from('friendships')
