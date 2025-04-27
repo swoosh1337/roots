@@ -178,39 +178,99 @@ export const completeUserRitual = async (
     const todayLocalStr = today.toLocaleDateString('en-CA');
     const fullTimestamp = today.toISOString();
 
-    const { data: columnsData, error: columnsError } = await supabase
+    // First, get the habit we're completing to check if it's chained
+    const { data: habitData, error: habitError } = await supabase
       .from('habits')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (columnsError) {
-      console.error('Error fetching habit before update:', columnsError);
-      throw columnsError;
+    if (habitError) {
+      console.error('Error fetching habit before update:', habitError);
+      throw habitError;
     }
 
+    // Set completion for this habit
     const updateObject: Record<string, unknown> = {
-      streak_count: currentStreak + 1,
       last_completed: todayLocalStr
     };
 
-    if (columnsData && 'last_completed_timestamp' in columnsData) {
+    if (habitData && 'last_completed_timestamp' in habitData) {
       updateObject['last_completed_timestamp'] = fullTimestamp;
     }
 
-    const { error } = await supabase
+    // Update this individual habit's completion status
+    const { error: updateError } = await supabase
       .from('habits')
       .update(updateObject)
       .eq('id', id)
       .eq('user_id', userId);
 
-    if (error) {
-      console.error('Error updating habit:', error);
-      throw error;
+    if (updateError) {
+      console.error('Error updating habit completion:', updateError);
+      throw updateError;
     }
 
+    // Now handle streak logic
+    let newStreak = currentStreak + 1; // Default streak increase
+    let shouldUpdateStreak = true;
+
+    // If this habit is part of a chain, check if all habits in the chain are completed today
+    if (habitData && habitData.chain_id) {
+      // Find all habits in this chain
+      const { data: chainedHabits, error: chainError } = await supabase
+        .from('habits')
+        .select('id, last_completed')
+        .eq('chain_id', habitData.chain_id)
+        .eq('user_id', userId);
+
+      if (chainError) {
+        console.error('Error fetching chained habits:', chainError);
+        throw chainError;
+      }
+
+      // Check if all habits in the chain are completed today
+      const allCompletedToday = chainedHabits.every(
+        habit => habit.last_completed === todayLocalStr
+      );
+
+      if (!allCompletedToday) {
+        // Not all habits in chain completed today, don't update streak yet
+        shouldUpdateStreak = false;
+        console.log('Chain not fully completed today - not updating streaks');
+      } else {
+        // All habits in chain completed today, update all their streaks
+        console.log('All habits in chain completed today - updating all streaks');
+        
+        // Batch update all streaks in this chain
+        const { error: chainUpdateError } = await supabase
+          .from('habits')
+          .update({ streak_count: supabase.rpc('increment', { x: 1 }) })
+          .eq('chain_id', habitData.chain_id)
+          .eq('user_id', userId);
+
+        if (chainUpdateError) {
+          console.error('Error updating chained habits streaks:', chainUpdateError);
+          throw chainUpdateError;
+        }
+      }
+    } else if (shouldUpdateStreak) {
+      // This is a standalone habit, update its streak
+      const { error: streakError } = await supabase
+        .from('habits')
+        .update({ streak_count: newStreak })
+        .eq('id', id)
+        .eq('user_id', userId);
+
+      if (streakError) {
+        console.error('Error updating habit streak:', streakError);
+        throw streakError;
+      }
+    }
+
+    // If we're in a chain and not all habits are completed, don't increase the streak in the UI
     return {
-      streak_count: currentStreak + 1,
+      streak_count: shouldUpdateStreak ? newStreak : currentStreak,
       last_completed: todayLocalStr
     };
   } catch (err) {
@@ -243,6 +303,79 @@ export const chainUserRituals = async (ritualIds: string[], userId: string): Pro
 
 export const deleteUserRitual = async (id: string, userId: string): Promise<void> => {
   try {
+    // First, check if this ritual is part of a chain
+    const { data: habitData, error: fetchError } = await supabase
+      .from('habits')
+      .select('chain_id')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching habit before deletion:', fetchError);
+      throw fetchError;
+    }
+
+    // If this ritual is part of a chain, we need special handling
+    if (habitData && habitData.chain_id) {
+      const chainId = habitData.chain_id;
+
+      // Count how many habits are in this chain
+      const { data: chainCount, error: countError } = await supabase
+        .from('habits')
+        .select('id', { count: 'exact' })
+        .eq('chain_id', chainId)
+        .eq('user_id', userId);
+
+      if (countError) {
+        console.error('Error counting habits in chain:', countError);
+        throw countError;
+      }
+
+      const totalInChain = chainCount?.length || 0;
+      
+      // If there are exactly 2 habits in the chain (including the one being deleted)
+      // We need to unchain the remaining habit
+      if (totalInChain === 2) {
+        console.log('Chain will have only 1 habit after deletion - breaking chain');
+        
+        // Get the ID of the other habit in the chain
+        const { data: otherHabit, error: otherError } = await supabase
+          .from('habits')
+          .select('id')
+          .eq('chain_id', chainId)
+          .neq('id', id)
+          .eq('user_id', userId)
+          .single();
+          
+        if (otherError) {
+          console.error('Error finding other habit in chain:', otherError);
+          throw otherError;
+        }
+
+        if (otherHabit) {
+          // Unchain the other habit
+          const { error: unchainError } = await supabase
+            .from('habits')
+            .update({
+              is_chained: false,
+              is_active: true,
+              chain_id: null
+            })
+            .eq('id', otherHabit.id)
+            .eq('user_id', userId);
+
+          if (unchainError) {
+            console.error('Error unchaining remaining habit:', unchainError);
+            throw unchainError;
+          }
+        }
+      }
+      // For chains with 3 habits, we keep the chain for the remaining 2 habits
+      // No action needed as we're just deleting the one habit
+    }
+
+    // Now delete the habit
     const { error } = await supabase
       .from('habits')
       .delete()

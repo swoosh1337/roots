@@ -1,13 +1,8 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, Link, ArrowRight } from 'lucide-react';
-
-interface Ritual {
-  id: string;
-  name: string;
-  streak: number;
-  status: 'active' | 'paused' | 'chained';
-}
+import type { Ritual } from '@/types/ritual';
 
 interface ChainRitualsModalProps {
   isOpen: boolean;
@@ -100,7 +95,7 @@ const ChainRitualsModal: React.FC<ChainRitualsModalProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{ritual.name}</span>
-                    <span className="text-sm text-gray-500">Day {ritual.streak}</span>
+                    <span className="text-sm text-gray-500">Day {ritual.streak_count}</span>
                   </div>
                 </div>
               ))}

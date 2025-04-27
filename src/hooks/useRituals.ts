@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRitualState } from '@/hooks/useRitualState';
@@ -106,8 +107,30 @@ export const useRituals = (targetUserId?: string) => {
       const ritual = rituals.find(r => r.id === id);
       if (!ritual) return;
 
+      // Call the updated complete handler which handles chain logic
       const update = await completeUserRitual(id, user.id, ritual.streak_count);
       updateRitual(id, update);
+      
+      // If this ritual is part of a chain and all rituals in the chain are completed,
+      // we need to refresh all rituals in the chain to update their streaks
+      if (ritual.chain_id) {
+        const chainId = ritual.chain_id;
+        // Check if this update changed the streak (meaning all chain rituals were completed)
+        if (update.streak_count > ritual.streak_count) {
+          // Update all rituals in the chain
+          rituals
+            .filter(r => r.chain_id === chainId)
+            .forEach(r => {
+              if (r.id !== id) { // Skip the one we already updated
+                updateRitual(r.id, { 
+                  streak_count: r.streak_count + 1,
+                  last_completed: update.last_completed 
+                });
+              }
+            });
+        }
+      }
+      
       return update;
     } catch (err) {
       showError("There was a problem completing your ritual.");
@@ -123,8 +146,13 @@ export const useRituals = (targetUserId?: string) => {
 
     try {
       await chainUserRituals(ritualIds, user.id);
+      // Update local state for all rituals in the chain
+      const newChainId = ritualIds[0]; // Use first ritual ID as reference
       ritualIds.forEach(id => {
-        updateRitual(id, { status: 'chained' });
+        updateRitual(id, { 
+          status: 'chained', 
+          chain_id: newChainId 
+        });
       });
     } catch (err) {
       showError("There was a problem linking your rituals.");
@@ -139,7 +167,29 @@ export const useRituals = (targetUserId?: string) => {
     }
 
     try {
+      // Find if this ritual is part of a chain before deleting
+      const ritual = rituals.find(r => r.id === id);
+      if (!ritual) return;
+      
+      const chainId = ritual.chain_id;
+      const chainsInRituals = chainId ? rituals.filter(r => r.chain_id === chainId) : [];
+      const chainSize = chainsInRituals.length;
+      
+      // Now delete the ritual
       await deleteUserRitual(id, user.id);
+      
+      // Handle remaining chain members in the UI
+      if (chainId && chainSize === 2) {
+        // If this was a chain of 2, we need to unchain the other ritual
+        const otherRitual = chainsInRituals.find(r => r.id !== id);
+        if (otherRitual) {
+          updateRitual(otherRitual.id, { 
+            status: 'active',
+            chain_id: null 
+          });
+        }
+      }
+      
       // Remove from local state
       const updatedRituals = rituals.filter(r => r.id !== id);
       updateRituals(updatedRituals);
@@ -147,7 +197,7 @@ export const useRituals = (targetUserId?: string) => {
       showError("There was a problem deleting your ritual.");
       throw err;
     }
-  }, [isOwnRituals, user, rituals, updateRituals, showError]);
+  }, [isOwnRituals, user, rituals, updateRituals, updateRitual, showError]);
 
   // Fetch initial data only once when user or targetUserId changes
   useEffect(() => {
