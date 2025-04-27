@@ -1,7 +1,7 @@
-
 import { Ritual, RitualStatus } from '@/types/ritual';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import { startOfWeek, endOfWeek, subWeeks, eachDayOfInterval, format, isSameDay, parseISO } from 'date-fns';
 
 // Fetch rituals from Supabase
 export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
@@ -390,4 +390,76 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
     console.error('Error deleting ritual:', err);
     throw err;
   }
+};
+
+// Function to get user's activity for the current and previous week
+export const getUserRecentActivity = async (userId: string): Promise<{ currentWeekActivity: boolean[], lastWeekActivity: boolean[] }> => {
+  const today = new Date();
+  // Get Sunday of the current week and Saturday of the current week
+  const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 0 }); // Sunday
+  const endOfCurrentWeek = endOfWeek(today, { weekStartsOn: 0 });   // Saturday
+
+  // Get Sunday of the previous week
+  const startOfLastWeek = startOfWeek(subWeeks(today, 1), { weekStartsOn: 0 }); // Sunday of last week
+
+  // Format dates for Supabase query (inclusive range for 14 days)
+  const startDateStr = format(startOfLastWeek, 'yyyy-MM-dd');
+  const endDateStr = format(endOfCurrentWeek, 'yyyy-MM-dd');
+
+  console.log(`Fetching activity for user ${userId} from ${startDateStr} to ${endDateStr}`);
+
+  // Query habits completed within the last two weeks
+  const { data: completedHabits, error } = await supabase
+    .from('habits')
+    .select('last_completed')
+    .eq('user_id', userId)
+    .gte('last_completed', startDateStr)
+    .lte('last_completed', endDateStr);
+
+  if (error) {
+    console.error('Error fetching recent habit completions:', error);
+    // Return empty arrays on error
+    return { currentWeekActivity: Array(7).fill(false), lastWeekActivity: Array(7).fill(false) };
+  }
+
+  // Get unique completion dates (YYYY-MM-DD strings)
+  const completionDates = new Set(
+    completedHabits
+      .map(h => h.last_completed)
+      .filter((date): date is string => date !== null) // Filter out nulls and ensure type is string
+  );
+
+  console.log('Unique completion dates found:', Array.from(completionDates));
+
+  // Generate date ranges for both weeks
+  const currentWeekInterval = { start: startOfCurrentWeek, end: endOfCurrentWeek };
+  const lastWeekInterval = { start: startOfLastWeek, end: endOfWeek(startOfLastWeek, { weekStartsOn: 0 }) };
+
+  const currentWeekDays = eachDayOfInterval(currentWeekInterval);
+  const lastWeekDays = eachDayOfInterval(lastWeekInterval);
+
+  // Map completion dates to boolean arrays for each week
+  const mapDatesToActivity = (days: Date[], datesSet: Set<string>): boolean[] => {
+    return days.map(day => {
+      const dayStr = format(day, 'yyyy-MM-dd');
+      // Check if ANY habit was completed on this day
+      return datesSet.has(dayStr);
+    });
+  };
+
+  const currentWeekActivity = mapDatesToActivity(currentWeekDays, completionDates);
+  const lastWeekActivity = mapDatesToActivity(lastWeekDays, completionDates);
+
+  console.log('Processed Current Week Activity:', currentWeekActivity);
+  console.log('Processed Last Week Activity:', lastWeekActivity);
+
+
+  // Ensure arrays always have 7 elements (shouldn't be necessary with date-fns but safe)
+  while (currentWeekActivity.length < 7) currentWeekActivity.push(false);
+  while (lastWeekActivity.length < 7) lastWeekActivity.push(false);
+
+  return {
+      currentWeekActivity: currentWeekActivity.slice(0, 7),
+      lastWeekActivity: lastWeekActivity.slice(0, 7)
+  };
 };

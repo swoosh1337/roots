@@ -10,6 +10,7 @@ import UserProfileHeader from './UserProfileHeader';
 import ProfileActions from './ProfileActions';
 import FriendsPanel from '../friends/FriendsPanel';
 import FriendGardenView from '../friends/FriendGardenView';
+import { getUserRecentActivity } from '@/utils/ritualOperations';
 
 interface ProfilePanelProps {
   isOpen: boolean;
@@ -104,6 +105,41 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
     updateProfile({ full_name: newName });
   };
 
+  // Add state for activity data
+  const [currentWeekActivity, setCurrentWeekActivity] = useState<boolean[]>(Array(7).fill(false));
+  const [lastWeekActivity, setLastWeekActivity] = useState<boolean[]>(Array(7).fill(false));
+  const [loadingActivity, setLoadingActivity] = useState(false);
+
+  // Add useEffect to fetch activity data
+  useEffect(() => {
+    const fetchActivity = async () => {
+      if (isOpen && user) {
+        setLoadingActivity(true);
+        console.log("ProfilePanel open, fetching activity...");
+        try {
+          const activityData = await getUserRecentActivity(user.id);
+          setCurrentWeekActivity(activityData.currentWeekActivity);
+          setLastWeekActivity(activityData.lastWeekActivity);
+          console.log("Activity data fetched:", activityData);
+        } catch (err) {
+          console.error("Failed to fetch recent activity:", err);
+          // Keep default false arrays on error
+          setCurrentWeekActivity(Array(7).fill(false));
+          setLastWeekActivity(Array(7).fill(false));
+        } finally {
+          setLoadingActivity(false);
+        }
+      } else {
+         console.log("ProfilePanel closed or no user, skipping activity fetch.");
+         // Reset on close? Optional
+         // setCurrentWeekActivity(Array(7).fill(false));
+         // setLastWeekActivity(Array(7).fill(false));
+      }
+    };
+
+    fetchActivity();
+  }, [isOpen, user]); // Re-run if panel opens/closes or user changes
+
   const sidebarVariants = {
     open: {
       x: 0,
@@ -167,7 +203,13 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
 
           <div className="w-full mt-2">
             <h3 className="text-[#6F8D6A] text-sm mb-3">Recent Activity</h3>
-            <StreakCalendar />
+            {/* Pass the state data as props */}
+            <StreakCalendar
+              currentWeekActivity={currentWeekActivity}
+              lastWeekActivity={lastWeekActivity}
+            />
+            {/* Optionally show a loading indicator */}
+            {loadingActivity && <p className="text-xs text-center mt-2 text-ritual-gray">Loading activity...</p>}
           </div>
 
           <Separator className="my-2 bg-ritual-moss/30" />

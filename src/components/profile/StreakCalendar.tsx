@@ -1,19 +1,25 @@
-
 import React from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-// Mock data - in a real app, this would come from props or API
-const thisWeek = [true, true, false, true, false, true, true];
-const lastWeek = [true, true, true, false, false, false, false];
+interface StreakCalendarProps {
+  currentWeekActivity: boolean[]; 
+  lastWeekActivity: boolean[];    
+}
 
-const StreakCalendar: React.FC = () => {
+const StreakCalendar: React.FC<StreakCalendarProps> = ({
+  currentWeekActivity,
+  lastWeekActivity
+}) => {
+  const displayCurrentWeek = currentWeekActivity.length === 7 ? currentWeekActivity : Array(7).fill(false);
+  const displayLastWeek = lastWeekActivity.length === 7 ? lastWeekActivity : Array(7).fill(false);
+
   return (
     <div className="w-full">
       <div className="flex justify-between mb-2">
         {DAYS.map((day, index) => (
-          <div key={`day-${index}`} className="text-center text-xs text-[#6F8D6A] font-medium">
+          <div key={`day-${index}`} className="text-center text-xs text-[#6F8D6A] font-medium w-6">
             {day}
           </div>
         ))}
@@ -21,7 +27,7 @@ const StreakCalendar: React.FC = () => {
       
       {/* Current Week */}
       <div className="flex justify-between mb-4">
-        {thisWeek.map((completed, index) => (
+        {displayCurrentWeek.map((completed, index) => (
           <TooltipProvider key={`this-week-${index}`}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -41,7 +47,7 @@ const StreakCalendar: React.FC = () => {
 
       {/* Last Week */}
       <div className="flex justify-between">
-        {lastWeek.map((completed, index) => (
+        {displayLastWeek.map((completed, index) => (
           <TooltipProvider key={`last-week-${index}`}>
             <Tooltip>
               <TooltipTrigger asChild>
