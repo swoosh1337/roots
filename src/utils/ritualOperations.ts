@@ -373,9 +373,9 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
       }
       // For chains with 3 habits, we keep the chain for the remaining 2 habits
       // No action needed as we're just deleting the one habit
+      // Now delete the habit
     }
 
-    // Now delete the habit
     const { error } = await supabase
       .from('habits')
       .delete()
