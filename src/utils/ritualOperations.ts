@@ -1,3 +1,4 @@
+
 import { Ritual, RitualStatus } from '@/types/ritual';
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
@@ -321,9 +322,9 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
       const chainId = habitData.chain_id;
 
       // Count how many habits are in this chain
-      const { data: chainCount, error: countError } = await supabase
+      const { count, error: countError } = await supabase
         .from('habits')
-        .select('id', { count: 'exact' })
+        .select('*', { count: 'exact', head: true })
         .eq('chain_id', chainId)
         .eq('user_id', userId);
 
@@ -332,7 +333,7 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
         throw countError;
       }
 
-      const totalInChain = chainCount?.length || 0;
+      const totalInChain = count || 0;
       
       // If there are exactly 2 habits in the chain (including the one being deleted)
       // We need to unchain the remaining habit
@@ -373,9 +374,9 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
       }
       // For chains with 3 habits, we keep the chain for the remaining 2 habits
       // No action needed as we're just deleting the one habit
-      // Now delete the habit
     }
 
+    // Now delete the habit
     const { error } = await supabase
       .from('habits')
       .delete()
