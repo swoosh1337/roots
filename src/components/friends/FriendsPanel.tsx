@@ -50,15 +50,17 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
         
         {/* Add Friend button */}
         <div className="px-8 py-3">
-          <Button 
+          <button 
             onClick={() => {
               onClose();
               onAddFriend();
             }}
-            className="w-full bg-[#4CAF50] hover:bg-[#3e9142] text-white rounded-full py-5 shadow-sm transition-colors"
+            className="w-full py-3 px-4 bg-ritual-green text-white rounded-full
+                      flex items-center justify-center gap-2 hover:bg-ritual-green/90
+                      transition-colors"
           >
-            Add Friend
-          </Button>
+            <span className="text-xl">+</span> Add Friend
+          </button>
         </div>
         
         {/* Friends list section */}
