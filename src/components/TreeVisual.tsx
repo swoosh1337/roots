@@ -59,8 +59,8 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
         />
         
         <AnimatePresence>
-          <WaterDrop isAnimating={isAnimating} />
-          <Ripple isAnimating={isAnimating} />
+          <WaterDrop key="water-drop" isAnimating={isAnimating} />
+          <Ripple key="ripple" isAnimating={isAnimating} />
         </AnimatePresence>
       </motion.div>
       

@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRitualState } from '@/hooks/useRitualState';
@@ -34,40 +33,37 @@ export const useRituals = (targetUserId?: string) => {
   // Memoize the fetchRituals function to prevent recreations
   const fetchRituals = useCallback(async (forceRefresh = false) => {
     const userIdToFetch = targetUserId || user?.id;
-    console.log(`fetchRituals called with userIdToFetch: ${userIdToFetch}, forceRefresh: ${forceRefresh}`);
+    // console.log(`Executing fetchRituals: forceRefresh=${forceRefresh}, userId=${userIdToFetch}, hasFetched=${hasFetched}`); // Keep commented out for future debug if needed
 
-    // If we've already fetched and no force refresh is requested, don't fetch again
+    // Prevent refetch if already fetched and not forcing
     if (hasFetched && !forceRefresh) {
-      console.log('Skipping fetch - already loaded rituals');
+      // console.log("fetchRituals: Already fetched and not forcing refresh. Skipping.");
       return;
     }
 
     if (!userIdToFetch) {
-      console.log('No userId to fetch, setting empty rituals array');
-      updateRituals([]);
-      setLoading(false);
-      showError(null);
-      setHasFetched(true); // Mark as fetched even if there's no user ID
+      // console.log('fetchRituals: No userId, returning.');
       return;
     }
 
     try {
-      console.log(`Fetching rituals for user ID: ${userIdToFetch}`);
+      // console.log('fetchRituals: Setting loading true.');
       setLoading(true);
-      showError(null);
+      // console.log('fetchRituals: Calling fetchUserRituals...');
       const fetchedRituals = await fetchUserRituals(userIdToFetch);
-      console.log(`Fetched ${fetchedRituals.length} rituals:`, fetchedRituals);
+      // console.log('fetchRituals: fetchUserRituals completed, updating state.');
       updateRituals(fetchedRituals);
-      setHasFetched(true);
-    } catch (err) {
-      console.error('Error fetching rituals:', err);
-      showError(err instanceof Error ? err.message : 'Failed to fetch rituals');
-      // Still mark as fetched even if there was an error
-      setHasFetched(true);
+      setHasFetched(true); // Set fetched flag *after* successful fetch and update
+      showError(null); // Clear any previous errors
+    } catch (err: unknown) {
+      console.error('fetchRituals: Error occurred.', err);
+      showError('Failed to load rituals.');
+      // Consider if hasFetched should be reset on error
     } finally {
+      // console.log('fetchRituals: Setting loading false.');
       setLoading(false);
     }
-  }, [user, targetUserId, setLoading, updateRituals, showError, hasFetched]);
+  }, [user?.id, targetUserId, hasFetched, updateRituals, setLoading, showError, setHasFetched]); // Add hasFetched dependency
 
   const createRitual = useCallback(async (name: string) => {
     if (!isOwnRituals || !user) {
@@ -78,12 +74,13 @@ export const useRituals = (targetUserId?: string) => {
     try {
       const newRitual = await createUserRitual(name, user.id);
       addRitual(newRitual);
+      fetchRituals(true); // Force refresh after successful creation
       return newRitual;
     } catch (err) {
       showError("There was a problem creating your ritual.");
       throw err;
     }
-  }, [isOwnRituals, user, addRitual, showError]);
+  }, [isOwnRituals, user, addRitual, showError, fetchRituals]);
 
   const handleUpdateRitual = useCallback(async (id: string, updates: Partial<Ritual>) => {
     if (!isOwnRituals || !user) {
@@ -94,11 +91,12 @@ export const useRituals = (targetUserId?: string) => {
     try {
       await updateUserRitual(id, updates, user.id);
       updateRitual(id, updates);
+      fetchRituals(true); // Force refresh after successful update
     } catch (err) {
       showError("There was a problem updating your ritual.");
       throw err;
     }
-  }, [isOwnRituals, user, updateRitual, showError]);
+  }, [isOwnRituals, user, updateRitual, showError, fetchRituals]);
 
   const handleCompleteRitual = useCallback(async (id: string) => {
     if (!isOwnRituals || !user) {
@@ -134,12 +132,13 @@ export const useRituals = (targetUserId?: string) => {
         }
       }
       
+      fetchRituals(true); // Force refresh after successful completion and local updates
       return update;
     } catch (err) {
       showError("There was a problem completing your ritual.");
       throw err;
     }
-  }, [isOwnRituals, user, rituals, updateRitual, showError]);
+  }, [isOwnRituals, user, rituals, updateRitual, showError, fetchRituals]);
 
   const handleChainRituals = useCallback(async (ritualIds: string[]) => {
     if (!isOwnRituals || !user) {
@@ -157,11 +156,12 @@ export const useRituals = (targetUserId?: string) => {
           chain_id: newChainId 
         });
       });
+      fetchRituals(true); // Force refresh after successful chaining
     } catch (err) {
       showError("There was a problem linking your rituals.");
       throw err;
     }
-  }, [isOwnRituals, user, updateRitual, showError]);
+  }, [isOwnRituals, user, updateRitual, showError, fetchRituals]);
 
   const handleDeleteRitual = useCallback(async (id: string) => {
     if (!isOwnRituals || !user) {
@@ -196,17 +196,29 @@ export const useRituals = (targetUserId?: string) => {
       // Remove from local state
       const updatedRituals = rituals.filter(r => r.id !== id);
       updateRituals(updatedRituals);
+      fetchRituals(true); // Force refresh after successful deletion and local updates
     } catch (err) {
       showError("There was a problem deleting your ritual.");
       throw err;
     }
-  }, [isOwnRituals, user, rituals, updateRituals, updateRitual, showError]);
+  }, [isOwnRituals, user, rituals, updateRituals, updateRitual, showError, fetchRituals]);
 
-  // Fetch initial data only once when user or targetUserId changes
+  // Effect to fetch initial data or when user/targetUser changes
   useEffect(() => {
-    console.log('useRituals effect running, checking if fetch is needed...');
-    fetchRituals(false); // Don't force refresh on initial mount
-  }, [fetchRituals]);
+    const userIdToFetch = targetUserId || user?.id;
+    // console.log(`Effect run: userId=${userIdToFetch}`);
+    if (userIdToFetch) {
+      // console.log("Effect condition met (userId exists): Calling fetchRituals(false)...");
+      fetchRituals(false); // Let fetchRituals handle the 'hasFetched' check
+    } else {
+      // console.log("Effect: No user ID, resetting state.");
+      // If no user/target user, reset state (important for logout)
+      updateRituals([]);
+      setLoading(false);
+      showError(null);
+      setHasFetched(false); // Reset fetched status on logout/no user
+    }
+  }, [user?.id, targetUserId, fetchRituals, updateRituals, setLoading, showError, setHasFetched]); // Include setHasFetched for reset
 
   return {
     rituals,

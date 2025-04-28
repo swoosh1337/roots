@@ -6,7 +6,6 @@ import { startOfWeek, endOfWeek, subWeeks, eachDayOfInterval, format, isSameDay,
 // Fetch rituals from Supabase
 export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
   console.log(`fetchUserRituals called for userId: ${userId}`);
-
   try {
     const { data, error } = await supabase
       .from('habits')
@@ -57,6 +56,7 @@ export const fetchUserRituals = async (userId: string): Promise<Ritual[]> => {
 
 export const createUserRitual = async (name: string, userId: string): Promise<Ritual> => {
   try {
+    console.log(`createUserRitual called for name: ${name}, userId: ${userId}`);
     const { data, error } = await supabase
       .from('habits')
       .insert({
@@ -281,15 +281,14 @@ export const completeUserRitual = async (
 };
 
 export const chainUserRituals = async (ritualIds: string[], userId: string): Promise<void> => {
+  console.log(`chainUserRituals called for IDs: ${ritualIds.join(', ')}, userId: ${userId}`);
   try {
-    const newChainId = uuidv4(); 
-    console.log(`Chaining rituals ${ritualIds.join(', ')} with chain_id: ${newChainId}`);
-
+    const newChainId = uuidv4(); // Generate a unique ID for the chain
     const { error } = await supabase
       .from('habits')
       .update({ 
           is_chained: true, 
-          is_active: false, 
+          is_active: false, // Chained rituals might not be 'active' in the same way?
           chain_id: newChainId 
        })
       .in('id', ritualIds)
@@ -303,11 +302,12 @@ export const chainUserRituals = async (ritualIds: string[], userId: string): Pro
 };
 
 export const deleteUserRitual = async (id: string, userId: string): Promise<void> => {
+  console.log(`deleteUserRitual called for ID: ${id}, userId: ${userId}`);
   try {
-    // First, check if this ritual is part of a chain
-    const { data: habitData, error: fetchError } = await supabase
+    // Find if this ritual is part of a chain before deleting
+    const { data: ritual, error: fetchError } = await supabase
       .from('habits')
-      .select('chain_id')
+      .select('id, is_chained, chain_id')
       .eq('id', id)
       .eq('user_id', userId)
       .single();
@@ -318,8 +318,8 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
     }
 
     // If this ritual is part of a chain, we need special handling
-    if (habitData && habitData.chain_id) {
-      const chainId = habitData.chain_id;
+    if (ritual && ritual.chain_id) {
+      const chainId = ritual.chain_id;
 
       // Count how many habits are in this chain
       // Use the correct count approach to get the total number
@@ -394,6 +394,7 @@ export const deleteUserRitual = async (id: string, userId: string): Promise<void
 
 // Function to get user's activity for the current and previous week
 export const getUserRecentActivity = async (userId: string): Promise<{ currentWeekActivity: boolean[], lastWeekActivity: boolean[] }> => {
+  console.log(`getUserRecentActivity called for userId: ${userId}`);
   const today = new Date();
   // Get Sunday of the current week and Saturday of the current week
   const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 0 }); // Sunday
@@ -409,7 +410,7 @@ export const getUserRecentActivity = async (userId: string): Promise<{ currentWe
   console.log(`Fetching activity for user ${userId} from ${startDateStr} to ${endDateStr}`);
 
   // Query habits completed within the last two weeks
-  const { data: completedHabits, error } = await supabase
+  const { data, error } = await supabase
     .from('habits')
     .select('last_completed')
     .eq('user_id', userId)
@@ -424,7 +425,7 @@ export const getUserRecentActivity = async (userId: string): Promise<{ currentWe
 
   // Get unique completion dates (YYYY-MM-DD strings)
   const completionDates = new Set(
-    completedHabits
+    data
       .map(h => h.last_completed)
       .filter((date): date is string => date !== null) // Filter out nulls and ensure type is string
   );

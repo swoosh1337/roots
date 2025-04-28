@@ -49,13 +49,13 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
     return { groups, standalone };
   }, [rituals]);
 
-  // Memoize this function to avoid recreating on each render
-  const canChainRituals = useCallback(() => {
-    // Count rituals that are not already chained
-    const availableRituals = rituals.filter(ritual => ritual.status !== 'chained');
-    console.log('RitualLibrary - Available for chaining:', availableRituals);
-    return availableRituals.length >= 2;
+  // Memoize available rituals for chaining (not already chained)
+  const availableRituals = useMemo(() => {
+    return rituals.filter(ritual => ritual.status !== 'chained');
   }, [rituals]);
+
+  // Memoize whether chaining is possible
+  const canChain = useMemo(() => availableRituals.length >= 2, [availableRituals]);
 
   const getStatusIcon = useCallback((status: 'active' | 'paused' | 'chained') => {
     switch (status) {
@@ -84,8 +84,7 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
     }
   }, [onUpdateRitual]);
 
-  // Check if chaining is possible on mount and when rituals change, not on every render
-  const canChain = canChainRituals();
+  // canChain is now memoized above
 
   // Render a single ritual card
   const renderRitualCard = (ritual: Ritual, isChained: boolean = false) => {
