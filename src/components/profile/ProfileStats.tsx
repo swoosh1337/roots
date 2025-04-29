@@ -12,8 +12,7 @@ interface ProfileStatsProps {
 
 const ProfileStats: React.FC<ProfileStatsProps> = ({ stats }) => {
   return (
-    <div className="w-full grid grid-cols-2 gap-4">
-      <StatItem label="Total Streaks" value={stats.totalStreaks} />
+    <div className="w-full flex justify-between gap-4">
       <StatItem label="Longest Streak" value={`${stats.longestStreak}`} />
       <StatItem label="Rituals Created" value={stats.ritualsCreated} />
       <StatItem label="Chains" value={stats.chains} />
