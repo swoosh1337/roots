@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getTreeStage } from './tree/TreeStages';
-import TestControls from './tree/TestControls';
 import WaterDrop from './animations/WaterDrop';
 import Ripple from './animations/Ripple';
 
 interface TreeVisualProps {
   streak: number;
   isAnimating: boolean;
-  testMode?: boolean;
 }
 
 const stageImages = {
@@ -29,12 +27,9 @@ const imageExists = (url: string): boolean => {
 
 const TreeVisual: React.FC<TreeVisualProps> = ({ 
   streak, 
-  isAnimating,
-  testMode = false 
+  isAnimating
 }) => {
-  const [testStreak, setTestStreak] = useState(streak);
-  const currentStreak = testMode ? testStreak : streak;
-  const currentStage = getTreeStage(currentStreak);
+  const currentStage = getTreeStage(streak);
   
   const imagePath = stageImages[currentStage];
   
@@ -63,14 +58,7 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
           <Ripple key="ripple" isAnimating={isAnimating} />
         </AnimatePresence>
       </motion.div>
-      
-      {testMode && (
-        <TestControls 
-          currentStage={currentStage}
-          testStreak={testStreak}
-          onStreakChange={setTestStreak}
-        />
-      )}
+
     </div>
   );
 };

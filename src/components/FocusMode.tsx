@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, TestTube, Flame } from 'lucide-react';
+import { Menu, Flame } from 'lucide-react';
 import TreeVisual from './TreeVisual';
 import StreakTracker from './StreakTracker';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,6 @@ const FocusMode: React.FC<FocusModeProps> = ({
   const [showAffirmation, setShowAffirmation] = useState(false);
   const [affirmation, setAffirmation] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
-  const [testMode, setTestMode] = useState(false);
   
   // Initialize isCompleted state directly using the prop
   const [isCompleted, setIsCompleted] = useState(() => 
@@ -115,9 +114,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
     }
   };
 
-  const toggleTestMode = () => {
-    setTestMode(prev => !prev);
-  };
+
 
   return (
     <div className="min-h-screen bg-ritual-paper flex flex-col">
@@ -131,16 +128,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
         <Menu className="w-6 h-6 text-ritual-forest" />
       </button>
 
-      {/* Test mode toggle button - MOVED TO BOTTOM LEFT */}
-      <button 
-        onClick={toggleTestMode}
-        className={`absolute bottom-6 left-6 w-12 h-12 rounded-full shadow-md
-                  flex items-center justify-center hover:shadow-lg
-                  transition-all duration-300 z-10 ${testMode ? 'bg-ritual-green text-white' : 'bg-white text-ritual-forest'}`}
-        aria-label="Toggle test mode"
-      >
-        <TestTube className="w-6 h-6" />
-      </button>
+
 
       {/* Main centered content */}
       <div className="flex-1 flex flex-col items-center justify-center p-6">
@@ -149,7 +137,6 @@ const FocusMode: React.FC<FocusModeProps> = ({
           <TreeVisual 
             streak={currentRitual.streak_count} 
             isAnimating={isAnimating}
-            testMode={testMode} 
           />
         </div>
 
