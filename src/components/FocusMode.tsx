@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, TestTube } from 'lucide-react';
+import { Menu, TestTube, Flame } from 'lucide-react';
 import TreeVisual from './TreeVisual';
 import StreakTracker from './StreakTracker';
 import { Button } from '@/components/ui/button';
@@ -208,7 +208,10 @@ const FocusMode: React.FC<FocusModeProps> = ({
 
         {/* Streak counter */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-ritual-forest/70">Day {currentRitual.streak_count}</p>
+          <div className="flex items-center justify-center gap-2 text-lg font-medium text-ritual-forest">
+            <Flame className="w-5 h-5 text-ritual-green" />
+            <span>{currentRitual.streak_count}-Day Streak</span>
+          </div>
         </div>
       </div>
     </div>
