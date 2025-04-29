@@ -108,14 +108,14 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
       )}
 
       {/* Directly render the Garden component */}
-      <div className="flex-1">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-ritual-forest text-lg">Loading garden...</p>
-          </div>
-        ) : error ? (
+      <div className="flex-1 min-h-[220px]">
+        {error ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-ritual-forest text-lg">Error loading garden. Please try again later.</p>
+          </div>
+        ) : (rituals.length === 0 && loading) ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-ritual-forest text-lg">Loading garden...</p>
           </div>
         ) : rituals.length === 0 ? (
           <div className="flex items-center justify-center h-full">

@@ -15,7 +15,7 @@ const ProfileActions: React.FC<ProfileActionsProps> = ({
 }) => {
   return (
     <>
-      <div className="w-full space-y-3 mt-4">
+      <div className="w-full space-y-3 mt-4 min-h-[130px]">
         <Button 
           className="w-full bg-ritual-green hover:bg-ritual-green/90 text-[#2F4F4F] font-medium rounded-full py-6"
           onClick={onOpenFriends}

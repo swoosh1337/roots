@@ -64,8 +64,8 @@ const FriendsPanel: React.FC<FriendsPanelProps> = ({
         </div>
         
         {/* Friends list section */}
-        <div className="flex-1 overflow-y-auto px-8 pb-6">
-          {loading ? (
+        <div className="flex-1 overflow-y-auto px-8 pb-6 min-h-[220px]">
+          {(friends.length === 0 && loading) ? (
             <div className="flex items-center justify-center py-8">
               <p className="text-gray-500">Loading friends...</p>
             </div>

@@ -201,15 +201,17 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
         <div className="flex flex-col flex-grow p-6 gap-6 overflow-y-auto">
           <ProfileStats stats={stats} />
 
-          <div className="w-full mt-2">
+          <div className="w-full mt-2 min-h-[150px]">
             <h3 className="text-[#6F8D6A] text-sm mb-3">Recent Activity</h3>
             {/* Pass the state data as props */}
             <StreakCalendar
               currentWeekActivity={currentWeekActivity}
               lastWeekActivity={lastWeekActivity}
             />
-            {/* Optionally show a loading indicator */}
-            {loadingActivity && <p className="text-xs text-center mt-2 text-ritual-gray">Loading activity...</p>}
+            {/* Add a placeholder div with the same height as the loading indicator */}
+            <div className="h-6">
+              {loadingActivity && <p className="text-xs text-center mt-2 text-ritual-gray">Loading activity...</p>}
+            </div>
           </div>
 
           <Separator className="my-2 bg-ritual-moss/30" />
