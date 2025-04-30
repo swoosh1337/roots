@@ -1,8 +1,8 @@
-# Roots and Ritual
+# Roots
 
-![Roots and Ritual](https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-3.png)
+![Roots](https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-3.png)
 
-Roots and Ritual is a habit-building application that helps users cultivate positive daily routines through visual growth metaphors and streak tracking. Watch your habits grow like trees as you maintain your daily rituals.
+Roots is a habit-building application that helps users cultivate positive daily routines through visual growth metaphors and streak tracking. Watch your habits grow like trees as you maintain your daily rituals.
 
 ## Tech Stack
 
