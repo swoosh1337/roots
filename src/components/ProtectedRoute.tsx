@@ -9,9 +9,6 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading, retrySessionLoad } = useAuth();
-  const [retrying, setRetrying] = useState(false);
-
-  console.log("Protected route", { user, loading });
 
   // If still loading, show loading spinner
   if (loading) {

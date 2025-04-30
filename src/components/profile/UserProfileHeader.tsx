@@ -61,7 +61,6 @@ const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         description: "Your display name has been updated successfully."
       });
     } catch (error) {
-      console.error('Error updating name:', error);
       toast({
         title: "Update Failed",
         description: "There was a problem updating your name. Please try again.",

@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -92,5 +91,35 @@
   .petal {
     @apply absolute w-2 h-2 rounded-full bg-pink-200 opacity-80;
     animation: fall 4s ease-in-out infinite;
+  }
+
+  /* Add leaf pulse animation */
+  @keyframes leaf-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.8;
+    }
+  }
+
+  .animate-leaf-pulse {
+    animation: leaf-pulse 3s infinite ease-in-out;
+  }
+
+  /* Add tree float animation */
+  @keyframes tree-float {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-5px);
+    }
+  }
+
+  .animate-tree-float {
+    animation: tree-float 4s infinite ease-in-out;
   }
 }

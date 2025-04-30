@@ -42,24 +42,20 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
   const getProfileImage = () => {
     // Step 1: Check if we have a profile image URL from our database (user uploaded)
     if (profileImgUrl) {
-      console.log("ProfilePanel: Using profile_img_url from state:", profileImgUrl);
       return profileImgUrl;
     }
 
     // Step 2: Fall back to Google avatar if available
     if (user?.user_metadata?.avatar_url) {
-      console.log("ProfilePanel: Using avatar_url from user metadata:", user.user_metadata.avatar_url);
       return user.user_metadata.avatar_url;
     }
 
     // Step 3: Check if user has picture in metadata
     if (user?.user_metadata?.picture) {
-      console.log("ProfilePanel: Using picture from user metadata:", user.user_metadata.picture);
       return user.user_metadata.picture;
     }
 
     // Step 4: Default to placeholder
-    console.log("ProfilePanel: Using default placeholder image");
     return "/placeholder.svg";
   };
 
@@ -90,7 +86,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
       // Add cache-busting parameter
       const timestamp = new Date().getTime();
       const urlWithTimestamp = `${profile.profile_img_url.split('?')[0]}?t=${timestamp}`;
-      console.log("ProfilePanel: Setting profile URL with timestamp:", urlWithTimestamp);
       setProfileImgUrl(urlWithTimestamp);
     }
   }, [profile]);
@@ -115,26 +110,17 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({
     const fetchActivity = async () => {
       if (isOpen && user) {
         setLoadingActivity(true);
-        console.log("ProfilePanel open, fetching activity...");
         try {
           const activityData = await getUserRecentActivity(user.id);
           setCurrentWeekActivity(activityData.currentWeekActivity);
           setLastWeekActivity(activityData.lastWeekActivity);
-          console.log("Activity data fetched:", activityData);
         } catch (err) {
-          console.error("Failed to fetch recent activity:", err);
-          // Keep default false arrays on error
           setCurrentWeekActivity(Array(7).fill(false));
           setLastWeekActivity(Array(7).fill(false));
         } finally {
           setLoadingActivity(false);
         }
-      } else {
-         console.log("ProfilePanel closed or no user, skipping activity fetch.");
-         // Reset on close? Optional
-         // setCurrentWeekActivity(Array(7).fill(false));
-         // setLastWeekActivity(Array(7).fill(false));
-      }
+      } 
     };
 
     fetchActivity();

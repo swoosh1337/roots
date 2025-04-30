@@ -19,18 +19,15 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user, avatarSrc, onImageU
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) {
-      console.log('[Upload] No file or user, exiting.');
       return;
     }
 
     setUploading(true);
-    console.log('[Upload] Starting image upload for user:', user.id);
 
     try {
       // Create a consistent file path for this user - always same name to enable overwriting
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}/avatar.${fileExt}`;
-      console.log(`[Upload] Attempting to upload to bucket 'profile-imgs' with path: ${filePath}`);
 
       // Upload the file to Supabase Storage with upsert: true to overwrite existing file
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -41,42 +38,34 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user, avatarSrc, onImageU
         });
 
       if (uploadError) {
-        console.error('[Upload] Supabase storage upload error:', uploadError);
         throw uploadError;
       }
-      console.log('[Upload] File uploaded successfully to storage.', uploadData);
 
       // Get the public URL
-      console.log(`[Upload] Getting public URL for path: ${filePath}`);
       const { data: urlData } = supabase.storage
         .from('profile-imgs')
         .getPublicUrl(filePath);
           
       if (!urlData || !urlData.publicUrl) {
-        console.error('[Upload] Public URL data is missing after getPublicUrl call.');
         throw new Error('Failed to retrieve public URL after upload.');
       }
       
       // Add cache-busting parameter to force image refresh
       const timestamp = new Date().getTime();
       const publicUrl = `${urlData.publicUrl}?t=${timestamp}`;
-      console.log(`[Upload] Got public URL: ${publicUrl}`);
       
       // Update the parent component with the new URL
       onImageUpdate(publicUrl);
 
       // Update the user's profile with the new image URL
-      console.log(`[Upload] Updating user profile table for user: ${user.id}`);
       const { error: updateError } = await supabase
         .from('users')
         .update({ profile_img_url: urlData.publicUrl }) // Store base URL without timestamp in DB
         .eq('id', user.id);
 
       if (updateError) {
-        console.error('[Upload] Error updating user profile table:', updateError);
         throw updateError;
       }
-      console.log('[Upload] User profile table updated successfully.');
 
       toast({
         title: "Profile Updated",
@@ -84,15 +73,11 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user, avatarSrc, onImageU
       });
 
     } catch (error) {
-      console.error('[Upload] Overall error in handleImageUpload:', error);
       
       // Enhanced error reporting for debugging
       let errorMessage = 'Unknown error';
       if (error instanceof Error) {
         errorMessage = error.message;
-        console.error('[Upload] Error name:', error.name);
-        console.error('[Upload] Error message:', error.message);
-        console.error('[Upload] Error stack:', error.stack);
       }
       
       toast({
@@ -103,7 +88,6 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({ user, avatarSrc, onImageU
     } finally {
       setUploading(false);
       if (event.target) event.target.value = '';
-      console.log('[Upload] Upload process finished.');
     }
   };
 

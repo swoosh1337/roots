@@ -21,10 +21,12 @@ const ChainRitualsModal: React.FC<ChainRitualsModalProps> = ({
 
   const handleToggleRitual = (ritualId: string) => {
     if (selectedRituals.includes(ritualId)) {
+      // Remove ritual from the selection
       setSelectedRituals(selectedRituals.filter(id => id !== ritualId));
     } else {
       // Limit to max 3 rituals
       if (selectedRituals.length < 3) {
+        // Add ritual to the end of the selection
         setSelectedRituals([...selectedRituals, ritualId]);
       }
     }
@@ -32,6 +34,8 @@ const ChainRitualsModal: React.FC<ChainRitualsModalProps> = ({
 
   const handleSaveChain = () => {
     if (selectedRituals.length >= 2) {
+      // Pass the selected rituals in the order they were selected
+      // This order will be used to set the chain_order in the database
       onChainRituals(selectedRituals);
     }
   };
@@ -106,21 +110,59 @@ const ChainRitualsModal: React.FC<ChainRitualsModalProps> = ({
           {selectedRituals.length > 0 && (
             <div className="bg-ritual-moss/20 rounded-lg p-4">
               <h3 className="text-sm font-medium text-gray-500 mb-3">YOUR RITUAL CHAIN</h3>
-              <div className="flex items-center justify-center">
+              <p className="text-xs text-gray-500 mb-3">Use the arrows to reorder. This is the exact sequence you'll need to follow.</p>
+              <div className="flex items-center justify-center flex-wrap gap-2">
                 {selectedRituals.map((ritualId, index) => {
                   const ritual = rituals.find(r => r.id === ritualId);
                   return (
-                    <React.Fragment key={ritualId}>
-                      <div className="flex-shrink-0 bg-white rounded-lg p-3 shadow-sm">
+                    <div key={ritualId} className="flex items-center">
+                      <div className="flex-shrink-0 bg-white rounded-lg p-3 shadow-sm relative group">
                         <span className="font-medium">{ritual?.name}</span>
+                        <div className="absolute -top-2 -right-2 flex gap-1">
+                          {/* Move left button */}
+                          {index > 0 && (
+                            <button 
+                              className="bg-white rounded-full p-1 shadow-sm text-ritual-forest hover:bg-ritual-moss/20 border border-ritual-moss/20"
+                              onClick={() => {
+                                const newOrder = [...selectedRituals];
+                                const temp = newOrder[index];
+                                newOrder[index] = newOrder[index - 1];
+                                newOrder[index - 1] = temp;
+                                setSelectedRituals(newOrder);
+                              }}
+                              title="Move earlier in chain"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                            </button>
+                          )}
+                          {/* Move right button */}
+                          {index < selectedRituals.length - 1 && (
+                            <button 
+                              className="bg-white rounded-full p-1 shadow-sm text-ritual-forest hover:bg-ritual-moss/20 border border-ritual-moss/20"
+                              onClick={() => {
+                                const newOrder = [...selectedRituals];
+                                const temp = newOrder[index];
+                                newOrder[index] = newOrder[index + 1];
+                                newOrder[index + 1] = temp;
+                                setSelectedRituals(newOrder);
+                              }}
+                              title="Move later in chain"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                            </button>
+                          )}
+                        </div>
                       </div>
                       {index < selectedRituals.length - 1 && (
                         <ArrowRight className="mx-3 text-ritual-forest" />
                       )}
-                    </React.Fragment>
+                    </div>
                   );
                 })}
               </div>
+              <p className="text-xs text-center mt-3 text-ritual-forest font-medium">
+                Order: {selectedRituals.map(id => rituals.find(r => r.id === id)?.name).join(' → ')}
+              </p>
             </div>
           )}
         </div>

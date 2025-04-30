@@ -5,6 +5,8 @@ import TreeVisual from './TreeVisual';
 import StreakTracker from './StreakTracker';
 import { Button } from '@/components/ui/button';
 import { Ritual } from '@/hooks/useRituals';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 interface FocusModeProps {
   onOpenLibrary: () => void;
@@ -39,7 +41,6 @@ const isCompletedToday = (lastCompletedStr?: string | null): boolean => {
     }
     return todayLocalStr === lastCompletedDateStr;
   } catch (e) {
-    console.error("Error parsing lastCompleted date:", lastCompletedStr, e);
     return false; // Treat invalid dates as not completed today
   }
 };
@@ -77,20 +78,98 @@ const FocusMode: React.FC<FocusModeProps> = ({
     }
   }, [currentRitual.last_completed, currentRitual.id, isCompleted]); // Re-run if last_completed, id, or isCompleted changes
 
+  // State to track if this ritual is the next one that needs to be completed in a chain
+  const [isNextInChain, setIsNextInChain] = useState(true);
+  const { toast } = useToast();
+
+  // Check if this ritual is the next one that needs to be completed in a chain
+  useEffect(() => {
+    const checkIfNextInChain = async () => {
+      // If ritual is not chained, it's always completable
+      if (currentRitual.status !== 'chained') {
+        setIsNextInChain(true);
+        return;
+      }
+
+      try {
+        // Get today's date in ISO format (YYYY-MM-DD)
+        const today = new Date().toISOString().split('T')[0];
+
+        // Check if this ritual is already completed today
+        if (currentRitual.last_completed === today) {
+          setIsNextInChain(true); // Already completed, so it's valid
+          return;
+        }
+
+        // Get all rituals in this chain with their chain_order to determine the correct sequence
+        const response = await supabase
+          .from('habits')
+          .select('id, name, last_completed, chain_order, user_id')
+          .eq('chain_id', currentRitual.chain_id)
+          .order('chain_order', { ascending: true }); // Order by chain_order to get the correct sequence
+        
+        console.log('Chain rituals query result:', response.data);
+
+        if (response.error) throw response.error;
+
+        const chainedRituals = response.data;
+        
+        // The rituals are already sorted by chain_order from the database query
+        // Now we need to identify which ritual is next to be completed
+        const sortedRituals = [...chainedRituals];
+        
+        console.log('Current ritual:', currentRitual.id, currentRitual.name);
+        console.log('Sorted rituals:', sortedRituals.map(r => ({ id: r.id, name: r.name, completed: r.last_completed === today })));
+        
+        // Find the first incomplete ritual in the chain
+        const firstIncompleteIndex = sortedRituals.findIndex(r => r.last_completed !== today);
+        
+        // If all rituals are completed, there's no next ritual to complete
+        if (firstIncompleteIndex === -1) {
+          console.log('All rituals in chain are completed');
+          setIsNextInChain(true); // All completed, so this one is valid too
+          return;
+        }
+        
+        // The next ritual to complete is the first incomplete one
+        const nextRitualId = sortedRituals[firstIncompleteIndex].id;
+        console.log('Next ritual to complete:', nextRitualId);
+        
+        // This ritual can be completed if it's the next one in the chain
+        const isNextToComplete = currentRitual.id === nextRitualId;
+        console.log('Is this ritual next to complete?', isNextToComplete);
+        
+        setIsNextInChain(isNextToComplete);
+      } catch (error) {
+        // In case of error, default to allowing completion
+        setIsNextInChain(true);
+      }
+    };
+
+    checkIfNextInChain();
+  }, [currentRitual.id, currentRitual.status, currentRitual.last_completed, currentRitual.chain_id, currentRitual.name]);
+
   const handleRitualCompletion = async () => {
-    // Check if ritual is active before allowing completion
-    if (currentRitual.status !== 'active') {
-      console.error('Cannot complete a non-active ritual:', currentRitual.status);
+    // Check if ritual is active and is the next one in chain that needs to be completed
+    if (currentRitual.status !== 'active' && currentRitual.status !== 'chained') {
+      return;
+    }
+
+    // If it's chained, check if it's the next one that needs to be completed
+    if (currentRitual.status === 'chained' && !isNextInChain) {
+      toast({
+        title: "Complete rituals in order",
+        description: "You need to complete previous rituals in this chain first.",
+        variant: "destructive"
+      });
       return;
     }
     
     setIsAnimating(true);
     
     try {
-      console.log('Starting ritual completion for:', currentRitual.id);
       // Call the parent callback and await its result
       await onCompletedRitual(currentRitual.id);
-      console.log('Ritual completion successful');
       
       // Only update UI state after successful completion
       setIsCompleted(true);
@@ -103,14 +182,6 @@ const FocusMode: React.FC<FocusModeProps> = ({
     } catch (error) {
       // If there's an error, don't update UI state
       setIsAnimating(false);
-      console.error('Error completing ritual in FocusMode:', error);
-      // Log more details about the error
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-      } else {
-        console.error('Unknown error type:', error);
-      }
     }
   };
 
@@ -163,7 +234,7 @@ const FocusMode: React.FC<FocusModeProps> = ({
                 onClick={handleRitualCompletion}
                 initial={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                disabled={isAnimating}
+                disabled={isAnimating || (currentRitual.status === 'chained' && !isNextInChain)}
               >
                 I kept my ritual alive today
               </motion.button>

@@ -37,13 +37,13 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
 
   useEffect(() => {
     if (!loading && rituals.length > 0 && !currentRitual) {
-      // First try to find an active ritual, if none exists, don't default to any ritual
+      // First try to find an active ritual, if none exists, use the first ritual in the list
       const activeRitual = rituals.find(r => r.status === 'active');
       if (activeRitual) {
-        console.log('Setting initial currentRitual:', activeRitual);
         setCurrentRitual(activeRitual);
-      } else {
-        console.log('No active rituals found for Focus Mode');
+      } else if (rituals.length > 0) {
+        // If no active ritual is found, default to the first ritual in the list
+        setCurrentRitual(rituals[0]);
       }
     }
   }, [rituals, loading, currentRitual]);
@@ -93,8 +93,6 @@ const Index: React.FC<IndexProps> = ({ userId }) => {
 
   // Add an empty state when there are no rituals (rituals.length must be exactly 0)
   if (!loading && rituals.length === 0) {
-    console.log("Showing empty state view - no rituals found");
-    
     return (
       <div className="min-h-screen bg-ritual-paper flex flex-col items-center justify-center p-6">
         <div className="absolute top-6 right-6 z-10">

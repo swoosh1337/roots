@@ -46,7 +46,6 @@ const TreeVisual: React.FC<TreeVisualProps> = ({
           alt={`Tree at ${currentStage} stage`}
           className="w-full h-full object-contain"
           onError={(e) => {
-            console.error("Failed to load image:", imagePath);
             e.currentTarget.style.border = "1px dashed red";
             e.currentTarget.style.padding = "8px";
           }}

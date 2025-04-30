@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Simplified auth state management
   useEffect(() => {
-    console.log("Auth provider initializing");
+    // Auth provider initializing
     const startTime = Date.now();
     let timeoutId: NodeJS.Timeout;
 
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const getInitialSession = async () => {
       // Set up a timeout handler - 2 seconds as requested
       timeoutId = setTimeout(() => {
-        console.log('Session fetch timeout after 2s - proceeding without session');
+        // Session fetch timeout - proceeding without session
         setSession(null);
         setUser(null);
         setLoading(false);
@@ -64,7 +64,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         // Clear the timeout since we got a response (error)
         clearTimeout(timeoutId);
-        console.error("Error getting session:", error);
         setSession(null);
         setUser(null);
         setLoading(false);
@@ -76,8 +75,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up the auth state listener for future changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log(`Auth state changed: ${event} (${Date.now() - startTime}ms)`);
-
         // Handle SIGNED_IN and USER_UPDATED events
         if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
           // Ensure user record exists in database (non-blocking)
@@ -123,7 +120,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (session) {
         const { error } = await supabase.auth.signOut();
         if (error) {
-          console.error("Error logging out:", error);
           toast({
             title: "Logout Error",
             description: "Failed to log out. Please try again.",
@@ -143,7 +139,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } else {
         // If no session exists, just update our local state
-        console.log("No active session found, clearing local state only");
         setSession(null);
         setUser(null);
         toast({
@@ -152,7 +147,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
       }
     } catch (error) {
-      console.error("Exception during logout:", error);
       toast({
         title: "Logout Error",
         description: "Failed to log out. Please try again.",
@@ -172,7 +166,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Manually update the user state to ensure it's immediately available
       if (data?.user) {
-        console.log("Sign in successful, updating user state:", data.user.id);
         setUser(data.user);
         setSession(data.session);
       }
@@ -182,7 +175,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "You've been successfully logged in.",
       });
     } catch (error) {
-      console.error("Error signing in:", error);
       toast({
         title: "Login Failed",
         description: error instanceof Error ? error.message : "Please check your credentials and try again",
@@ -198,7 +190,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
 
@@ -232,7 +224,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
       }
     } catch (error) {
-      console.error("Error signing up:", error);
       
       // Special handling for email sending errors
       if (error instanceof Error && error.message.includes("sending confirmation email")) {
@@ -254,11 +245,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signInWithGoogle = async () => {
     try {
-      console.log("Initiating Google sign-in");
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
 
@@ -267,9 +257,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Note: For OAuth, this won't immediately update the user state
       // as the user will be redirected to Google. The state will be
       // updated when they return via the onAuthStateChange listener.
-      console.log("Google sign-in initiated, user will be redirected");
     } catch (error) {
-      console.error("Error signing in with Google:", error);
       toast({
         title: "Google Sign-In Failed",
         description: error instanceof Error ? error.message : "Please try again",
@@ -284,7 +272,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
 
@@ -296,7 +284,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         className: "bg-ritual-green/20 border-ritual-green text-ritual-forest",
       });
     } catch (error) {
-      console.error("Error sending magic link:", error);
       toast({
         title: "Couldn't send magic link",
         description: error instanceof Error ? error.message : "Please try again",

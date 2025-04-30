@@ -43,7 +43,6 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
 
     try {
       // 1. Find the user by email first
-      console.log(`Searching for user with email: ${emailToSearch}`);
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id') // Only need the ID
@@ -52,25 +51,21 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
 
       // 2. Handle User Not Found
       if (userError) {
-        console.error('Supabase user query error:', userError);
         throw new Error('Database error searching for user.'); // Throw a generic error for unexpected DB issues
       }
       
       if (!userData) {
-        console.log('User not found.');
         setNotFoundError(true);
         setIsSubmitting(false); // Stop submission but keep error visible
         return;
       }
 
       // 3. User found, attempt to send request via the hook
-      console.log(`User found (ID: ${userData.id}), attempting to send request...`);
       // The hook should handle logic like "already friends", "request pending", "cannot add self"
       // and potentially show appropriate toasts or throw specific errors.
       await sendRequest(userData.id);
 
       // 4. Success (if sendRequest doesn't throw for handled cases)
-      console.log('Friend request sent successfully.');
       toast({
         title: "Success",
         description: "Friend request sent successfully.",
@@ -80,8 +75,6 @@ const AddFriendModal: React.FC<AddFriendModalProps> = ({
       onClose(); // Close modal on success
 
     } catch (error: unknown) { 
-      console.error('Error during handleSubmit in AddFriendModal:', error);
-      
       // Clear previous errors
       setNotFoundError(false);
       setInlineError(null);

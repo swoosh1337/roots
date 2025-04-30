@@ -243,16 +243,44 @@ export const completeUserRitual = async (
         // All habits in chain completed today, update all their streaks
         console.log('All habits in chain completed today - updating all streaks');
         
-        // Batch update all streaks in this chain
-        const { error: chainUpdateError } = await supabase
-          .from('habits')
-          .update({ streak_count: supabase.rpc('increment', { x: 1 }) })
-          .eq('chain_id', habitData.chain_id)
-          .eq('user_id', userId);
+        try {
+          // Get all habits in the chain to update their streaks individually
+          for (const habit of chainedHabits) {
+            try {
+              // First get the current streak count
+              const { data: currentHabitData, error: getError } = await supabase
+                .from('habits')
+                .select('streak_count')
+                .eq('id', habit.id)
+                .single();
 
-        if (chainUpdateError) {
-          console.error('Error updating chained habits streaks:', chainUpdateError);
-          throw chainUpdateError;
+              if (getError) {
+                console.error(`Error getting streak count for habit ${habit.id}:`, getError);
+                continue;
+              }
+
+              // Then increment the streak count (handle null/undefined streak_count)
+              const currentStreak = currentHabitData?.streak_count || 0;
+              const newStreakCount = currentStreak + 1;
+              console.log(`Updating streak for habit ${habit.id} from ${currentStreak} to ${newStreakCount}`);
+              
+              // Update the habit with the new streak count
+              const { error: updateError } = await supabase
+                .from('habits')
+                .update({ streak_count: newStreakCount })
+                .eq('id', habit.id);
+
+              if (updateError) {
+                console.error(`Error updating streak for habit ${habit.id}:`, updateError);
+              } else {
+                console.log(`Successfully updated streak for habit ${habit.id} to ${newStreakCount}`);
+              }
+            } catch (habitError) {
+              console.error(`Error processing habit ${habit.id}:`, habitError);
+            }
+          }
+        } catch (chainError) {
+          console.error('Error updating chain streaks:', chainError);
         }
       }
     } else if (shouldUpdateStreak) {
@@ -280,21 +308,87 @@ export const completeUserRitual = async (
   }
 };
 
-export const chainUserRituals = async (ritualIds: string[], userId: string): Promise<void> => {
+export const chainUserRituals = async (ritualIds: string[], userId: string): Promise<string> => {
   console.log(`chainUserRituals called for IDs: ${ritualIds.join(', ')}, userId: ${userId}`);
+  console.log('Chain order will be set in this exact order (first to last):', ritualIds);
+  
   try {
-    const newChainId = uuidv4(); // Generate a unique ID for the chain
-    const { error } = await supabase
+    // Generate a completely unique chain ID to avoid any conflicts
+    const chainId = uuidv4();
+    console.log(`Using new chain ID: ${chainId}`);
+    
+    // First, verify all rituals exist and belong to the user
+    const { data: existingRituals, error: checkError } = await supabase
       .from('habits')
-      .update({ 
-          is_chained: true, 
-          is_active: false, // Chained rituals might not be 'active' in the same way?
-          chain_id: newChainId 
-       })
+      .select('id, name')
       .in('id', ritualIds)
       .eq('user_id', userId);
+      
+    if (checkError) {
+      console.error('Error checking rituals:', checkError);
+      throw checkError;
+    }
+    
+    console.log('Found existing rituals:', existingRituals);
+    
+    if (existingRituals.length !== ritualIds.length) {
+      console.error('Not all rituals were found or belong to the user');
+      throw new Error('Some rituals could not be found or do not belong to the user');
+    }
+    
+    // IMPORTANT: Log the exact order we're going to save
+    console.log('Setting chain order exactly as provided in ritualIds:');
+    ritualIds.forEach((id, index) => {
+      const name = existingRituals.find(r => r.id === id)?.name;
+      console.log(`  ${index}: ${name} (${id})`);
+    });
+    
+    // Update each ritual with its chain order (index in the ritualIds array)
+    // This preserves the exact order selected by the user in the UI
+    for (let i = 0; i < ritualIds.length; i++) {
+      const ritualId = ritualIds[i];
+      const ritualName = existingRituals.find(r => r.id === ritualId)?.name;
+      
+      console.log(`Setting ritual ${ritualName} (${ritualId}) to chain_order: ${i}`);
+      
+      const { error } = await supabase
+        .from('habits')
+        .update({ 
+          is_chained: true, 
+          is_active: false, // Chained rituals are managed differently
+          chain_id: chainId,
+          chain_order: i // Store the position in the chain (0-based index)
+        })
+        .eq('id', ritualId)
+        .eq('user_id', userId);
 
-    if (error) throw error;
+      if (error) {
+        console.error(`Error updating ritual ${ritualId} with chain order:`, error);
+        throw error;
+      } else {
+        console.log(`Successfully set chain_order ${i} for ritual ${ritualName}`);
+      }
+    }
+    
+    // Verify the chain order was set correctly
+    const { data: verifyChain, error: verifyError } = await supabase
+      .from('habits')
+      .select('id, name, chain_order')
+      .eq('chain_id', chainId)
+      .order('chain_order', { ascending: true });
+      
+    if (verifyError) {
+      console.error('Error verifying chain:', verifyError);
+    } else {
+      console.log('Chain verification - rituals in order:', verifyChain.map(r => ({
+        id: r.id,
+        name: r.name,
+        chain_order: r.chain_order
+      })));
+    }
+    
+    console.log(`Successfully chained rituals with chain_id ${chainId} and set chain_order`);
+    return chainId; // Return the chain ID so it can be used in the hook
   } catch (err) {
     console.error('Error chaining rituals:', err);
     throw err;

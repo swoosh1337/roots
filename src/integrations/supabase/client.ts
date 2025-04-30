@@ -10,13 +10,6 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 // import { supabase } from "@/integrations/supabase/client";
 
 // Validate that we have the required configuration
-if (!SUPABASE_URL) {
-  console.error('Missing SUPABASE_URL environment variable');
-}
-
-if (!SUPABASE_ANON_KEY) {
-  console.error('Missing SUPABASE_ANON_KEY environment variable');
-}
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {

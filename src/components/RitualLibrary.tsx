@@ -28,8 +28,6 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
 }) => {
   const [editingRitual, setEditingRitual] = useState<Ritual | null>(null);
   
-  console.log('RitualLibrary - Received rituals:', rituals); // Log received rituals
-
   // Group rituals by chain_id
   const ritualGroups = useMemo(() => {
     const groups: Record<string, Ritual[]> = {};
@@ -130,14 +128,86 @@ const RitualLibrary: React.FC<RitualLibraryProps> = ({
   };
 
   const renderChainedGroup = (chainId: string, chainedRituals: Ritual[]) => {
+    // Get today's date for completion check
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Log the chain rituals to debug
+    console.log('Chain rituals before sorting:', chainedRituals.map(r => ({
+      id: r.id,
+      name: r.name,
+      chain_order: r.chain_order,
+      completed: r.last_completed === today
+    })));
+    
+    // IMPORTANT: Make a copy and sort by chain_order
+    // This ensures rituals are displayed in the exact order defined when creating the chain
+    const sortedRituals = [...chainedRituals].sort((a, b) => {
+      // Ensure we have valid chain_order values (default to 0 if missing)
+      const aOrder = typeof a.chain_order === 'number' ? a.chain_order : 0;
+      const bOrder = typeof b.chain_order === 'number' ? b.chain_order : 0;
+      
+      // Sort by chain_order in ascending order (0, 1, 2, ...)
+      return aOrder - bOrder;
+    });
+    
+    // Log the sorted rituals to debug
+    console.log('Chain rituals after sorting:', sortedRituals.map(r => ({
+      id: r.id,
+      name: r.name,
+      chain_order: r.chain_order,
+      completed: r.last_completed === today
+    })));
+
+    // Count how many are completed today
+    const completedCount = sortedRituals.filter(r => r.last_completed === today).length;
+    const totalCount = sortedRituals.length;
+
     return (
       <div key={chainId} className="mb-6 bg-ritual-moss/10 p-3 rounded-lg">
         <div className="flex items-center gap-2 mb-2 text-ritual-forest">
           <Link className="w-4 h-4" />
           <span className="text-sm font-medium">Chained Rituals</span>
+          <span className="text-xs text-amber-600 ml-auto">
+            {completedCount}/{totalCount} completed today
+          </span>
         </div>
+        <p className="text-xs text-ritual-forest/70 mb-3">
+          Complete these rituals in order to maintain your streak
+        </p>
         <div className="space-y-3">
-          {chainedRituals.map(ritual => renderRitualCard(ritual, true))}
+          {sortedRituals.map((ritual, index) => {
+            // Find the first incomplete ritual in the chain
+            const firstIncompleteIndex = sortedRituals.findIndex(r => r.last_completed !== today);
+            const isNextToComplete = firstIncompleteIndex === index;
+            
+            // If all are completed, there's no next ritual
+            const allCompleted = firstIncompleteIndex === -1;
+            
+            // Determine if this ritual is disabled (not next in chain and not completed)
+            const isDisabled = !allCompleted && !isNextToComplete && ritual.last_completed !== today;
+            
+            return (
+              <div key={ritual.id} className={`relative ${isDisabled ? 'opacity-60' : ''}`}>
+                {isNextToComplete && (
+                  <div className="absolute -left-1 top-1/2 transform -translate-y-1/2">
+                    <div className="bg-ritual-green text-white text-xs font-medium px-2 py-0.5 rounded-md">
+                      Next
+                    </div>
+                  </div>
+                )}
+                <div className="relative">
+                  {renderRitualCard(ritual, true)}
+                  {isDisabled && (
+                    <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px] rounded-lg flex items-center justify-center">
+                      <div className="text-sm text-gray-500 font-medium">
+                        Complete previous first
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     );

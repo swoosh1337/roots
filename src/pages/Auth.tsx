@@ -34,9 +34,7 @@ const Auth = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    console.log("Auth page - user state changed:", user ? "logged in" : "not logged in");
     if (user) {
-      console.log("User is logged in, redirecting to home page");
       navigate('/');
     }
   }, [user, navigate]);
@@ -48,7 +46,6 @@ const Auth = () => {
       await signInWithEmail(loginEmail, loginPassword);
 
       // Force navigation to home page after successful login
-      console.log("Login successful, forcing navigation to home page");
       navigate('/');
     } catch (error) {
       console.error("Login error:", error);
@@ -63,7 +60,7 @@ const Auth = () => {
       setRegisterLoading(true);
       await signUpWithEmail(registerEmail, registerPassword);
     } catch (error) {
-      console.error(error);
+      console.error("Register error:", error);
     } finally {
       setRegisterLoading(false);
     }
@@ -75,7 +72,7 @@ const Auth = () => {
       setMagicLinkLoading(true);
       await sendMagicLink(magicLinkEmail);
     } catch (error) {
-      console.error(error);
+      console.error("Magic link error:", error);
     } finally {
       setMagicLinkLoading(false);
     }
@@ -90,12 +87,10 @@ const Auth = () => {
       // But we'll add a fallback in case the redirect doesn't happen
       setTimeout(() => {
         if (user) {
-          console.log("Google sign-in successful, forcing navigation to home page");
           navigate('/');
         }
       }, 2000);
     } catch (error) {
-      console.error("Google sign-in error:", error);
       setGoogleLoading(false);
     }
   };

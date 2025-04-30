@@ -19,7 +19,6 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
       // Add cache-busting parameter
       const timestamp = new Date().getTime();
       const urlWithTimestamp = `${profile.profile_img_url.split('?')[0]}?t=${timestamp}`;
-      console.log("ProfileButton: Setting profile URL with timestamp:", urlWithTimestamp);
       setProfileImgUrl(urlWithTimestamp);
     }
   }, [profile]);
@@ -28,29 +27,24 @@ const ProfileButton: React.FC<ProfileButtonProps> = ({ onClick }) => {
   const getProfileImage = () => {
     // Step 1: Check if we have a profile image URL from our database (user uploaded)
     if (profileImgUrl) {
-      console.log("Using profile_img_url from database:", profileImgUrl);
       return profileImgUrl;
     }
 
     // Step 2: Fall back to Google avatar if available
     if (user?.user_metadata?.avatar_url) {
-      console.log("Using avatar_url from user metadata:", user.user_metadata.avatar_url);
       return user.user_metadata.avatar_url;
     }
 
     // Step 3: Check if user has picture in metadata
     if (user?.user_metadata?.picture) {
-      console.log("Using picture from user metadata:", user.user_metadata.picture);
       return user.user_metadata.picture;
     }
 
     // Step 4: Default to placeholder
-    console.log("Using default placeholder image");
     return "/placeholder.svg";
   };
 
   const avatarSrc = getProfileImage();
-  console.log("Final avatar source:", avatarSrc);
 
   return (
     <button

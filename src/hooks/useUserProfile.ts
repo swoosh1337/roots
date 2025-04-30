@@ -16,13 +16,11 @@ export const ensureUserRecord = async (userId: string, email: string): Promise<v
 
     if (checkError && checkError.code !== 'PGRST116') {
       // PGRST116 means not found, which is expected if user doesn't exist yet
-      console.error('Error checking for existing user:', checkError);
       return;
     }
 
     // If user doesn't exist, create a new record
     if (!existingUser) {
-      console.log(`Creating new user record for ${userId}`);
       const { error: insertError } = await supabase
         .from('users')
         .insert({
@@ -31,15 +29,8 @@ export const ensureUserRecord = async (userId: string, email: string): Promise<v
           created_at: new Date().toISOString()
         });
 
-      if (insertError) {
-        console.error('Error creating user record:', insertError);
-      } else {
-        console.log(`User record created for ${userId}`);
-      }
-    } else {
-      console.log(`User record already exists for ${userId}`);
     }
   } catch (error) {
-    console.error('Exception in ensureUserRecord:', error);
+    console.error('Error ensuring user record:', error);
   }
 };

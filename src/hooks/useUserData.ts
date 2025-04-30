@@ -31,12 +31,12 @@ export const useUserData = () => {
 
     // Skip if already fetched and no force refresh requested
     if (hasFetchedRef.current && !forceRefresh) {
-      console.log('useUserData: Skipping fetch - profile already loaded');
+      // Skip fetch - profile already loaded
       return;
     }
 
     try {
-      console.log('useUserData: Fetching user profile...');
+      // Fetch user profile
       setLoading(true);
       const { data, error } = await supabase
         .from('users')
@@ -51,7 +51,6 @@ export const useUserData = () => {
       setProfile(data as UserProfile);
       hasFetchedRef.current = true;
     } catch (err) {
-      console.error('Error fetching user profile:', err);
       setError(err instanceof Error ? err : new Error('Failed to fetch user profile'));
     } finally {
       setLoading(false);
@@ -77,7 +76,6 @@ export const useUserData = () => {
       setProfile(prev => prev ? { ...prev, ...updates } : data as UserProfile);
       return { data, error: null };
     } catch (err) {
-      console.error('Error updating user profile:', err);
       return { data: null, error: err instanceof Error ? err : new Error('Failed to update profile') };
     }
   }, [user]);

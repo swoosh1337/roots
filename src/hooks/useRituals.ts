@@ -10,6 +10,7 @@ import {
   chainUserRituals,
   deleteUserRitual
 } from '@/utils/ritualOperations';
+import { v4 as uuidv4 } from 'uuid';
 
 export type { Ritual };
 
@@ -33,34 +34,27 @@ export const useRituals = (targetUserId?: string) => {
   // Memoize the fetchRituals function to prevent recreations
   const fetchRituals = useCallback(async (forceRefresh = false) => {
     const userIdToFetch = targetUserId || user?.id;
-    // console.log(`Executing fetchRituals: forceRefresh=${forceRefresh}, userId=${userIdToFetch}, hasFetched=${hasFetched}`); // Keep commented out for future debug if needed
 
     // Prevent refetch if already fetched and not forcing
     if (hasFetched && !forceRefresh) {
-      // console.log("fetchRituals: Already fetched and not forcing refresh. Skipping.");
       return;
     }
 
     if (!userIdToFetch) {
-      // console.log('fetchRituals: No userId, returning.');
       return;
     }
 
     try {
-      // console.log('fetchRituals: Setting loading true.');
       setLoading(true);
-      // console.log('fetchRituals: Calling fetchUserRituals...');
       const fetchedRituals = await fetchUserRituals(userIdToFetch);
-      // console.log('fetchRituals: fetchUserRituals completed, updating state.');
       updateRituals(fetchedRituals);
       setHasFetched(true); // Set fetched flag *after* successful fetch and update
       showError(null); // Clear any previous errors
     } catch (err: unknown) {
-      console.error('fetchRituals: Error occurred.', err);
+      showError('Failed to load rituals.');
       showError('Failed to load rituals.');
       // Consider if hasFetched should be reset on error
     } finally {
-      // console.log('fetchRituals: Setting loading false.');
       setLoading(false);
     }
   }, [user?.id, targetUserId, hasFetched, updateRituals, setLoading, showError, setHasFetched]); // Add hasFetched dependency
@@ -147,21 +141,25 @@ export const useRituals = (targetUserId?: string) => {
     }
 
     try {
-      await chainUserRituals(ritualIds, user.id);
-      // Update local state for all rituals in the chain
-      const newChainId = ritualIds[0]; // Use first ritual ID as reference
-      ritualIds.forEach(id => {
-        updateRitual(id, { 
-          status: 'chained', 
-          chain_id: newChainId 
-        });
-      });
-      fetchRituals(true); // Force refresh after successful chaining
+      console.log('Chain rituals in this order:', ritualIds);
+      
+      // Call the API to chain the rituals with their order
+      // The chainUserRituals function now returns the chain ID
+      const chainId = await chainUserRituals(ritualIds, user.id);
+      console.log(`Chain successfully updated in DB with ID: ${chainId}`);
+      
+      // Remove the immediate local update loop.
+      // We will rely on the fetchRituals call below to get the 
+      // latest state including the chain_order set in the database.
+      
+      // Force refresh to get the updated data from the server
+      console.log('Refetching rituals to update UI with correct chain order...');
+      fetchRituals(true);
     } catch (err) {
       showError("There was a problem linking your rituals.");
       throw err;
     }
-  }, [isOwnRituals, user, updateRitual, showError, fetchRituals]);
+  }, [isOwnRituals, user, showError, fetchRituals]);
 
   const handleDeleteRitual = useCallback(async (id: string) => {
     if (!isOwnRituals || !user) {
@@ -206,12 +204,9 @@ export const useRituals = (targetUserId?: string) => {
   // Effect to fetch initial data or when user/targetUser changes
   useEffect(() => {
     const userIdToFetch = targetUserId || user?.id;
-    // console.log(`Effect run: userId=${userIdToFetch}`);
     if (userIdToFetch) {
-      // console.log("Effect condition met (userId exists): Calling fetchRituals(false)...");
       fetchRituals(false); // Let fetchRituals handle the 'hasFetched' check
     } else {
-      // console.log("Effect: No user ID, resetting state.");
       // If no user/target user, reset state (important for logout)
       updateRituals([]);
       setLoading(false);

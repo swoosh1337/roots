@@ -33,15 +33,15 @@ export function useFriendships() {
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchFriendships = useCallback(async (forceRefresh = false) => {
-    console.log("Executing fetchFriendships...");
+    // Fetch friendships data
     
     if (!user) return;
     
     try {
-      console.log('useFriendships: Fetching friendships data...');
+      // Fetch friendships data
       setLoading(true);
       
-      console.log("Supabase: Fetching friends as sender...");
+      // Fetch friends as sender
       // Fetch accepted friendships where the current user is the sender
       const { data: friendsAsSender, error: senderError } = await supabase
         .from('friendships')
@@ -57,7 +57,7 @@ export function useFriendships() {
 
       if (senderError) throw senderError;
 
-      console.log("Supabase: Fetching friends as receiver...");
+      // Fetch friends as receiver
       // Fetch accepted friendships where the current user is the receiver
       const { data: friendsAsReceiver, error: receiverError } = await supabase
         .from('friendships')
@@ -83,7 +83,7 @@ export function useFriendships() {
         // Determine which user is the friend (not the current user)
         const friendId = friendship.sender_id === user.id ? friendship.receiver_id : friendship.sender_id;
         
-        console.log("Supabase: Fetching user details for friend...");
+        // Fetch user details for friend
         // Fetch friend details from users table
         const { data: friendDetails, error: userError } = await supabase
           .from('users') // Use users table
@@ -92,7 +92,6 @@ export function useFriendships() {
           .single();
 
         if (userError) {
-          console.error(`Error fetching details for user ${friendId}:`, userError);
           friendsList.push({
             id: friendId,
             name: 'Error loading name',
@@ -113,7 +112,7 @@ export function useFriendships() {
             habits: []
           });
         } else {
-          console.warn(`No details found for user ${friendId}`);
+          // No details found for user
           friendsList.push({
             id: friendId,
             name: 'Unknown',
@@ -123,7 +122,7 @@ export function useFriendships() {
         }
       }
 
-      console.log("Supabase: Fetching incoming requests...");
+      // Fetch incoming requests
       // Fetch incoming requests
       const { data: incomingReqs } = await supabase
         .from('friendships')
@@ -142,7 +141,7 @@ export function useFriendships() {
       
       if (incomingReqs) {
         for (const request of incomingReqs) {
-          console.log("Supabase: Fetching sender details for incoming request...");
+          // Fetch sender details for incoming request
           // Fetch sender details from users table
           const { data: senderData, error: senderError } = await supabase
             .from('users') // Use users table
@@ -150,10 +149,7 @@ export function useFriendships() {
             .eq('id', request.sender_id)
             .single();
             
-          // Handle potential error fetching user details
-          if (senderError) {
-            console.error(`Error fetching details for sender ${request.sender_id}:`, senderError);
-          }
+          
 
           if (senderData) {
             // Extract username from email as fallback if no full_name exists
@@ -172,7 +168,7 @@ export function useFriendships() {
         }
       }
 
-      console.log("Supabase: Fetching sent requests...");
+      // Fetch sent requests
       // Fetch sent requests
       const { data: sentReqs } = await supabase
         .from('friendships')
@@ -191,7 +187,7 @@ export function useFriendships() {
       
       if (sentReqs) {
         for (const request of sentReqs) {
-          console.log("Supabase: Fetching receiver details for sent request...");
+          // Fetch receiver details for sent request
           // Fetch receiver details from users table
           const { data: receiverData, error: receiverError } = await supabase
             .from('users') // Use users table
@@ -200,9 +196,7 @@ export function useFriendships() {
             .single();
             
           // Handle potential error fetching user details
-          if (receiverError) {
-            console.error(`Error fetching details for receiver ${request.receiver_id}:`, receiverError);
-          }
+          
 
           if (receiverData) {
             // Extract username from email as fallback if no full_name exists
@@ -226,7 +220,7 @@ export function useFriendships() {
       setSentRequests(sentList);
       setHasFetchedFriendships(true);
     } catch (error) {
-      console.error('Error fetching friendships:', error);
+      // Handle error silently in production
       toast({
         title: "Error",
         description: "Failed to load friends list. Please try again.",
@@ -249,7 +243,7 @@ export function useFriendships() {
     }
 
     try {
-      console.log("Supabase: Checking for existing friendship/request...");
+      // Check for existing friendship/request
       // 2. Check for existing friendship or pending request
       const { data: existingFriendship, error: checkError } = await supabase
         .from('friendships')
@@ -258,7 +252,7 @@ export function useFriendships() {
         .maybeSingle(); // Expect 0 or 1 result
 
       if (checkError) {
-        console.error('Error checking existing friendship:', checkError);
+        // Handle error silently in production
         throw new Error("Database error checking friendship status."); // Throw generic DB error
       }
 
@@ -278,7 +272,7 @@ export function useFriendships() {
       }
 
       // 4. No existing relationship, proceed with insert
-      console.log("Supabase: Inserting new friendship record...");
+      // Insert new friendship record
       const { error: insertError } = await supabase
         .from('friendships')
         .insert({
@@ -288,7 +282,7 @@ export function useFriendships() {
         });
 
       if (insertError) {
-         console.error('Error inserting friend request:', insertError);
+         // Handle error silently in production
          // Check for specific DB errors if necessary (e.g., constraints like unique index)
          // Example: Check for unique violation code (e.g., '23505' in PostgreSQL)
          if (insertError.code === '23505') {
@@ -307,7 +301,6 @@ export function useFriendships() {
 
       // OPTIONAL: Update local state optimistically (kept from previous version)
       // This avoids waiting for the real-time update or a manual refresh
-      console.log("Supabase: Fetching receiver details for sent request...");
       const { data: receiverData } = await supabase
         .from('users')
         .select('full_name, profile_img_url, email')
@@ -334,7 +327,6 @@ export function useFriendships() {
 
       fetchFriendships(true); // Force refresh
     } catch (error: unknown) {
-      console.error('Error in sendRequest hook:', error);
       
       let shouldShowToast = true; // Flag to control generic toast
 
@@ -371,7 +363,7 @@ export function useFriendships() {
   const acceptRequest = useCallback(async (requestId: string) => {
     if (!user) return; // Add check for user
     try {
-      console.log(`Supabase: Updating friendship ${requestId} to accepted...`);
+      // Update friendship to accepted status
       const { error } = await supabase
         .from('friendships')
         .update({ status: 'accepted' })
@@ -402,7 +394,6 @@ export function useFriendships() {
 
       fetchFriendships(true); // Force refresh
     } catch (error) {
-      console.error('Error accepting friend request:', error);
       toast({
         title: "Error",
         description: "Failed to accept friend request. Please try again.",
@@ -414,7 +405,7 @@ export function useFriendships() {
   const rejectRequest = useCallback(async (requestId: string) => {
     if (!user) return; // Ensure user context is available
     try {
-      console.log(`Supabase: Deleting friendship ${requestId}...`);
+      // Delete friendship request
       const { error } = await supabase
         .from('friendships')
         .delete()
@@ -433,7 +424,6 @@ export function useFriendships() {
 
       fetchFriendships(true); // Force refresh
     } catch (error) {
-      console.error('Error rejecting friend request:', error);
       toast({
         title: "Error",
         description: "Failed to reject friend request. Please try again.",
@@ -451,7 +441,7 @@ export function useFriendships() {
 
     // Fetch only if we have a user AND haven't fetched successfully yet
     if (user && !hasFetchedFriendships) {
-      console.log("Initial fetch triggered by useEffect");
+      // Initial fetch triggered by useEffect
       fetchFriendships();
     } else if (!user) {
       // If user logs out, reset state
@@ -464,7 +454,7 @@ export function useFriendships() {
 
     // Set up subscription only once
     if (!channelRef.current) {
-      console.log('Setting up real-time subscription for friendship changes');
+      // Set up real-time subscription for friendship changes
       
       const channel = supabase
         .channel('friendship-changes')
@@ -477,7 +467,7 @@ export function useFriendships() {
             filter: `sender_id=eq.${user.id}`,
           },
           () => {
-            console.log('Real-time update detected (sender)');
+            // Real-time update detected (sender)
             fetchFriendships(true);
           }
         )
@@ -490,7 +480,7 @@ export function useFriendships() {
             filter: `receiver_id=eq.${user.id}`,
           },
           () => {
-            console.log('Real-time update detected (receiver)');
+            // Real-time update detected (receiver)
             fetchFriendships(true);
           }
         )
@@ -502,13 +492,13 @@ export function useFriendships() {
     // Cleanup subscription on unmount
     return () => {
       if (channelRef.current) {
-        console.log('Cleaning up friendship subscription');
+        // Clean up friendship subscription
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
       debouncedFetchFriendships.cancel();
     };
-  }, [user, fetchFriendships, hasFetchedFriendships]);
+  }, [user, fetchFriendships, hasFetchedFriendships, debouncedFetchFriendships]);
 
   return {
     friends,

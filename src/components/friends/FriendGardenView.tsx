@@ -27,8 +27,6 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
   // Fetch friend's basic info for the header
   useEffect(() => {
     const fetchFriendData = async () => {
-      console.log("Fetching friend data for ID:", friendId);
-
       try {
         const { data, error } = await supabase
           .from('users')
@@ -37,7 +35,6 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
           .single();
 
         if (error) {
-          console.error("Error fetching friend data:", error);
           toast({
             title: "Error Loading Friend",
             description: "Could not load friend information.",
@@ -54,7 +51,6 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
         }
 
         if (data) {
-          console.log("Friend data retrieved:", data);
           // Extract username from email as fallback if no full_name exists
           const emailUsername = data.email ? data.email.split('@')[0] : null;
 
@@ -65,7 +61,6 @@ const FriendGardenView: React.FC<FriendGardenViewProps> = ({ friendId, onClose }
           });
         }
       } catch (err) {
-        console.error("Exception fetching friend data:", err);
         setFriend({
           id: friendId,
           name: 'Friend',
