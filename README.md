@@ -1,73 +1,94 @@
-# Welcome to your Lovable project
+# Roots and Ritual
 
-## Project info
+![Roots and Ritual](https://sakeurhfemssebptfycs.supabase.co/storage/v1/object/public/tree-imgs//tree-stage-3.png)
 
-**URL**: https://lovable.dev/projects/f07aa655-7413-4115-aa19-51b7b2a6a7cd
+Roots and Ritual is a habit-building application that helps users cultivate positive daily routines through visual growth metaphors and streak tracking. Watch your habits grow like trees as you maintain your daily rituals.
 
-## How can I edit this code?
+## Tech Stack
 
-There are several ways of editing your application.
+This project is built with modern web technologies:
 
-**Use Lovable**
+- **Frontend Framework**: React with TypeScript
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
+- **UI Components**: shadcn/ui
+- **Animations**: Framer Motion
+- **Backend/Database**: Supabase (Authentication, Database, Storage)
+- **State Management**: React Hooks and Context API
+- **Routing**: React Router
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f07aa655-7413-4115-aa19-51b7b2a6a7cd) and start prompting.
+## Features
 
-Changes made via Lovable will be committed automatically to this repo.
+- 🌱 Visual tree growth that represents habit streaks
+- 🔥 Streak tracking and statistics
+- 👥 User authentication and profiles
+- 📊 Progress visualization
+- 📱 Responsive design for all devices
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js (v16+)
+- npm or yarn
+- A Supabase account for backend services
 
-Follow these steps:
+### Environment Setup
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Clone the repository
+```bash
+git clone https://github.com/swoosh1337/roots-and-ritual.git
+cd roots-and-ritual
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Create a `.env` file in the root directory with your Supabase credentials:
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-**Use GitHub Codespaces**
+### Running the Application
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-## What technologies are used for this project?
+The application will be available at `http://localhost:8080`
 
-This project is built with:
+## Development
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Project Structure
 
-## How can I deploy this project?
+- `/src` - Source code
+  - `/components` - Reusable UI components
+  - `/hooks` - Custom React hooks
+  - `/pages` - Page components
+  - `/integrations` - External service integrations (Supabase)
+  - `/styles` - Global styles
 
-Simply open [Lovable](https://lovable.dev/projects/f07aa655-7413-4115-aa19-51b7b2a6a7cd) and click on Share -> Publish.
+### Building for Production
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+npm run build
+# or
+yarn build
+```
 
-Yes it is!
+## License
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Acknowledgments
+
+- Inspired by habit-building apps and growth mindset principles
+- Tree visualization concept draws from nature's growth patterns
+- Built with ❤️ by the Roots and Ritual team

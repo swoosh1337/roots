@@ -194,7 +194,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUpWithEmail = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -203,19 +203,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) throw error;
+      
+      // Check if email confirmation is enabled in Supabase
+      // If it is, the user will need to confirm their email
+      // If not, they will be automatically signed in
+      if (data?.user?.identities?.length === 0) {
+        toast({
+          title: "Account already exists",
+          description: "Please log in or reset your password",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      toast({
-        title: "Registration successful! 🌱",
-        description: "Please check your email to confirm your account.",
-        className: "bg-ritual-green/20 border-ritual-green text-ritual-forest",
-      });
+      if (data?.user?.confirmed_at) {
+        // User is already confirmed (email confirmation disabled)
+        toast({
+          title: "Registration successful! 🌱",
+          description: "Your account has been created. You can now log in.",
+          className: "bg-ritual-green/20 border-ritual-green text-ritual-forest",
+        });
+      } else {
+        // User needs to confirm email
+        toast({
+          title: "Registration successful! 🌱",
+          description: "Please check your email to confirm your account.",
+          className: "bg-ritual-green/20 border-ritual-green text-ritual-forest",
+        });
+      }
     } catch (error) {
       console.error("Error signing up:", error);
-      toast({
-        title: "Registration Failed",
-        description: error instanceof Error ? error.message : "Please try again",
-        variant: "destructive",
-      });
+      
+      // Special handling for email sending errors
+      if (error instanceof Error && error.message.includes("sending confirmation email")) {
+        toast({
+          title: "Registration Issue",
+          description: "Account created but couldn't send confirmation email. Please contact support.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Registration Failed",
+          description: error instanceof Error ? error.message : "Please try again",
+          variant: "destructive",
+        });
+      }
       throw error;
     }
   };
