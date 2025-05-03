@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        <Analytics />
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
