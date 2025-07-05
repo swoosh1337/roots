@@ -408,6 +408,8 @@ const LandingPage: React.FC = () => {
             
             <div className="flex space-x-6 text-sm text-ritual-forest/60">
               <a href="mailto:support@rootsgarden.app" className="hover:text-ritual-forest transition-colors">Support</a>
+              <Link to="/privacy" className="hover:text-ritual-forest transition-colors">Privacy Policy</Link>
+              <Link to="/terms" className="hover:text-ritual-forest transition-colors">Terms of Service</Link>
             </div>
           </div>
           
